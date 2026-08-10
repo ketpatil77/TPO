@@ -1,0 +1,35 @@
+{
+  "name": "tpo-placement-portal",
+  "version": "1.0.0",
+  "description": "TPO Placement Management Web Application - Student & Admin Portal",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "seed": "node scripts/seed_roster.js",
+    "test:part1": "npm test",
+    "test:part2": "npm test",
+    "test": "node --test --test-concurrency=1 test/*.test.js",
+    "check": "node --check src/server.js && node --test --test-concurrency=1 test/*.test.js",
+    "deploy": "npx wrangler deploy",
+    "deploy:dry-run": "npx wrangler deploy --dry-run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
+    "express": "5.2.1",
+    "express-rate-limit": "8.6.2",
+    "helmet": "8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "zod": "4.1.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260810.1",
+    "supertest": "7.1.4",
+    "wrangler": "4.120.0"
+  }
+}

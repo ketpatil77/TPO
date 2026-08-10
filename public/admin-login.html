@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TPO Officer Login - Placement Portal</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container navbar-inner">
+            <a href="/admin" class="brand">
+                <div class="brand-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">TPO</div>
+                <div>
+                    <div class="brand-title">Admin & TPO Officer Portal</div>
+                    <div class="brand-subtitle">Training & Placement Cell</div>
+                </div>
+            </a>
+            <span class="badge badge-online" style="background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
+                🛡️ Admin Area
+            </span>
+        </div>
+    </nav>
+
+    <main class="auth-wrapper">
+        <div class="glass-card auth-card">
+            <div class="auth-header">
+                <h2>TPO Officer Access</h2>
+                <p>Sign in with your authorized TPO account</p>
+            </div>
+
+            <div id="alertBox" style="display: none;" class="form-group"></div>
+
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label class="form-label" for="email">Admin Email</label>
+                    <input type="email" id="email" class="form-input" required autofocus autocomplete="username">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" class="form-input" required autocomplete="current-password" minlength="8">
+                    <span class="form-hint">Format: <strong>Tpo</strong> followed by today's date in <strong>DDMMYY</strong> format.</span>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem; background: linear-gradient(135deg, #4f46e5, #9333ea);">
+                    Unlock Admin Dashboard →
+                </button>
+            </form>
+
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); text-align: center;">
+                <p style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 0.75rem;">Need to test quickly?</p>
+                <button class="btn btn-secondary btn-sm" onclick="fillTodayPassword()">
+                    🔑 Auto-fill Today's Password
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="/js/security.js"></script>
+    <script src="/js/admin-login.js"></script>
+</body>
+</html>

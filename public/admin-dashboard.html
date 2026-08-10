@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - TPO Placement Portal</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .data-table th, .data-table td {
+            padding: 1rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table th {
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text-heading);
+            font-weight: 600;
+        }
+
+        .data-table tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+        }
+
+        .upload-dropzone {
+            border: 2px dashed var(--border-glow);
+            border-radius: var(--radius-lg);
+            padding: 3rem 2rem;
+            text-align: center;
+            background: rgba(99, 102, 241, 0.03);
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .upload-dropzone:hover {
+            background: rgba(99, 102, 241, 0.08);
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container navbar-inner">
+            <a href="/admin/dashboard" class="brand">
+                <div class="brand-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">TPO</div>
+                <div>
+                    <div class="brand-title">Admin Placement Console</div>
+                    <div class="brand-subtitle">TPO Management System</div>
+                </div>
+            </a>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span class="badge badge-online">Administrator</span>
+                <button id="adminLogoutBtn" class="btn btn-secondary btn-sm">Sign Out 🚪</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container dashboard-wrapper">
+        <!-- Header Banner -->
+        <div class="glass-card header-banner" style="margin-bottom: 1.5rem;">
+            <div>
+                <h2>Placement Statistics & Directory</h2>
+                <p>Manage student profiles, bulk upload roster datasets, and export placement reports.</p>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <div style="background: rgba(0,0,0,0.3); padding: 0.75rem 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Filtered Students</div>
+                    <div id="statFilteredCount" style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">0</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 0.75rem 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Total Roster</div>
+                    <div id="statRosterCount" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" onclick="switchAdminTab('students')">👥 Students Database</button>
+            <button class="tab-btn" onclick="switchAdminTab('roster')">📤 Roster CSV Upload</button>
+            <button class="tab-btn" onclick="switchAdminTab('audit-logs')">📜 Audit Trail Logs</button>
+            <button class="tab-btn" onclick="switchAdminTab('jd-matching')">🎯 JD Matching (Part 3)</button>
+        </div>
+
+        <!-- TAB 1: STUDENTS DATABASE & FILTERS -->
+        <div id="tab-students" class="tab-content active">
+            <!-- Filter Bar -->
+            <div class="glass-card filter-bar">
+                <div style="flex: 1; min-width: 180px;">
+                    <label class="form-label" style="font-size: 0.8rem;">Filter by Branch</label>
+                    <select id="filterBranch" class="form-select" onchange="applyFilters()">
+                        <option value="all">All Branches</option>
+                    </select>
+                </div>
+
+                <div style="flex: 1; min-width: 150px;">
+                    <label class="form-label" style="font-size: 0.8rem;">Min Overall CGPA</label>
+                    <input type="number" id="filterMinCgpa" class="form-input" step="0.1" min="0" max="10" placeholder="e.g. 7.5" oninput="applyFilters()">
+                </div>
+
+                <div style="flex: 2; min-width: 250px;">
+                    <label class="form-label" style="font-size: 0.8rem;">Keyword Search</label>
+                    <input type="text" id="filterSearch" class="form-input" placeholder="Search by student name, company, activity, cert..." oninput="applyFilters()">
+                </div>
+
+                <div style="display: flex; align-items: flex-end; gap: 0.5rem; margin-top: 1.25rem;">
+                    <button class="btn btn-secondary btn-sm" onclick="resetFilters()">Reset</button>
+                    <button class="btn btn-primary btn-sm" onclick="exportData('csv')">📥 Export CSV</button>
+                    <button class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #10b981, #059669);" onclick="exportData('excel')">📊 Export Excel (.xlsx)</button>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="glass-card" style="overflow-x: auto; padding: 0;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>PRN</th>
+                            <th>Student Name</th>
+                            <th>Branch & Class</th>
+                            <th>Year</th>
+                            <th>CGPA</th>
+                            <th>Internships</th>
+                            <th>Certificates</th>
+                            <th>Diploma</th>
+                            <th>Resume</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                        <tr><td colspan="10" style="text-align: center; padding: 2rem;">Loading student database...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 2: ROSTER BULK CSV UPLOAD -->
+        <div id="tab-roster" class="tab-content">
+            <div class="glass-card" style="padding: 2rem; max-width: 800px; margin: 0 auto;">
+                <h3 style="margin-bottom: 0.5rem;">Bulk Preload Roster Dataset</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    Upload a CSV file containing college roster data. Expected columns: <code>prn, name, dob, branch, class, year</code>. 
+                    Re-uploading updates existing PRN records without creating duplicates.
+                </p>
+
+                <div id="dropzone" class="upload-dropzone" onclick="document.getElementById('csvFileInput').click()">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📄</div>
+                    <h4>Click or Drag & Drop CSV File Here</h4>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Supports standard CSV formatting</p>
+                    <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display: none;" onchange="handleFileSelected(event)">
+                </div>
+
+                <div id="selectedFileInfo" style="display: none; margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid var(--border-color);">
+                    📁 <strong id="selectedFileName">file.csv</strong> (<span id="selectedFileSize">0 KB</span>)
+                </div>
+
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label class="form-label">Or Paste Raw CSV Data Directly:</label>
+                    <textarea id="rawCsvText" class="form-textarea" rows="5" placeholder="prn,name,dob,branch,class,year&#10;24053651251520,Amit Kumar,150803,Computer Engineering,BE-A,Final Year"></textarea>
+                </div>
+
+                <button id="uploadRosterBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="submitRosterUpload()">
+                    📤 Process & Upsert Roster Dataset
+                </button>
+
+                <div id="uploadSummaryBox" style="display: none; margin-top: 1.5rem; padding: 1.25rem; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color);">
+                    <h4>Upload Results Summary</h4>
+                    <div class="grid-4" style="margin-top: 0.75rem;">
+                        <div style="background: rgba(16,185,129,0.1); padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid rgba(16,185,129,0.3);">
+                            <span style="font-size: 0.75rem; color: #6ee7b7;">Added</span>
+                            <div id="sumAdded" style="font-size: 1.4rem; font-weight: 700; color: #10b981;">0</div>
+                        </div>
+                        <div style="background: rgba(99,102,241,0.1); padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid rgba(99,102,241,0.3);">
+                            <span style="font-size: 0.75rem; color: #a5b4fc;">Updated</span>
+                            <div id="sumUpdated" style="font-size: 1.4rem; font-weight: 700; color: #6366f1;">0</div>
+                        </div>
+                        <div style="background: rgba(239,68,68,0.1); padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid rgba(239,68,68,0.3);">
+                            <span style="font-size: 0.75rem; color: #fca5a5;">Failed</span>
+                            <div id="sumFailed" style="font-size: 1.4rem; font-weight: 700; color: #ef4444;">0</div>
+                        </div>
+                    </div>
+                    <div id="uploadErrorList" style="margin-top: 1rem; font-size: 0.85rem; color: #fca5a5;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: AUDIT TRAIL LOGS -->
+        <div id="tab-audit-logs" class="tab-content">
+            <div class="section-header">
+                <h3>System Audit Trail Logs</h3>
+                <button class="btn btn-secondary btn-sm" onclick="loadAuditLogs()">🔄 Refresh Logs</button>
+            </div>
+            <div class="glass-card" style="overflow-x: auto; padding: 0;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Action</th>
+                            <th>Target Table</th>
+                            <th>Target ID</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditLogsTableBody">
+                        <tr><td colspan="5" style="text-align: center; padding: 2rem;">Loading audit logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 4: JD MATCHING -->
+        <div id="tab-jd-matching" class="tab-content">
+            <div class="responsive-two-column">
+                <form id="driveForm" class="glass-card" style="padding: 1.5rem;">
+                    <h3>Create Placement Drive</h3>
+                    <div class="form-group"><label class="form-label" for="driveCompany">Company</label><input id="driveCompany" class="form-input" required maxlength="150"></div>
+                    <div class="form-group"><label class="form-label" for="driveRole">Role</label><input id="driveRole" class="form-input" required maxlength="150"></div>
+                    <div class="form-group"><label class="form-label" for="driveJd">Job Description</label><textarea id="driveJd" class="form-textarea" rows="8" minlength="20" maxlength="50000" required></textarea></div>
+                    <div class="form-group"><label class="form-label" for="driveCgpa">Minimum CGPA</label><input id="driveCgpa" type="number" class="form-input" min="0" max="10" step="0.01" value="0"></div>
+                    <div class="form-group"><label class="form-label" for="driveBranches">Eligible branches</label><input id="driveBranches" class="form-input" placeholder="Computer Engineering, IT"></div>
+                    <div class="form-group"><label class="form-label" for="driveRequiredSkills">Required skills</label><input id="driveRequiredSkills" class="form-input" placeholder="JavaScript, SQL"></div>
+                    <div class="form-group"><label class="form-label" for="drivePreferredSkills">Preferred skills</label><input id="drivePreferredSkills" class="form-input"></div>
+                    <div class="form-group"><label class="form-label" for="driveKeywords">JD keywords</label><input id="driveKeywords" class="form-input" placeholder="backend, cloud, API"></div>
+                    <button class="btn btn-primary" type="submit">Create and Match</button>
+                </form>
+                <section class="glass-card" style="padding: 1.5rem;">
+                    <h3>Placement Drives</h3>
+                    <div id="drivesList" class="stack-list" aria-live="polite">Loading…</div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Student Detail View Modal -->
+    <div id="studentDetailModal" class="modal-backdrop">
+        <div class="glass-card modal-card" style="max-width: 750px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3 id="modalStudentName">Student Details</h3>
+                <button class="close-btn" onclick="closeStudentModal()">&times;</button>
+            </div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="/js/security.js"></script>
+    <script src="/js/admin-dashboard.js"></script>
+</body>
+</html>

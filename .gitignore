@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.*
+!.env.example
+coverage/
+.wrangler/
+supabase/.temp/
+.dev.vars
+data/db.test.json
+data/db.json
+*.log
+*.cpuprofile

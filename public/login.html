@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login - TPO Placement Portal</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container navbar-inner">
+            <a href="/" class="brand">
+                <div class="brand-icon">TPO</div>
+                <div>
+                    <div class="brand-title">Placement Portal</div>
+                    <div class="brand-subtitle">Training & Placement Cell</div>
+                </div>
+            </a>
+            <span class="badge badge-info">Student Access</span>
+        </div>
+    </nav>
+
+    <main class="auth-wrapper">
+        <div class="glass-card auth-card">
+            <div class="auth-header">
+                <h2>Student Portal Login</h2>
+                <p>Enter your PRN and Date of Birth to access your placement profile</p>
+            </div>
+
+            <div id="alertBox" style="display: none;" class="form-group"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="prn">PRN (Permanent Registration Number)</label>
+                    <input type="text" id="prn" class="form-input" placeholder="e.g. 24053651251515" required autofocus autocomplete="username">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="dob">Date of Birth Password (DDMMYY)</label>
+                    <input type="password" id="dob" class="form-input" placeholder="e.g. 310703" maxlength="6" required autocomplete="current-password">
+                    <span class="form-hint">Example: For July 31, 2003 enter <strong>310703</strong></span>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                    Sign In to Portal →
+                </button>
+            </form>
+
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); text-align: center;">
+                <p style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 0.75rem;">Sample Credentials for Quick Demo:</p>
+                <div style="display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <button class="btn btn-secondary btn-sm" onclick="fillDemo('24053651251515', '310703')">
+                        Rahul Sharma (Computer)
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="fillDemo('24053651251516', '150104')">
+                        Priya Patel (IT)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="/js/security.js"></script>
+    <script src="/js/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - TPO Placement Portal</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container navbar-inner">
+            <a href="/dashboard" class="brand">
+                <div class="brand-icon">TPO</div>
+                <div>
+                    <div class="brand-title">Placement Portal</div>
+                    <div class="brand-subtitle">Student Workspace</div>
+                </div>
+            </a>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span id="navStudentPrn" class="badge badge-info">PRN: --</span>
+                <button id="logoutBtn" class="btn btn-secondary btn-sm">Sign Out 🚪</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container dashboard-wrapper">
+        <!-- Header Profile Banner -->
+        <div class="glass-card header-banner">
+            <div class="student-meta">
+                <div id="studentAvatar" class="student-avatar">?</div>
+                <div class="student-info">
+                    <h2 id="studentName">Loading Student Profile...</h2>
+                    <p>
+                        <span id="studentBranch">Branch: --</span> • 
+                        <span id="studentClass">Class: --</span> • 
+                        <span id="studentYear">Year: --</span>
+                    </p>
+                </div>
+            </div>
+            <div>
+                <span id="overallCgpaBadge" class="badge badge-online" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                    CGPA: --
+                </span>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" onclick="switchTab('overview')">📊 Overview & Summary</button>
+            <button class="tab-btn" onclick="switchTab('edit-profile')">✏️ Edit Profile & CGPA</button>
+            <button class="tab-btn" onclick="switchTab('internships')">💼 Internships (<span id="internshipCount">0</span>)</button>
+            <button class="tab-btn" onclick="switchTab('certificates')">📜 Certificates (<span id="certCount">0</span>)</button>
+            <button class="tab-btn" onclick="switchTab('diploma')">🎓 Diploma Details (Optional)</button>
+        </div>
+
+        <!-- TAB 1: OVERVIEW -->
+        <div id="tab-overview" class="tab-content active">
+            <div class="grid-2">
+                <!-- Academic Stats Card -->
+                <div class="glass-card" style="padding: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;">Academic Performance</h3>
+                    <div class="grid-4" style="margin-bottom: 1.5rem;">
+                        <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-color);">
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Overall CGPA</span>
+                            <div id="overviewCgpa" style="font-size: 1.6rem; font-weight: 700; color: var(--accent);">--</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-color);">
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Resume Link</span>
+                            <div id="overviewResume" style="margin-top: 0.25rem;">Not Uploaded</div>
+                        </div>
+                    </div>
+
+                    <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-muted);">Semester-wise CGPA Breakdown:</h4>
+                    <div id="semestersGrid" class="grid-semesters"></div>
+                </div>
+
+                <!-- Activities & Quick Summary -->
+                <div class="glass-card" style="padding: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;">Extracurriculars & Highlights</h3>
+                    <div id="overviewActivities" style="white-space: pre-wrap; font-size: 0.95rem; min-height: 120px; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                        No activities recorded yet. Click 'Edit Profile' to add extracurricular accomplishments.
+                    </div>
+
+                    <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-muted);">Lateral Entry / Diploma Status:</h4>
+                    <div id="overviewDiplomaBadge">
+                        <span class="badge badge-offline">No Diploma Record</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: EDIT PROFILE -->
+        <div id="tab-edit-profile" class="tab-content">
+            <div class="glass-card" style="padding: 2rem; max-width: 800px; margin: 0 auto;">
+                <h3 style="margin-bottom: 1.5rem;">Edit Personal & Academic Profile</h3>
+                <form id="profileForm">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" id="editName" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">PRN (Read-Only)</label>
+                            <input type="text" id="editPrn" class="form-input" disabled style="opacity: 0.7;">
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Branch</label>
+                            <input type="text" id="editBranch" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Class</label>
+                            <input type="text" id="editClass" class="form-input" placeholder="e.g. BE-A" required>
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Year of Study</label>
+                            <select id="editYear" class="form-select" required>
+                                <option value="First Year">First Year</option>
+                                <option value="Second Year">Second Year</option>
+                                <option value="Third Year">Third Year</option>
+                                <option value="Final Year">Final Year</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Overall CGPA</label>
+                            <input type="number" step="0.01" min="0" max="10" id="editOverallCgpa" class="form-input" placeholder="e.g. 8.75" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label class="form-label">Semester-wise CGPA (Sem 1 to Sem 8)</label>
+                        <div class="grid-semesters" style="margin-top: 0.5rem;">
+                            <div>
+                                <label class="form-hint">Sem 1</label>
+                                <input type="number" step="0.01" min="0" max="10" id="sem1" class="form-input sem-input">
+                            </div>
+                            <div>
+                                <label class="form-hint">Sem 2</label>
+                                <input type="number" step="0.01" min="0" max="10" id="sem2" class="form-input sem-input">
+                            </div>
+                            <div>
+                                <label class="form-hint">Sem 3</label>
+                                <input type="number" step="0.01" min="0" max="10" id="sem3" class="form-input sem-input">
+                            </div>
+                            <div>
+                                <label class="form-hint">Sem 4</label>
+                                <input type="number" step="0.01" min="0" max="10" id="sem4" class="form-input sem-input">
+                            </div>
+                            <div>
+                                <label class="form-hint">Sem 5</label>
+                                <input type="number" step="0.01" min="0" max="10" id="sem5" class="form-input sem-input">
+                            </div>
+                            <div>
+                                <label class="form-hint">Sem 6</label>
+                                <input type="number" step="0.01" min="0" max="10" id="sem6" class="form-input sem-input">
+                            </div>
+                            <div>
+                                <label class="form-hint">Sem 7</label>
+                                <input type="number" step="0.01" min="0" max="10" id="sem7" class="form-input sem-input">
+                            </div>
+                            <div>
+                                <label class="form-hint">Sem 8</label>
+                                <input type="number" step="0.01" min="0" max="10" id="sem8" class="form-input sem-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label class="form-label" for="resumeFile">Private Resume PDF (maximum 5 MB)</label>
+                        <input type="file" id="resumeFile" class="form-input" accept="application/pdf,.pdf">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="editSkills">Skills</label>
+                        <input type="text" id="editSkills" class="form-input" placeholder="JavaScript, PostgreSQL, React">
+                        <div class="form-hint">Comma-separated. Duplicates are removed.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Extracurricular Activities & Achievements</label>
+                        <textarea id="editActivities" class="form-textarea" rows="4" placeholder="List technical competitions, leadership roles, open source projects..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">💾 Save Profile Changes</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- TAB 3: INTERNSHIPS -->
+        <div id="tab-internships" class="tab-content">
+            <div class="section-header">
+                <h3>Internship History</h3>
+                <button class="btn btn-primary btn-sm" onclick="openInternshipModal()">+ Add New Internship</button>
+            </div>
+            <div id="internshipsList"></div>
+        </div>
+
+        <!-- TAB 4: CERTIFICATES -->
+        <div id="tab-certificates" class="tab-content">
+            <div class="section-header">
+                <h3>Certifications & Training</h3>
+                <button class="btn btn-primary btn-sm" onclick="openCertificateModal()">+ Add New Certificate</button>
+            </div>
+            <div id="certificatesList"></div>
+        </div>
+
+        <!-- TAB 5: DIPLOMA DETAILS (OPTIONAL) -->
+        <div id="tab-diploma" class="tab-content">
+            <div class="glass-card" style="padding: 2rem; max-width: 700px; margin: 0 auto;">
+                <div class="section-header">
+                    <h3>Diploma / Lateral Entry Information</h3>
+                    <span class="badge badge-info">Optional</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    If you entered engineering directly via Lateral Entry / Diploma, please fill in your polytechnic diploma details below.
+                </p>
+
+                <form id="diplomaForm">
+                    <div class="form-group">
+                        <label class="form-label">Polytechnic / Diploma Institute Name</label>
+                        <input type="text" id="diplomaInstitute" class="form-input" placeholder="e.g. Government Polytechnic, Pune" required>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Diploma Branch</label>
+                            <input type="text" id="diplomaBranch" class="form-input" placeholder="e.g. Diploma in Computer Engineering" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Year of Passing</label>
+                            <input type="text" id="diplomaYear" class="form-input" placeholder="e.g. 2023" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Final Percentage / CGPA</label>
+                        <input type="text" id="diplomaScore" class="form-input" placeholder="e.g. 89.50% or 9.2 CGPA" required>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary">💾 Save Diploma Info</button>
+                        <button type="button" id="deleteDiplomaBtn" class="btn btn-danger" style="display: none;" onclick="deleteDiploma()">Delete Diploma Record</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for Internship -->
+    <div id="internshipModal" class="modal-backdrop">
+        <div class="glass-card modal-card">
+            <div class="modal-header">
+                <h3 id="internshipModalTitle">Add Internship</h3>
+                <button class="close-btn" onclick="closeInternshipModal()">&times;</button>
+            </div>
+            <form id="internshipForm">
+                <input type="hidden" id="internshipId">
+                <div class="form-group">
+                    <label class="form-label">Company Name</label>
+                    <input type="text" id="intCompany" class="form-input" required placeholder="e.g. TCS, Infosys, Startup Inc">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Role / Designation</label>
+                    <input type="text" id="intRole" class="form-input" required placeholder="e.g. Software Developer Intern">
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" id="intStartDate" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Date (Leave blank if ongoing)</label>
+                        <input type="date" id="intEndDate" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Internship Mode</label>
+                    <select id="intMode" class="form-select">
+                        <option value="offline">Offline / On-site</option>
+                        <option value="online">Online / Remote</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Internship</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Certificate -->
+    <div id="certificateModal" class="modal-backdrop">
+        <div class="glass-card modal-card">
+            <div class="modal-header">
+                <h3 id="certModalTitle">Add Certificate</h3>
+                <button class="close-btn" onclick="closeCertificateModal()">&times;</button>
+            </div>
+            <form id="certForm">
+                <input type="hidden" id="certId">
+                <div class="form-group">
+                    <label class="form-label">Certificate / Course Name</label>
+                    <input type="text" id="certName" class="form-input" required placeholder="e.g. AWS Certified Cloud Practitioner">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Issuing Organization</label>
+                    <input type="text" id="certIssuer" class="form-input" required placeholder="e.g. Coursera, Udemy, Amazon">
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Issue Date</label>
+                        <input type="date" id="certDate" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mode</label>
+                        <select id="certMode" class="form-select">
+                            <option value="online">Online Course</option>
+                            <option value="offline">Offline Workshop</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Certificate</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="/js/security.js"></script>
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

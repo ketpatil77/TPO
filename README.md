@@ -1,0 +1,50 @@
+# TPO Placement Portal
+
+Secure student and Training & Placement Officer portal with profiles, resumes, roster administration, exports, placement drives, deterministic candidate matching, shortlists, and audit logs.
+
+Live pilot: https://tpo-placement-portal.ketan-tpo-portal.workers.dev
+
+## Local development
+
+1. Copy `.env.example` to `.env` and set a random `JWT_SECRET` of at least 32 characters.
+2. Leave Supabase values empty for local JSON development. Resume upload and admin email login require Supabase.
+3. Run `npm install`, then `npm start`.
+4. Open `http://localhost:3000`.
+
+Tests use isolated `data/db.test.json` and never use configured Supabase:
+
+```powershell
+npm.cmd test
+npm.cmd run check
+```
+
+## Supabase setup
+
+1. Create a development Supabase project.
+2. Apply all versioned migrations using `npx.cmd supabase db push`.
+3. Create an admin in Supabase Auth.
+4. Insert its UUID into `public.profiles` using the commented SQL at the bottom of the migration.
+5. Put project URL and server-only service-role key in backend secrets. Never expose service role to browser code.
+
+## Cloudflare free pilot
+
+Set secrets:
+
+```powershell
+npx.cmd wrangler secret put JWT_SECRET
+npx.cmd wrangler secret put SUPABASE_URL
+npx.cmd wrangler secret put SUPABASE_KEY
+```
+
+Set `ALLOWED_ORIGINS` to deployed origin, test with `npm.cmd run deploy:dry-run`, then run `npm.cmd run deploy`.
+
+The current pilot Worker is deployed at the live URL above. After deployment, verify `/api/health` returns 200, `/api/roster` returns 404, and an unauthenticated `/api/admin/students` request returns 401.
+
+Cloudflare Workers serves static assets and Express API using current Node HTTP compatibility. Supabase Free may pause inactive projects and has storage/database quotas. Free pilot has no uptime SLA.
+
+## Security and operations
+
+- Export database and `resumes` bucket before migrations.
+- Never run legacy scripts against production; they mutate records.
+- Review Supabase Security and Performance Advisors after each migration.
+- Rotate any secret accidentally shared or committed.
