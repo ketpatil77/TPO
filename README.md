@@ -4,6 +4,8 @@ Secure student and Training & Placement Officer portal with profiles, resumes, r
 
 Live pilot: https://tpo-placement-portal.ketan-tpo-portal.workers.dev
 
+Operations and recovery: [`docs/OPERATIONS.md`](docs/OPERATIONS.md)
+
 ## Local development
 
 1. Copy `.env.example` to `.env` and set a random `JWT_SECRET` of at least 32 characters.
@@ -22,8 +24,8 @@ npm.cmd run check
 
 1. Create a development Supabase project.
 2. Apply all versioned migrations using `npx.cmd supabase db push`.
-3. Create an admin in Supabase Auth.
-4. Insert its UUID into `public.profiles` using the commented SQL at the bottom of the migration.
+3. Invite an admin through Supabase Auth.
+4. Insert its UUID into `public.profiles` with role `admin` and status `active`.
 5. Put project URL and server-only service-role key in backend secrets. Never expose service role to browser code.
 
 ## Cloudflare free pilot

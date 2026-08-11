@@ -10,7 +10,7 @@ const router = express.Router();
 
 /**
  * @route   POST /api/admin/auth/login
- * @desc    Admin login with dynamic server-computed Tpo+DDMMYY password
+ * @desc    Admin login through Supabase email/password authentication
  */
 const adminLoginLimit = rateLimit({ windowMs: 15 * 60 * 1000, limit: 8, standardHeaders: 'draft-8', legacyHeaders: false });
 
@@ -59,7 +59,8 @@ router.post('/login', adminLoginLimit, validate(adminLoginSchema), async (req, r
             admin: { email: authData.user.email }
         });
     } catch (err) {
-        return res.status(500).json({ success: false, error: err.message });
+        console.error({ event: 'admin_login_failed', message: err.message });
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to complete authentication.' } });
     }
 });
 
