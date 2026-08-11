@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - TPO Placement Portal</title>
+    <script src="/js/theme.js"></script>
     <link rel="stylesheet" href="/css/styles.css">
     <style>
         .filter-bar {
@@ -43,13 +44,13 @@
             border-radius: var(--radius-lg);
             padding: 3rem 2rem;
             text-align: center;
-            background: rgba(99, 102, 241, 0.03);
+            background: rgba(31, 91, 73, 0.04);
             transition: all var(--transition-fast);
             cursor: pointer;
         }
 
         .upload-dropzone:hover {
-            background: rgba(99, 102, 241, 0.08);
+            background: rgba(31, 91, 73, 0.09);
             border-color: var(--primary);
         }
     </style>
@@ -59,7 +60,7 @@
     <nav class="navbar">
         <div class="container navbar-inner">
             <a href="/admin/dashboard" class="brand">
-                <div class="brand-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">TPO</div>
+                <div class="brand-icon">TPO</div>
                 <div>
                     <div class="brand-title">Admin Placement Console</div>
                     <div class="brand-subtitle">TPO Management System</div>
@@ -123,7 +124,7 @@
                 <div style="display: flex; align-items: flex-end; gap: 0.5rem; margin-top: 1.25rem;">
                     <button class="btn btn-secondary btn-sm" onclick="resetFilters()">Reset</button>
                     <button class="btn btn-primary btn-sm" onclick="exportData('csv')">📥 Export CSV</button>
-                    <button class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #10b981, #059669);" onclick="exportData('excel')">📊 Export Excel (.xlsx)</button>
+                    <button class="btn btn-primary btn-sm" onclick="exportData('excel')">Export Excel (.xlsx)</button>
                 </div>
             </div>
 
@@ -187,9 +188,9 @@
                             <span style="font-size: 0.75rem; color: #6ee7b7;">Added</span>
                             <div id="sumAdded" style="font-size: 1.4rem; font-weight: 700; color: #10b981;">0</div>
                         </div>
-                        <div style="background: rgba(99,102,241,0.1); padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid rgba(99,102,241,0.3);">
+                        <div style="background: var(--surface-muted); padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid var(--border-color);">
                             <span style="font-size: 0.75rem; color: #a5b4fc;">Updated</span>
-                            <div id="sumUpdated" style="font-size: 1.4rem; font-weight: 700; color: #6366f1;">0</div>
+                            <div id="sumUpdated" style="font-size: 1.4rem; font-weight: 700; color: var(--primary);">0</div>
                         </div>
                         <div style="background: rgba(239,68,68,0.1); padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid rgba(239,68,68,0.3);">
                             <span style="font-size: 0.75rem; color: #fca5a5;">Failed</span>

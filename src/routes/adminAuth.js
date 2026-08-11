@@ -12,7 +12,7 @@ const router = express.Router();
  * @route   POST /api/admin/auth/login
  * @desc    Admin login through Supabase email/password authentication
  */
-const adminLoginLimit = rateLimit({ windowMs: 15 * 60 * 1000, limit: 8, standardHeaders: 'draft-8', legacyHeaders: false });
+const adminLoginLimit = rateLimit({ windowMs: 15 * 60 * 1000, limit: 8, standardHeaders: 'draft-7', legacyHeaders: false, validate: false });
 
 router.post('/login', adminLoginLimit, validate(adminLoginSchema), async (req, res) => {
     try {

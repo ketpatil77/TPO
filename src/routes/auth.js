@@ -14,7 +14,7 @@ const router = express.Router();
  * @desc    Student login using PRN as username and DOB (DDMMYY format) as password
  * @access  Public
  */
-const studentLoginLimit = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: 'draft-8', legacyHeaders: false });
+const studentLoginLimit = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: 'draft-7', legacyHeaders: false, validate: false });
 const MAX_FAILURES = 5;
 const LOCK_MS = 15 * 60 * 1000;
 

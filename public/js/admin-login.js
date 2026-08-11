@@ -18,7 +18,7 @@ async function handleAdminLogin(e) {
     }
 
     submitBtn.disabled = true;
-    submitBtn.innerHTML = 'Verifying security key...';
+    submitBtn.textContent = 'Verifying credentials...';
     hideAlert();
 
     try {
@@ -38,13 +38,13 @@ async function handleAdminLogin(e) {
         } else {
             showAlert(apiError(data));
             submitBtn.disabled = false;
-            submitBtn.innerHTML = 'Unlock Admin Dashboard →';
+            submitBtn.textContent = 'Sign in to admin workspace';
         }
     } catch (err) {
         console.error('Admin login error:', err);
         showAlert('Network error or server unavailable.');
         submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Unlock Admin Dashboard →';
+        submitBtn.textContent = 'Sign in to admin workspace';
     }
 }
 
@@ -63,11 +63,8 @@ async function verifyAdminSession() {
 function showAlert(msg) {
     const alertBox = document.getElementById('alertBox');
     alertBox.style.display = 'block';
-    alertBox.innerHTML = `
-        <div style="padding: 0.75rem 1rem; border-radius: 8px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; font-size: 0.875rem;">
-            ⚠️ ${msg}
-        </div>
-    `;
+    alertBox.className = 'form-alert';
+    alertBox.textContent = msg;
 }
 
 function hideAlert() {
@@ -79,7 +76,7 @@ function showToast(msg, type = 'info') {
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    toast.innerHTML = `<span>${type === 'success' ? '✅' : 'ℹ️'}</span> ${msg}`;
+    toast.textContent = msg;
     container.appendChild(toast);
 
     setTimeout(() => {
