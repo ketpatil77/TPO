@@ -5,8 +5,8 @@ const crypto = require('crypto');
 
 require('dotenv').config();
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_KEY;
+let SUPABASE_URL = process.env.SUPABASE_URL;
+let SUPABASE_KEY = process.env.SUPABASE_KEY;
 
 let supabase = null;
 let useLocalDb = false;
@@ -43,8 +43,8 @@ const dataDir = path.join(process.cwd(), 'data');
 const dataFilePath = process.env.DATA_FILE || path.join(dataDir, process.env.NODE_ENV === 'test' ? 'db.test.json' : 'db.json');
 
 function init() {
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_KEY = process.env.SUPABASE_KEY;
+    SUPABASE_URL = process.env.SUPABASE_URL || SUPABASE_URL;
+    SUPABASE_KEY = process.env.SUPABASE_KEY || SUPABASE_KEY;
 
     if (SUPABASE_URL && SUPABASE_KEY && SUPABASE_URL.trim() !== '' && SUPABASE_KEY.trim() !== '') {
         console.log('🔗 Connecting to Supabase Postgres instance...');
@@ -95,6 +95,7 @@ function saveLocalData() {
  * Unified Database Interface (Supabase Postgres + Pure JS Fallback)
  */
 const db = {
+    init,
     isLocal: () => useLocalDb,
     supabaseClient: () => supabase,
     authClient: () => {

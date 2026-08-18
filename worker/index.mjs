@@ -15,8 +15,8 @@ export default {
             process.env.JWT_SECRET = env.JWT_SECRET;
             Object.assign(process.env, env);
             const { default: app } = await import('../src/server.js');
-            const { init } = await import('../src/config/database.js');
-            init();
+            const { default: db } = await import('../src/config/database.js');
+            db.init();
             app.listen(3000);
             expressHandler = httpServerHandler({ port: 3000 });
         }
