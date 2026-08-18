@@ -2,10 +2,11 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const db = require('../config/database');
 const { verifyDob, formatDateToYYYYMMDD } = require('../utils/dateHelper');
-const { authenticateStudent, JWT_SECRET } = require('../middleware/auth');
+const { authenticateStudent, JWT_SECRET, SESSION_VERSION } = require('../middleware/auth');
 const crypto = require('crypto');
 const { rateLimit } = require('express-rate-limit');
 const { validate, studentLoginSchema, issueCsrfToken, clearSessionCookies } = require('../middleware/security');
+const { normalizeBranch } = require('../config/branches');
 
 const router = express.Router();
 
@@ -14,8 +15,15 @@ const router = express.Router();
  * @desc    Student login using PRN as username and DOB (DDMMYY format) as password
  * @access  Public
  */
-const studentLoginLimit = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: 'draft-7', legacyHeaders: false, validate: false });
-const MAX_FAILURES = 5;
+const studentLoginLimit = rateLimit({ 
+    windowMs: 15 * 60 * 1000, 
+    limit: 10, 
+    standardHeaders: 'draft-7', 
+    legacyHeaders: false, 
+    validate: false,
+    message: { success: false, error: { code: 'RATE_LIMIT', message: 'Too many attempts. Try again later.' } }
+});
+const MAX_FAILURES = 6;
 const LOCK_MS = 15 * 60 * 1000;
 
 router.post('/login', studentLoginLimit, validate(studentLoginSchema), async (req, res) => {
@@ -53,7 +61,9 @@ router.post('/login', studentLoginLimit, validate(studentLoginSchema), async (re
             studentRecord = await db.insert('students', {
                 prn: rosterEntry.prn,
                 name: rosterEntry.name,
-                branch: rosterEntry.branch,
+                email: null,
+                phone: null,
+                branch: normalizeBranch(rosterEntry.branch) || rosterEntry.branch,
                 class: rosterEntry.class,
                 year: rosterEntry.year,
                 cgpa_overall: 0.0,
@@ -61,6 +71,7 @@ router.post('/login', studentLoginLimit, validate(studentLoginSchema), async (re
                     sem1: 0, sem2: 0, sem3: 0, sem4: 0,
                     sem5: 0, sem6: 0, sem7: 0, sem8: 0
                 },
+                backlogs_semesterwise: { sem1: 0, sem2: 0, sem3: 0, sem4: 0, sem5: 0, sem6: 0, sem7: 0, sem8: 0 },
                 activities: '',
                 resume_url: null
             });
@@ -68,22 +79,23 @@ router.post('/login', studentLoginLimit, validate(studentLoginSchema), async (re
 
         // 4. Generate JWT token
         const payload = {
+            role: 'student',
             studentId: studentRecord.id,
             prn: studentRecord.prn,
             name: studentRecord.name,
             branch: studentRecord.branch,
             class: studentRecord.class,
             year: studentRecord.year
+            ,sessionVersion: SESSION_VERSION
         };
 
-        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
 
         // Set Cookie
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 8 * 60 * 60 * 1000,
             path: '/'
         });
         issueCsrfToken(res);
@@ -97,10 +109,7 @@ router.post('/login', studentLoginLimit, validate(studentLoginSchema), async (re
 
     } catch (err) {
         console.error('Error during student login:', err);
-        return res.status(500).json({
-            success: false,
-            error: 'Server error during authentication: ' + err.message
-        });
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to complete authentication.' } });
     }
 });
 
@@ -117,7 +126,7 @@ router.get('/me', authenticateStudent, async (req, res) => {
         }
         return res.json({ success: true, student });
     } catch (err) {
-        return res.status(500).json({ success: false, error: err.message });
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to load student session.' } });
     }
 });
 
