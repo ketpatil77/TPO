@@ -41,10 +41,21 @@ function parseDDMMYY(ddmmyy) {
 function formatDateToYYYYMMDD(dateVal) {
     if (!dateVal) return '';
     if (typeof dateVal === 'string') {
+        const trimmed = dateVal.trim();
         // If already YYYY-MM-DD
-        if (/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) return dateVal;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+        // Human-friendly DD-MM-YYYY or DD/MM/YYYY
+        const dayFirst = trimmed.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+        if (dayFirst) {
+            const [, day, month, year] = dayFirst;
+            const candidate = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+            if (candidate.getUTCFullYear() === Number(year) && candidate.getUTCMonth() === Number(month) - 1 && candidate.getUTCDate() === Number(day)) {
+                return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            }
+            return '';
+        }
         // If ISO string with T
-        if (dateVal.includes('T')) return dateVal.split('T')[0];
+        if (trimmed.includes('T')) return trimmed.split('T')[0];
     }
     const d = new Date(dateVal);
     if (isNaN(d.getTime())) return '';
@@ -72,6 +83,15 @@ function verifyDob(inputDob, dbDob) {
     // Try DDMMYY match
     const parsedInput = parseDDMMYY(inputDob);
     if (parsedInput && parsedInput === formattedDb) return true;
+    
+    // Try DDMMYYYY match
+    const cleanStr = inputDob.trim().replace(/\D/g, '');
+    if (cleanStr.length === 8) {
+        const day = cleanStr.substring(0, 2);
+        const month = cleanStr.substring(2, 4);
+        const year = cleanStr.substring(4, 8);
+        if (`${year}-${month}-${day}` === formattedDb) return true;
+    }
 
     return false;
 }

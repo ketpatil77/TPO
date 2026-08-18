@@ -5,12 +5,34 @@ const multer = require('multer');
 const { z } = require('zod');
 const { validate } = require('../middleware/security');
 const { normalizeTerm } = require('../utils/matching');
+const { BRANCHES } = require('../config/branches');
+const { acceptAvatar, uploadAvatar, getAvatar, deleteAvatar } = require('../utils/avatar');
+const { extractSkillsFromPdf, scoreResumeAts } = require('../utils/pdfSkillExtractor');
 
 const router = express.Router();
 
 // Apply authentication middleware to all student routes
 router.use(authenticateStudent);
-const resumeUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1 } });
+const adminStudentsRouter = require('./adminStudents');
+router.use((req, res, next) => {
+    res.on('finish', () => {
+        if (req.method !== 'GET' && res.statusCode >= 200 && res.statusCode < 300) {
+            if (adminStudentsRouter.clearStudentCache) adminStudentsRouter.clearStudentCache();
+        }
+    });
+    next();
+});
+const MAX_RESUME_BYTES = 2 * 1024 * 1024;
+const resumeUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_RESUME_BYTES, files: 1 } });
+function acceptResume(req, res, next) {
+    resumeUpload.single('resume')(req, res, err => {
+        if (err?.code === 'LIMIT_FILE_SIZE') {
+            return res.status(413).json({ success: false, error: { code: 'PDF_TOO_LARGE', message: 'Resume PDF must be 2 MB or smaller.' } });
+        }
+        if (err) return next(err);
+        return next();
+    });
+}
 
 /**
  * @route   GET /api/student/profile
@@ -27,11 +49,15 @@ router.get('/profile', async (req, res) => {
             return res.status(404).json({ success: false, error: 'Student record not found.' });
         }
 
-        // Fetch Sub-tables
-        const internships = await db.select('internships', { student_id: studentId });
-        const certificates = await db.select('certificates', { student_id: studentId });
-        const diploma = await db.selectOne('diploma', { student_id: studentId });
-        const skills = await db.select('student_skills', { student_id: studentId });
+        // Independent profile sections load in parallel to keep dashboard latency bounded.
+        const [internships, certificates, projects, researchPapers, diploma, skills] = await Promise.all([
+            db.select('internships', { student_id: studentId }),
+            db.select('certificates', { student_id: studentId }),
+            db.select('student_projects', { student_id: studentId }),
+            db.select('research_papers', { student_id: studentId }),
+            db.selectOne('diploma', { student_id: studentId }),
+            db.select('student_skills', { student_id: studentId })
+        ]);
 
         return res.json({
             success: true,
@@ -39,28 +65,35 @@ router.get('/profile', async (req, res) => {
                 student,
                 internships: internships || [],
                 certificates: certificates || [],
+                projects: projects || [],
+                research_papers: researchPapers || [],
                 diploma: diploma || null,
                 skills: skills || []
             }
         });
     } catch (err) {
         console.error('Error fetching student profile:', err);
-        return res.status(500).json({ success: false, error: err.message });
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to load student profile.' } });
     }
 });
+
+router.post('/avatar', acceptAvatar, (req, res) => uploadAvatar(req, res, {
+    table: 'students', filter: { id: req.student.studentId }, id: req.student.studentId, folder: 'student'
+}));
+router.get('/avatar', (req, res) => getAvatar(res, {
+    table: 'students', filter: { id: req.student.studentId }, id: req.student.studentId, folder: 'student'
+}));
+router.delete('/avatar', (_req, res) => res.status(409).json({ success: false, error: { code: 'PROFILE_PHOTO_REQUIRED', message: 'Profile picture is mandatory. Upload a replacement instead.' } }));
 
 const skillsSchema = z.object({ skills: z.array(z.string().trim().min(1).max(60)).max(50) }).strict();
 router.put('/skills', validate(skillsSchema), async (req, res) => {
     const studentId = req.student.studentId;
     const normalized = [...new Set(req.body.skills.map(normalizeTerm).filter(Boolean))];
-    const current = await db.select('student_skills', { student_id: studentId });
-    for (const row of current) await db.delete('student_skills', { id: row.id, student_id: studentId });
-    const saved = [];
-    for (const skill of normalized) saved.push(await db.insert('student_skills', { student_id: studentId, skill }));
+    const saved = await db.replaceStudentSkills(studentId, normalized);
     res.json({ success: true, data: saved });
 });
 
-router.post('/resume', resumeUpload.single('resume'), async (req, res) => {
+router.post('/resume', acceptResume, async (req, res) => {
     if (!req.file || req.file.mimetype !== 'application/pdf' || req.file.buffer.subarray(0, 5).toString() !== '%PDF-') {
         return res.status(400).json({ success: false, error: { code: 'INVALID_PDF', message: 'Valid PDF file required.' } });
     }
@@ -70,6 +103,48 @@ router.post('/resume', resumeUpload.single('resume'), async (req, res) => {
     if (error) throw error;
     await db.update('students', { id: req.student.studentId }, { resume_url: path, updated_at: new Date().toISOString() });
     res.json({ success: true, data: { uploaded: true } });
+});
+
+router.post('/resume/skills/extract', acceptResume, async (req, res) => {
+    if (!req.file || req.file.mimetype !== 'application/pdf' || req.file.buffer.subarray(0, 5).toString() !== '%PDF-') {
+        return res.status(400).json({ success: false, error: { code: 'INVALID_PDF', message: 'Choose a valid text-based PDF resume.' } });
+    }
+    try {
+        const result = await extractSkillsFromPdf(req.file.buffer);
+        if (!result.suggestions.length) return res.status(422).json({ success: false, error: { code: 'NO_SKILLS_FOUND', message: 'No recognized skills found. Scanned-image PDFs need OCR; add skills manually.' } });
+        res.json({ success: true, data: result });
+    } catch (error) {
+        const pageLimit = /10 pages/i.test(error.message || '');
+        res.status(422).json({ success: false, error: { code: pageLimit ? 'PDF_TOO_LONG' : 'PDF_TEXT_UNREADABLE', message: pageLimit ? error.message : 'Could not read text from this PDF. Export it as a text-based PDF or add skills manually.' } });
+    }
+});
+
+/**
+ * @route POST /api/student/resume/ats-score
+ * @desc Compute an ATS score for the resume against a selected profile
+ */
+router.post('/resume/ats-score', acceptResume, async (req, res) => {
+    try {
+        if (!req.file || !req.file.buffer) {
+            return res.status(400).json({ success: false, error: { code: 'INVALID_INPUT', message: 'No valid resume file provided.' } });
+        }
+        
+        const profile = req.body.profile || 'software';
+        const result = await scoreResumeAts(req.file.buffer, profile);
+        
+        if (!db.isLocal()) {
+            const path = `${req.student.studentId}/resume.pdf`;
+            const { error } = await db.supabaseClient().storage.from('resumes').upload(path, req.file.buffer, { contentType: 'application/pdf', upsert: true });
+            if (!error) {
+                await db.update('students', { id: req.student.studentId }, { resume_url: path, updated_at: new Date().toISOString() });
+            }
+        }
+        
+        return res.json({ success: true, data: result });
+    } catch (err) {
+        console.error('ATS Scorer Error:', err);
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to score resume.' } });
+    }
 });
 
 router.get('/resume', async (req, res) => {
@@ -94,36 +169,118 @@ router.delete('/resume', async (req, res) => {
  */
 const score = z.coerce.number().min(0).max(10);
 const profileSchema = z.object({
-    name: z.string().trim().min(1).max(150), branch: z.string().trim().min(1).max(100),
-    class: z.string().trim().min(1).max(50), year: z.string().trim().min(1).max(50),
+    name: z.string().trim().min(1).max(150), email: z.string().email().max(254),
+    phone: z.string().trim().regex(/^\+?[0-9]{7,15}$/, 'Use 7 to 15 digits, with optional +.'), branch: z.enum(BRANCHES.map(branch => branch.code)),
+    year: z.string().trim().min(1).max(50),
+    ssc_marks: z.union([z.string(), z.number()]).optional().transform(v => (v === "" || v === null || v === undefined) ? null : Number(v)),
+    hsc_marks: z.union([z.string(), z.number()]).optional().transform(v => (v === "" || v === null || v === undefined) ? null : Number(v)),
+    is_employed: z.boolean().optional(),
+    employment_type: z.enum(['Govt', 'Private']).optional(),
+    org_type: z.enum(['Startup', 'MNC', 'PSU', 'Govt', 'SMB', 'Other']).optional(),
+    current_ctc: z.coerce.number().min(0).max(999.99).optional(),
+    company_address: z.string().trim().max(1000).optional(),
+    company_name: z.string().trim().max(200).optional(),
+    hr_name: z.string().trim().max(100).optional(),
+    hr_number: z.string().trim().max(50).optional(),
     cgpa_overall: score,
     cgpa_semesterwise: z.record(z.string(), score).refine(value => Object.keys(value).every(key => /^sem[1-8]$/.test(key)), 'Invalid semester.'),
-    activities: z.string().trim().max(5000), resume_url: z.string().optional()
+    backlogs_semesterwise: z.record(z.string(), z.coerce.number().int().min(0).max(20)).refine(value => Object.keys(value).every(key => /^sem[1-8]$/.test(key)), 'Invalid backlog semester.'),
+    activities: z.string().trim().max(5000), resume_url: z.string().optional(),
+    lateral_entry: z.boolean(), complete_profile: z.boolean()
 }).partial().strict();
 router.put('/profile', validate(profileSchema), async (req, res) => {
     try {
         const studentId = req.student.studentId;
         const {
             name,
+            email,
+            phone,
             branch,
-            class: className,
             year,
+            ssc_marks,
+            hsc_marks,
+            is_employed,
+            employment_type,
+            org_type,
+            current_ctc,
+            company_address,
+            company_name,
+            hr_name,
+            hr_number,
             cgpa_overall,
             cgpa_semesterwise,
+            backlogs_semesterwise,
             activities,
-            resume_url
+            resume_url,
+            lateral_entry,
+            complete_profile
         } = req.body;
+
+        const currentStudent = await db.selectOne('students', { id: studentId });
+        if (!currentStudent) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Student record not found.' } });
+        if (complete_profile) {
+            const finalEmail = email === undefined ? currentStudent.email : email;
+            const finalPhone = phone === undefined ? currentStudent.phone : phone;
+            const finalSsc = ssc_marks === undefined ? currentStudent.ssc_marks : ssc_marks;
+            const finalHsc = hsc_marks === undefined ? currentStudent.hsc_marks : hsc_marks;
+            if (!currentStudent.avatar_path || !finalEmail || !finalPhone || finalSsc === undefined || finalSsc === null || finalHsc === undefined || finalHsc === null) {
+                return res.status(422).json({ success: false, error: { code: 'PROFILE_INCOMPLETE', message: 'Profile picture, contact email, mobile number, SSC and HSC marks are required.' } });
+            }
+            const finalIsEmployed = is_employed === undefined ? currentStudent.is_employed : is_employed;
+            if (finalIsEmployed) {
+                const finalOrgType = org_type === undefined ? currentStudent.org_type : org_type;
+                const finalCompanyAddr = company_address === undefined ? currentStudent.company_address : company_address;
+                const finalCompany = company_name === undefined ? currentStudent.company_name : company_name;
+                const finalEmpType = employment_type === undefined ? currentStudent.employment_type : employment_type;
+                if (!finalOrgType || !finalCompanyAddr || !finalCompany || !finalEmpType) {
+                    return res.status(422).json({ success: false, error: { code: 'PROFILE_INCOMPLETE', message: 'Employment details (Type, Org Type, Company Name, and Address) are required if employed.' } });
+                }
+            }
+        }
 
         const updateData = {
             updated_at: new Date().toISOString()
         };
 
         if (name !== undefined) updateData.name = name;
+        if (email !== undefined) updateData.email = email.toLowerCase();
+        if (phone !== undefined) updateData.phone = phone;
         if (branch !== undefined) updateData.branch = branch;
-        if (className !== undefined) updateData.class = className;
         if (year !== undefined) updateData.year = year;
+        if (ssc_marks !== undefined) updateData.ssc_marks = ssc_marks === null || ssc_marks === "" || Number.isNaN(parseFloat(ssc_marks)) ? null : parseFloat(ssc_marks);
+        if (hsc_marks !== undefined) updateData.hsc_marks = hsc_marks === null || hsc_marks === "" || Number.isNaN(parseFloat(hsc_marks)) ? null : parseFloat(hsc_marks);
+        if (is_employed !== undefined) {
+            updateData.is_employed = is_employed;
+            if (!is_employed) {
+                updateData.employment_type = null;
+                updateData.org_type = null;
+                updateData.current_ctc = null;
+                updateData.company_address = null;
+                updateData.company_name = null;
+                updateData.hr_name = null;
+                updateData.hr_number = null;
+            }
+        }
+        if (employment_type !== undefined) updateData.employment_type = employment_type;
+        if (org_type !== undefined) updateData.org_type = org_type;
+        if (current_ctc !== undefined) updateData.current_ctc = parseFloat(current_ctc) || null;
+        if (company_address !== undefined) updateData.company_address = company_address;
+        if (company_name !== undefined) updateData.company_name = company_name;
+        if (hr_name !== undefined) updateData.hr_name = hr_name;
+        if (hr_number !== undefined) updateData.hr_number = hr_number;
         if (cgpa_overall !== undefined) updateData.cgpa_overall = parseFloat(cgpa_overall) || 0;
-        if (cgpa_semesterwise !== undefined) updateData.cgpa_semesterwise = cgpa_semesterwise;
+        if (lateral_entry !== undefined) updateData.lateral_entry = lateral_entry;
+        if (cgpa_semesterwise !== undefined) {
+            const normalizedSemesterScores = { ...cgpa_semesterwise };
+            if (lateral_entry === true || (lateral_entry === undefined && currentStudent.lateral_entry)) {
+                normalizedSemesterScores.sem1 = 0;
+                normalizedSemesterScores.sem2 = 0;
+            }
+            updateData.cgpa_semesterwise = normalizedSemesterScores;
+            const semesterScores = Object.values(normalizedSemesterScores).map(Number).filter(value => Number.isFinite(value) && value > 0);
+            updateData.cgpa_overall = semesterScores.length ? Number((semesterScores.reduce((sum, value) => sum + value, 0) / semesterScores.length).toFixed(2)) : 0;
+        }
+        if (backlogs_semesterwise !== undefined) updateData.backlogs_semesterwise = backlogs_semesterwise;
         if (activities !== undefined) updateData.activities = activities;
         // Resume path is managed only by private Storage endpoints.
 
@@ -136,7 +293,7 @@ router.put('/profile', validate(profileSchema), async (req, res) => {
         });
     } catch (err) {
         console.error('Error updating student profile:', err);
-        return res.status(500).json({ success: false, error: err.message });
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to update student profile.' } });
     }
 });
 
@@ -179,7 +336,7 @@ router.post('/internships', validate(internshipSchema), async (req, res) => {
             internship: newInternship
         });
     } catch (err) {
-        return res.status(500).json({ success: false, error: err.message });
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to save internship.' } });
     }
 });
 
@@ -208,7 +365,7 @@ router.put('/internships/:id', async (req, res) => {
 
         return res.json({ success: true, message: 'Internship updated successfully!', internship: updated });
     } catch (err) {
-        return res.status(500).json({ success: false, error: err.message });
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to update internship.' } });
     }
 });
 
@@ -224,7 +381,7 @@ router.delete('/internships/:id', async (req, res) => {
         await db.delete('internships', { id: internshipId, student_id: studentId });
         return res.json({ success: true, message: 'Internship deleted successfully.' });
     } catch (err) {
-        return res.status(500).json({ success: false, error: err.message });
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to delete internship.' } });
     }
 });
 
@@ -267,7 +424,7 @@ router.post('/certificates', validate(certificateSchema), async (req, res) => {
             certificate: newCert
         });
     } catch (err) {
-        return res.status(500).json({ success: false, error: err.message });
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to save certificate.' } });
     }
 });
 
@@ -275,7 +432,7 @@ router.post('/certificates', validate(certificateSchema), async (req, res) => {
  * @route   PUT /api/student/certificates/:id
  * @desc    Update a certificate record
  */
-router.put('/certificates/:id', async (req, res) => {
+router.put('/certificates/:id', validate(certificateSchema), async (req, res) => {
     try {
         const studentId = req.student.studentId;
         const certId = req.params.id;
@@ -295,7 +452,7 @@ router.put('/certificates/:id', async (req, res) => {
 
         return res.json({ success: true, message: 'Certificate updated successfully!', certificate: updated });
     } catch (err) {
-        return res.status(500).json({ success: false, error: err.message });
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to update certificate.' } });
     }
 });
 
@@ -311,8 +468,67 @@ router.delete('/certificates/:id', async (req, res) => {
         await db.delete('certificates', { id: certId, student_id: studentId });
         return res.json({ success: true, message: 'Certificate deleted successfully.' });
     } catch (err) {
-        return res.status(500).json({ success: false, error: err.message });
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to delete certificate.' } });
     }
+});
+
+/* ==========================================================================
+   STUDENT PROJECTS CRUD
+   ========================================================================== */
+
+const optionalUrl = z.union([z.literal(''), z.url().max(500)]).optional().transform(value => value || null);
+const projectSchema = z.object({
+    title: z.string().trim().min(1).max(150),
+    summary: z.string().trim().min(1).max(2000),
+    technologies: z.string().trim().max(500).optional().default(''),
+    project_url: optionalUrl,
+    repository_url: optionalUrl,
+    completed_on: z.union([z.literal(''), z.string().date(), z.null()]).optional().transform(value => value || null)
+}).strict();
+
+router.post('/projects', validate(projectSchema), async (req, res) => {
+    const project = await db.insert('student_projects', { student_id: req.student.studentId, ...req.body });
+    res.status(201).json({ success: true, message: 'Project added successfully.', project });
+});
+
+router.put('/projects/:id', validate(projectSchema), async (req, res) => {
+    const existing = await db.selectOne('student_projects', { id: req.params.id, student_id: req.student.studentId });
+    if (!existing) return res.status(404).json({ success: false, error: 'Project not found.' });
+    const project = await db.update('student_projects', { id: existing.id, student_id: req.student.studentId }, req.body);
+    res.json({ success: true, message: 'Project updated successfully.', project });
+});
+
+router.delete('/projects/:id', async (req, res) => {
+    const existing = await db.selectOne('student_projects', { id: req.params.id, student_id: req.student.studentId });
+    if (!existing) return res.status(404).json({ success: false, error: 'Project not found.' });
+    await db.delete('student_projects', { id: existing.id, student_id: req.student.studentId });
+    res.json({ success: true, message: 'Project deleted successfully.' });
+});
+
+/* ==========================================================================
+   RESEARCH PAPERS CRUD
+   ========================================================================== */
+const researchPaperSchema = z.object({
+    title: z.string().trim().min(1).max(250), authors: z.string().trim().min(1).max(1000),
+    publication: z.string().trim().min(1).max(250), abstract: z.string().trim().min(1).max(3000),
+    doi_url: optionalUrl, paper_url: optionalUrl,
+    published_on: z.string().date().refine(value => value <= new Date().toISOString().slice(0, 10), 'Publication date cannot be in future.')
+}).strict();
+router.post('/research-papers', validate(researchPaperSchema), async (req, res) => {
+    const researchPaper = await db.insert('research_papers', { student_id: req.student.studentId, ...req.body });
+    res.status(201).json({ success: true, message: 'Research paper added successfully.', research_paper: researchPaper });
+});
+router.put('/research-papers/:id', validate(researchPaperSchema), async (req, res) => {
+    const existing = await db.selectOne('research_papers', { id: req.params.id, student_id: req.student.studentId });
+    if (!existing) return res.status(404).json({ success: false, error: 'Research paper not found.' });
+    const researchPaper = await db.update('research_papers', { id: existing.id, student_id: req.student.studentId }, req.body);
+    res.json({ success: true, message: 'Research paper updated successfully.', research_paper: researchPaper });
+});
+router.delete('/research-papers/:id', async (req, res) => {
+    const existing = await db.selectOne('research_papers', { id: req.params.id, student_id: req.student.studentId });
+    if (!existing) return res.status(404).json({ success: false, error: 'Research paper not found.' });
+    await db.delete('research_papers', { id: existing.id, student_id: req.student.studentId });
+    res.json({ success: true, message: 'Research paper deleted successfully.' });
 });
 
 /* ==========================================================================
@@ -361,7 +577,7 @@ router.post('/diploma', validate(diplomaSchema), async (req, res) => {
             diploma: diplomaRecord
         });
     } catch (err) {
-        return res.status(500).json({ success: false, error: err.message });
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to save diploma.' } });
     }
 });
 
@@ -375,7 +591,88 @@ router.delete('/diploma', async (req, res) => {
         await db.delete('diploma', { student_id: studentId });
         return res.json({ success: true, message: 'Diploma details removed.' });
     } catch (err) {
-        return res.status(500).json({ success: false, error: err.message });
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to delete diploma.' } });
+    }
+});
+
+/**
+ * @route GET /api/student/drives
+ * @desc Get available placement drives
+ */
+router.get('/drives', async (req, res) => {
+    try {
+        const drives = await db.select('placement_drives', { status: 'open' });
+        
+        // Also fetch user's applications
+        const apps = await db.select('drive_applications', { student_id: req.student.studentId });
+        const appliedDriveIds = apps.map(a => a.drive_id);
+        
+        const data = drives.map(d => ({
+            ...d,
+            applied: appliedDriveIds.includes(d.id)
+        }));
+        
+        return res.json({ success: true, data });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: { message: 'Failed to fetch drives.' } });
+    }
+});
+
+/**
+ * @route POST /api/student/drives/:id/apply
+ * @desc Apply to a placement drive
+ */
+router.post('/drives/:id/apply', async (req, res) => {
+    try {
+        const studentId = req.student.studentId;
+        const driveId = req.params.id;
+        
+        const existing = await db.selectOne('drive_applications', { drive_id: driveId, student_id: studentId });
+        if (existing) return res.status(400).json({ success: false, error: { message: 'Already applied' } });
+
+        await db.insert('drive_applications', {
+            id: require('crypto').randomUUID(),
+            drive_id: driveId,
+            student_id: studentId,
+            status: 'applied',
+            applied_at: new Date().toISOString()
+        });
+        
+        return res.json({ success: true });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: { message: 'Application failed.' } });
+    }
+});
+
+/**
+ * @route GET /api/student/alumni
+ * @desc Fetch placed alumni network
+ */
+router.get('/alumni', async (req, res) => {
+    try {
+        const students = await db.select('students', {});
+        const profiles = await db.select('profiles', {});
+        const offers = await db.select('offers', {});
+        
+        const alumni = students.filter(s => {
+            const hasAcceptedOffer = offers.some(o => o.student_id === s.id && ['accepted', 'joined'].includes(o.status));
+            return hasAcceptedOffer;
+        }).map(s => {
+            const prof = profiles.find(p => p.student_id === s.id) || {};
+            const offer = offers.find(o => o.student_id === s.id && ['accepted', 'joined'].includes(o.status)) || {};
+            return {
+                id: s.id,
+                name: s.first_name + ' ' + s.last_name,
+                branch: s.branch,
+                company: offer.company || 'Unknown',
+                role: offer.role || 'Placed',
+                linkedin: prof.linkedin_url || ''
+            };
+        });
+        
+        return res.json({ success: true, data: alumni });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: { message: 'Failed to fetch alumni.' } });
     }
 });
 

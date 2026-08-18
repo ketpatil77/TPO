@@ -3,11 +3,35 @@ const multer = require('multer');
 const db = require('../config/database');
 const { parseDDMMYY, formatDateToYYYYMMDD } = require('../utils/dateHelper');
 const { authenticateAdmin } = require('../middleware/auth');
+const { normalizeBranch, BRANCHES } = require('../config/branches');
+const ExcelJS = require('exceljs');
+const JSZip = require('jszip');
+const crypto = require('crypto');
+const adminStudentsRouter = require('./adminStudents');
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+const MAX_IMPORT_ROWS = 10000;
 
 router.use(authenticateAdmin);
+
+router.post('/preview', upload.single('file'), async (req, res) => {
+    const dataRows = await parseUploadedRows(req);
+    if (!dataRows.length) return res.status(400).json({ success: false, error: 'No roster rows provided.' });
+    const existing = new Set((await db.select('roster')).map(row => row.prn));
+    if (dataRows.length > MAX_IMPORT_ROWS) return res.status(413).json({ success: false, error: `Maximum ${MAX_IMPORT_ROWS.toLocaleString()} rows per import.` });
+    const rows = dataRows.map((values, index) => {
+        const [prn, name, dob, branch, className, year] = values;
+        const errors = [];
+        const formattedDob = formatDateToYYYYMMDD(String(dob || '').trim()) || parseDDMMYY(String(dob || '').trim());
+        const normalizedBranch = normalizeBranch(branch);
+        if (!prn || !name || !dob) errors.push('PRN, name, and DOB required');
+        if (dob && !formattedDob) errors.push('Invalid DOB');
+        if (!normalizedBranch) errors.push('Invalid branch');
+        return { row: index + 2, prn, name, dob: formattedDob || dob, branch: normalizedBranch || branch, class: className, year, action: existing.has(String(prn || '').trim()) ? 'update' : 'add', valid: errors.length === 0, errors };
+    });
+    res.json({ success: true, data: { rows, summary: { total: rows.length, valid: rows.filter(row => row.valid).length, invalid: rows.filter(row => !row.valid).length, adds: rows.filter(row => row.valid && row.action === 'add').length, updates: rows.filter(row => row.valid && row.action === 'update').length } } });
+});
 
 /**
  * @route   POST /api/admin/roster/upload
@@ -15,34 +39,23 @@ router.use(authenticateAdmin);
  */
 router.post('/upload', upload.single('file'), async (req, res) => {
     try {
-        let csvRawText = '';
-
-        if (req.file) {
-            csvRawText = req.file.buffer.toString('utf8');
-        } else if (req.body.csvContent) {
-            csvRawText = req.body.csvContent;
-        } else {
-            return res.status(400).json({ success: false, error: 'No CSV file or csvContent provided.' });
-        }
-
-        const lines = csvRawText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-        if (lines.length === 0) {
-            return res.status(400).json({ success: false, error: 'CSV content is empty.' });
-        }
-
-        // Header detection
-        const headerLine = lines[0].toLowerCase();
-        const hasHeader = headerLine.includes('prn') || headerLine.includes('name');
-        const dataLines = hasHeader ? lines.slice(1) : lines;
+        const dataLines = await parseUploadedRows(req);
+        if (!dataLines.length) return res.status(400).json({ success: false, error: 'Roster file is empty.' });
+        if (dataLines.length > MAX_IMPORT_ROWS) return res.status(413).json({ success: false, error: `Maximum ${MAX_IMPORT_ROWS.toLocaleString()} rows per import.` });
 
         let addedCount = 0;
         let updatedCount = 0;
         let failedCount = 0;
         const errors = [];
+        const existingRows = await db.select('roster');
+        const existingByPrn = new Map(existingRows.map(row => [String(row.prn), row]));
+        const existingPrns = new Set(existingRows.map(row => String(row.prn)));
+        const validRecords = [];
+        const insertedPrns = [];
+        const previousRows = [];
 
         for (let i = 0; i < dataLines.length; i++) {
-            const line = dataLines[i];
-            const parts = parseCsvLine(line);
+            const parts = dataLines[i];
 
             if (parts.length < 3) {
                 errors.push(`Row ${i + 1}: Insufficient columns (expected prn, name, dob, branch, class, year)`);
@@ -58,46 +71,66 @@ router.post('/upload', upload.single('file'), async (req, res) => {
                 continue;
             }
 
-            const cleanPrn = prn.trim();
-            const cleanName = name.trim();
-            let formattedDob = formatDateToYYYYMMDD(dob.trim());
+            const cleanPrn = String(prn).trim();
+            const cleanName = String(name).trim();
+            let formattedDob = formatDateToYYYYMMDD(String(dob).trim());
             if (!formattedDob) {
-                formattedDob = parseDDMMYY(dob.trim());
+                formattedDob = parseDDMMYY(String(dob).trim());
             }
 
             if (!formattedDob) {
-                errors.push(`Row ${i + 1} (PRN ${cleanPrn}): Invalid DOB format "${dob}". Must be DDMMYY or YYYY-MM-DD.`);
+                errors.push(`Row ${i + 2} (PRN ${cleanPrn}): Invalid DOB format "${dob}". Use DD-MM-YYYY, DDMMYY, or YYYY-MM-DD.`);
                 failedCount++;
                 continue;
             }
 
-            // Check existing PRN to record added vs updated
-            const existing = await db.selectOne('roster', { prn: cleanPrn });
-
+            const normalizedBranch = normalizeBranch(branch);
+            if (!normalizedBranch) {
+                errors.push(`Row ${i + 2} (PRN ${cleanPrn}): Invalid branch. Use ${BRANCHES.map(item => item.code).join(', ')}.`);
+                failedCount++;
+                continue;
+            }
             const record = {
                 prn: cleanPrn,
                 name: cleanName,
                 dob: formattedDob,
-                branch: branch ? branch.trim() : 'General',
+                branch: normalizedBranch,
                 class: className ? className.trim() : 'BE',
                 year: year ? year.trim() : 'Final Year'
             };
 
-            try {
-                await db.upsert('roster', record, 'prn');
-                if (existing) {
-                    updatedCount++;
-                } else {
-                    addedCount++;
-                }
-            } catch (err) {
-                errors.push(`Row ${i + 1} (PRN ${cleanPrn}): Database insert error - ${err.message}`);
-                failedCount++;
+            validRecords.push(record);
+            if (existingPrns.has(cleanPrn)) {
+                updatedCount++;
+                const previous = existingByPrn.get(cleanPrn);
+                if (previous && !previousRows.some(row => String(row.prn) === cleanPrn)) previousRows.push(previous);
+            } else {
+                addedCount++;
+                insertedPrns.push(cleanPrn);
             }
+            existingPrns.add(cleanPrn);
         }
 
-        // Log to Audit Log
+        try {
+            for (let offset = 0; offset < validRecords.length; offset += 250) {
+                await db.upsertMany('roster', validRecords.slice(offset, offset + 250), 'prn');
+            }
+            if (adminStudentsRouter.clearStudentCache) adminStudentsRouter.clearStudentCache();
+        } catch (err) {
+            errors.push(`Bulk database write failed: ${err.message}`);
+            failedCount += validRecords.length;
+            addedCount = 0;
+            updatedCount = 0;
+        }
+
+        const batch = await db.insert('import_batches', {
+            id: crypto.randomUUID(), created_by: req.admin.adminId, file_name: req.file?.originalname || 'pasted-roster.csv', status: 'completed',
+            total_count: dataLines.length, added_count: addedCount, updated_count: updatedCount, failed_count: failedCount,
+            inserted_prns: insertedPrns, previous_rows: previousRows, errors, created_at: new Date().toISOString()
+        });
+
         await db.logAudit('roster_upload', 'roster', null, {
+            batchId: batch.id,
             addedCount,
             updatedCount,
             failedCount,
@@ -113,14 +146,38 @@ router.post('/upload', upload.single('file'), async (req, res) => {
                 updatedCount,
                 failedCount,
                 totalProcessed: dataLines.length,
-                errors
+                errors,
+                batchId: batch.id
             }
         });
 
     } catch (err) {
         console.error('Error during CSV Roster upload:', err);
-        return res.status(500).json({ success: false, error: err.message });
+        return res.status(err.status || 500).json({ success: false, error: err.status ? err.message : { code: 'INTERNAL_ERROR', message: 'Unable to process roster upload.' } });
     }
+});
+
+router.get('/imports', async (_req, res) => {
+    const rows = (await db.select('import_batches')).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))).slice(0, 50);
+    res.json({ success: true, data: rows.map(({ inserted_prns, previous_rows, ...row }) => row) });
+});
+
+router.get('/imports/:id/errors.csv', async (req, res) => {
+    const batch = await db.selectOne('import_batches', { id: req.params.id });
+    if (!batch) return res.status(404).json({ success: false, error: 'Import batch not found.' });
+    const csv = ['error', ...(batch.errors || [])].map(value => `"${String(value).replace(/"/g, '""')}"`).join('\r\n');
+    res.type('text/csv').setHeader('Content-Disposition', `attachment; filename="roster-errors-${batch.id}.csv"`); res.send(csv);
+});
+
+router.post('/imports/:id/undo', async (req, res) => {
+    const batch = await db.selectOne('import_batches', { id: req.params.id });
+    if (!batch || batch.status !== 'completed') return res.status(409).json({ success: false, error: 'Import cannot be undone.' });
+    await db.deleteMany('roster', 'prn', batch.inserted_prns || []);
+    for (let offset = 0; offset < (batch.previous_rows || []).length; offset += 250) await db.upsertMany('roster', batch.previous_rows.slice(offset, offset + 250), 'prn');
+    await db.update('import_batches', { id: batch.id }, { status: 'undone', undone_at: new Date().toISOString() });
+    await db.logAudit('roster_import_undo', 'import_batches', batch.id, { removed: (batch.inserted_prns || []).length, restored: (batch.previous_rows || []).length });
+    if (adminStudentsRouter.clearStudentCache) adminStudentsRouter.clearStudentCache();
+    res.json({ success: true, message: 'Import undone.', removed: (batch.inserted_prns || []).length, restored: (batch.previous_rows || []).length });
 });
 
 function parseCsvLine(text) {
@@ -136,5 +193,110 @@ function parseCsvLine(text) {
     }
     return matches;
 }
+
+function cellText(cell) {
+    const value = cell?.value;
+    if (value instanceof Date) return `${String(value.getDate()).padStart(2, '0')}-${String(value.getMonth() + 1).padStart(2, '0')}-${value.getFullYear()}`;
+    if (value && typeof value === 'object') {
+        if (Array.isArray(value.richText)) return value.richText.map(part => part.text).join('');
+        if (value.text !== undefined) return String(value.text);
+        if (value.result !== undefined) return String(value.result);
+    }
+    return value == null ? '' : String(value);
+}
+
+async function parseUploadedRows(req) {
+    if (!req.file) {
+        const text = String(req.body.csvContent || '').replace(/^\uFEFF/, '');
+        const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+        const rows = lines.map(parseCsvLine);
+        return /prn|name/i.test(rows[0]?.join(',') || '') ? rows.slice(1) : rows;
+    }
+    const extension = require('path').extname(req.file.originalname || '').toLowerCase();
+    if (extension === '.csv') {
+        const lines = req.file.buffer.toString('utf8').replace(/^\uFEFF/, '').split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+        const rows = lines.map(parseCsvLine);
+        return /prn|name/i.test(rows[0]?.join(',') || '') ? rows.slice(1) : rows;
+    }
+    if (extension !== '.xlsx') throw Object.assign(new Error('Upload a .xlsx or .csv roster file.'), { status: 400 });
+    try {
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(req.file.buffer);
+        const sheet = workbook.worksheets[0];
+        if (!sheet) return [];
+        const rows = [];
+        sheet.eachRow({ includeEmpty: false }, row => rows.push(Array.from({ length: 6 }, (_, index) => cellText(row.getCell(index + 1)).trim())));
+        return /prn|name/i.test(rows[0]?.join(',') || '') ? rows.slice(1) : rows;
+    } catch {
+        return parseNamespacedXlsx(req.file.buffer);
+    }
+}
+
+function decodeXml(value) {
+    return String(value || '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+}
+
+async function parseNamespacedXlsx(buffer) {
+    const zip = await JSZip.loadAsync(buffer);
+    const sheetFile = zip.file('xl/worksheets/sheet1.xml');
+    if (!sheetFile) throw Object.assign(new Error('Excel workbook has no readable first sheet.'), { status: 400 });
+    const sharedFile = zip.file('xl/sharedStrings.xml');
+    const sharedXml = sharedFile ? await sharedFile.async('string') : '';
+    const shared = [...sharedXml.matchAll(/<(?:\w+:)?si\b[^>]*>([\s\S]*?)<\/(?:\w+:)?si>/gi)].map(match =>
+        decodeXml([...match[1].matchAll(/<(?:\w+:)?t\b[^>]*>([\s\S]*?)<\/(?:\w+:)?t>/gi)].map(item => item[1]).join(''))
+    );
+    const sheetXml = await sheetFile.async('string');
+    const rows = [];
+    for (const rowMatch of sheetXml.matchAll(/<(?:\w+:)?row\b[^>]*>([\s\S]*?)<\/(?:\w+:)?row>/gi)) {
+        const values = Array(6).fill('');
+        for (const cellMatch of rowMatch[1].matchAll(/<(?:\w+:)?c\b([^>]*)>([\s\S]*?)<\/(?:\w+:)?c>/gi)) {
+            const reference = cellMatch[1].match(/\br="([A-Z]+)\d+"/i)?.[1]?.toUpperCase();
+            const column = reference ? reference.charCodeAt(0) - 65 : -1;
+            if (column < 0 || column >= values.length) continue;
+            const type = cellMatch[1].match(/\bt="([^"]+)"/i)?.[1];
+            const raw = cellMatch[2].match(/<(?:\w+:)?v\b[^>]*>([\s\S]*?)<\/(?:\w+:)?v>/i)?.[1]
+                ?? cellMatch[2].match(/<(?:\w+:)?t\b[^>]*>([\s\S]*?)<\/(?:\w+:)?t>/i)?.[1] ?? '';
+            values[column] = type === 's' ? String(shared[Number(raw)] ?? '') : decodeXml(raw);
+        }
+        if (values.some(Boolean)) rows.push(values.map(value => value.trim()));
+    }
+    return /prn|name/i.test(rows[0]?.join(',') || '') ? rows.slice(1) : rows;
+}
+
+/**
+ * @route   POST /api/admin/roster/reset-dob
+ * @desc    Reset a student's DOB by PRN
+ * @access  Admin
+ */
+router.post('/reset-dob', authenticateAdmin, async (req, res) => {
+    try {
+        const { prn, dob } = req.body;
+        if (!prn || !dob) return res.status(400).json({ success: false, error: { message: 'PRN and DOB are required.' } });
+        
+        const cleanPrn = prn.trim();
+        const cleanDob = dob.trim();
+        
+        const rosterEntry = await db.selectOne('roster', { prn: cleanPrn });
+        if (!rosterEntry) return res.status(404).json({ success: false, error: { message: 'Student with this PRN not found in roster.' } });
+        
+        const isoDate = formatDateToYYYYMMDD(cleanDob);
+        if (!isoDate) return res.status(400).json({ success: false, error: { message: 'Invalid DOB format. Please use DD-MM-YYYY or similar.' } });
+        
+        await db.update('roster', { dob: isoDate }, { prn: cleanPrn });
+        
+        await db.logAudit('student_dob_reset', 'roster', rosterEntry.id, {
+            prn: cleanPrn,
+            oldDob: rosterEntry.dob,
+            newDob: isoDate
+        });
+        
+        if (adminStudentsRouter.clearStudentCache) adminStudentsRouter.clearStudentCache();
+        
+        res.json({ success: true, message: 'DOB updated successfully.' });
+    } catch (err) {
+        console.error('DOB Reset Error:', err);
+        res.status(500).json({ success: false, error: { message: 'Server error resetting DOB.' } });
+    }
+});
 
 module.exports = router;
