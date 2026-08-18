@@ -10,8 +10,13 @@ let expressHandler;
 export default {
     async fetch(request, env, context) {
         if (!expressHandler) {
+            process.env.SUPABASE_URL = env.SUPABASE_URL;
+            process.env.SUPABASE_KEY = env.SUPABASE_KEY;
+            process.env.JWT_SECRET = env.JWT_SECRET;
             Object.assign(process.env, env);
             const { default: app } = await import('../src/server.js');
+            const { init } = await import('../src/config/database.js');
+            init();
             app.listen(3000);
             expressHandler = httpServerHandler({ port: 3000 });
         }

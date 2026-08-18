@@ -15,6 +15,8 @@ let localData = {
     students: [],
     internships: [],
     certificates: [],
+    student_projects: [],
+    research_papers: [],
     diploma: [],
     audit_log: []
     ,profiles: []
@@ -24,46 +26,64 @@ let localData = {
     ,drive_criteria: []
     ,drive_matches: []
     ,shortlists: []
+    ,correction_requests: []
+    ,drive_applications: []
+    ,notifications: []
+    ,saved_filters: []
+    ,assessments: []
+    ,interviews: []
+    ,offers: []
+    ,calendar_events: []
+    ,notification_reads: []
+    ,import_batches: []
+    ,launch_backups: []
 };
 
 const dataDir = path.join(process.cwd(), 'data');
 const dataFilePath = process.env.DATA_FILE || path.join(dataDir, process.env.NODE_ENV === 'test' ? 'db.test.json' : 'db.json');
 
-if (SUPABASE_URL && SUPABASE_KEY && SUPABASE_URL.trim() !== '' && SUPABASE_KEY.trim() !== '') {
-    console.log('🔗 Connecting to Supabase Postgres instance...');
-    supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-} else {
-    console.log('ℹ️ SUPABASE_URL/KEY not set. Initializing zero-dependency local persistent database...');
-    useLocalDb = true;
+function init() {
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
-    if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-    }
+    if (SUPABASE_URL && SUPABASE_KEY && SUPABASE_URL.trim() !== '' && SUPABASE_KEY.trim() !== '') {
+        console.log('🔗 Connecting to Supabase Postgres instance...');
+        supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        useLocalDb = false;
+    } else {
+        console.log('ℹ️ SUPABASE_URL/KEY not set. Initializing zero-dependency local persistent database...');
+        useLocalDb = true;
 
-    if (fs.existsSync(dataFilePath)) {
-        try {
-            const raw = fs.readFileSync(dataFilePath, 'utf8');
-            localData = JSON.parse(raw);
-        } catch (e) {
-            console.error('Error loading db.json, re-initializing:', e.message);
+        if (!fs.existsSync(dataDir)) {
+            fs.mkdirSync(dataDir, { recursive: true });
+        }
+
+        if (fs.existsSync(dataFilePath)) {
+            try {
+                const raw = fs.readFileSync(dataFilePath, 'utf8');
+                localData = JSON.parse(raw);
+            } catch (e) {
+                console.error('Error loading db.json, re-initializing:', e.message);
+            }
+        }
+
+        // Ensure all tables exist
+        ['roster', 'students', 'internships', 'certificates', 'student_projects', 'research_papers', 'diploma', 'audit_log', 'profiles', 'login_attempts', 'student_skills', 'placement_drives', 'drive_criteria', 'drive_matches', 'shortlists', 'correction_requests', 'drive_applications', 'notifications', 'saved_filters', 'assessments', 'interviews', 'offers', 'calendar_events', 'notification_reads', 'import_batches', 'launch_backups'].forEach(table => {
+            if (!localData[table]) localData[table] = [];
+        });
+
+        // Seed default sample roster entries if roster is empty
+        if (localData.roster.length === 0) {
+            console.log('Seeding initial test roster data...');
+            localData.roster = [
+                { prn: '12345', name: 'Test Student', dob: '2000-01-01', branch: 'COMP', email: 'test@example.com' },
+                { prn: '67890', name: 'Jane Doe', dob: '2001-02-02', branch: 'IT', email: 'jane@example.com' }
+            ];
+            saveLocalData();
         }
     }
-
-    // Ensure all tables exist
-    ['roster', 'students', 'internships', 'certificates', 'diploma', 'audit_log', 'profiles', 'login_attempts', 'student_skills', 'placement_drives', 'drive_criteria', 'drive_matches', 'shortlists'].forEach(table => {
-        if (!localData[table]) localData[table] = [];
-    });
-
-    // Seed default sample roster entries if roster is empty
-    if (localData.roster.length === 0) {
-        localData.roster = [
-            { id: crypto.randomUUID(), prn: '24053651251515', name: 'Rahul Sharma', dob: '2003-07-31', branch: 'Computer Engineering', class: 'BE-A', year: 'Final Year' },
-            { id: crypto.randomUUID(), prn: '24053651251516', name: 'Priya Patel', dob: '2004-01-15', branch: 'Information Technology', class: 'BE-B', year: 'Final Year' },
-            { id: crypto.randomUUID(), prn: '24053651251517', name: 'Aman Verma', dob: '2003-11-22', branch: 'Electronics & Telecom', class: 'BE-A', year: 'Final Year' }
-        ];
-        saveLocalData();
-    }
 }
+init();
 
 function saveLocalData() {
     if (useLocalDb) {
@@ -77,6 +97,10 @@ function saveLocalData() {
 const db = {
     isLocal: () => useLocalDb,
     supabaseClient: () => supabase,
+    authClient: () => {
+        if (useLocalDb || !SUPABASE_URL || !SUPABASE_KEY) return null;
+        return createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+    },
 
     // Select query
     async select(table, filter = {}) {
@@ -151,6 +175,44 @@ const db = {
         }
     },
 
+    async upsertMany(table, rows, onConflictKey = 'id') {
+        if (!Array.isArray(rows) || rows.length === 0) return [];
+        if (!useLocalDb) {
+            const { data: upserted, error } = await supabase.from(table).upsert(rows, { onConflict: onConflictKey }).select();
+            if (error) throw error;
+            return upserted || [];
+        }
+        if (!localData[table]) localData[table] = [];
+        const index = new Map(localData[table].map((row, position) => [row[onConflictKey], position]));
+        const saved = rows.map(data => {
+            const key = data[onConflictKey];
+            const position = index.get(key);
+            if (position !== undefined) {
+                localData[table][position] = { ...localData[table][position], ...data };
+                return localData[table][position];
+            }
+            const record = { ...data, id: data.id || crypto.randomUUID() };
+            index.set(key, localData[table].length);
+            localData[table].push(record);
+            return record;
+        });
+        saveLocalData();
+        return saved;
+    },
+
+    async replaceStudentSkills(studentId, skills) {
+        if (!useLocalDb) {
+            const { data, error } = await supabase.rpc('replace_student_skills', { target_student_id: studentId, new_skills: skills });
+            if (error) throw error;
+            return data || [];
+        }
+        localData.student_skills = (localData.student_skills || []).filter(row => row.student_id !== studentId);
+        const saved = skills.map(skill => ({ id: crypto.randomUUID(), student_id: studentId, skill }));
+        localData.student_skills.push(...saved);
+        saveLocalData();
+        return saved;
+    },
+
     // Update record
     async update(table, filter, data) {
         if (!useLocalDb) {
@@ -195,7 +257,18 @@ const db = {
             if (table === 'students' && filter.id) {
                 localData.internships = (localData.internships || []).filter(i => i.student_id !== filter.id);
                 localData.certificates = (localData.certificates || []).filter(c => c.student_id !== filter.id);
+                localData.student_projects = (localData.student_projects || []).filter(project => project.student_id !== filter.id);
+                localData.research_papers = (localData.research_papers || []).filter(paper => paper.student_id !== filter.id);
                 localData.diploma = (localData.diploma || []).filter(d => d.student_id !== filter.id);
+            }
+
+            if (table === 'placement_drives' && filter.id) {
+                const driveId = filter.id;
+                ['drive_criteria', 'drive_matches', 'shortlists', 'drive_applications', 'assessments', 'interviews', 'offers']
+                    .forEach(child => { localData[child] = (localData[child] || []).filter(row => row.drive_id !== driveId); });
+            }
+            if (table === 'notifications' && filter.id) {
+                localData.notification_reads = (localData.notification_reads || []).filter(row => row.notification_id !== filter.id);
             }
 
             localData[table] = list.filter(row => {
@@ -205,6 +278,31 @@ const db = {
             saveLocalData();
             return true;
         }
+    }
+    ,async deleteMany(table, key, values) {
+        const uniqueValues = [...new Set((values || []).filter(value => value !== null && value !== undefined))];
+        if (!uniqueValues.length) return true;
+        if (!useLocalDb) {
+            for (let offset = 0; offset < uniqueValues.length; offset += 500) {
+                const { error } = await supabase.from(table).delete().in(key, uniqueValues.slice(offset, offset + 500));
+                if (error) throw error;
+            }
+            return true;
+        }
+        const valueSet = new Set(uniqueValues.map(String));
+        localData[table] = (localData[table] || []).filter(row => !valueSet.has(String(row[key])));
+        saveLocalData();
+        return true;
+    }
+    ,async deleteAll(table) {
+        if (!useLocalDb) {
+            const { error } = await supabase.from(table).delete().not('id', 'is', null);
+            if (error) throw error;
+            return true;
+        }
+        localData[table] = [];
+        saveLocalData();
+        return true;
     }
 };
 
