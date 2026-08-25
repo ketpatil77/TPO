@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TPC Workspace - AIT Placement Portal</title>
+    <script src="/js/theme.js?v=20260812-qa1"></script>
+    <link rel="stylesheet" href="/css/styles.css?v=20260818-uifinal1">
+    <link rel="stylesheet" href="/css/portal-layout-20260814.css?v=20260818-uifinal1">
+    <link rel="stylesheet" href="/css/portal-identifiers-20260814.css?v=20260818-uifinal1">
+    <script src="/js/responsive-tables.js?v=20260817-responsive1" defer></script>
+</head>
+<body class="observer-shell">
+    <a class="skip-link" href="#observerDashboard">Skip to dashboard</a>
+    <nav class="navbar observer-nav">
+        <div class="container navbar-inner">
+            <a href="/observer/dashboard" class="brand"><div class="brand-icon">AIT</div><div><div class="brand-title">AIT Placement Portal</div><div class="brand-subtitle">TPC Observer Workspace</div></div></a>
+            <div class="observer-identity"><button id="observerAvatarButton" class="profile-picture-button" type="button" title="Update TPC profile picture" aria-label="Update TPC profile picture"><img id="observerAvatarImage" alt=""><span aria-hidden="true">T</span></button><input id="observerAvatarFile" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" hidden><span id="observerDepartment" class="badge badge-info">Department --</span><span class="readonly-pill">Read only</span><button id="observerLogout" class="btn btn-secondary btn-sm">Sign out</button></div>
+        </div>
+    </nav>
+    <main id="observerDashboard" class="container dashboard-wrapper">
+        <section class="observer-hero">
+            <div><span class="eyebrow">College placement overview</span><h1>Department readiness at a glance.</h1><p>Review placement readiness across every branch. Observer access is read-only.</p></div>
+            <div class="hero-signal"><span class="signal-dot"></span><div><strong>Read-only controls active</strong><small>AIML · CT · EE · ME · CE · E&amp;C</small></div></div>
+        </section>
+
+        <section class="metric-grid" aria-label="College overview">
+            <article class="metric-card"><span>Uploaded roster</span><strong id="metricRoster">—</strong><small>College records</small></article>
+            <article class="metric-card"><span>Active profiles</span><strong id="metricProfiles">—</strong><small id="metricPending">— pending</small></article>
+            <article class="metric-card"><span>Resume ready</span><strong id="metricResumes">—</strong><small>Private PDFs</small></article>
+            <article class="metric-card"><span>Experience</span><strong id="metricInternships">—</strong><small>Internships logged</small></article>
+            <article class="metric-card"><span>Credentials</span><strong id="metricCertificates">—</strong><small>Certificates logged</small></article>
+            <article class="metric-card"><span>Portfolio</span><strong id="metricProjects">—</strong><small>Projects logged</small></article>
+            <article class="metric-card"><span>Research</span><strong id="metricResearch">—</strong><small>Papers published</small></article>
+            <article class="metric-card"><span>Open drives</span><strong id="metricDrives">—</strong><small>Placement activity</small></article>
+        </section>
+
+        <section class="observer-section">
+            <div class="section-header"><div><span class="eyebrow">Department pulse</span><h2>Branch readiness</h2></div><span class="section-note">All observers see all branches</span></div>
+            <div id="branchCards" class="branch-grid"></div>
+        </section>
+
+        <div class="tabs-nav observer-tabs" role="tablist" aria-label="TPC workspace sections">
+            <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="observerTab-students" data-tab="students">Student profiles</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="observerTab-roster" data-tab="roster">Uploaded roster</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="observerTab-drives" data-tab="drives">Placement drives</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="observerTab-dob" data-tab="dob">DOB corrections</button>
+        </div>
+
+        <section id="observerTab-students" class="tab-content active" role="tabpanel">
+            <div class="observer-toolbar glass-card">
+                <div><label class="form-label" for="observerBranch">Branch</label><select id="observerBranch" class="form-select"><option value="all">All branches</option><option value="AIML">AIML</option><option value="CT">CT</option><option value="EE">EE</option><option value="ME">ME</option><option value="CE">CE</option><option value="E&amp;C">E&amp;C</option></select></div>
+                <div><label class="form-label" for="observerYear">Year</label><select id="observerYear" class="form-select"><option value="all">All years</option><option>First Year</option><option>Second Year</option><option>Third Year</option><option>Final Year</option></select></div>
+                <div class="search-wide"><label class="form-label" for="observerSearch">Search directory</label><input id="observerSearch" class="form-input" placeholder="Name, PRN, branch, class or year"></div>
+                <button id="observerProfileExport" class="btn btn-primary">Profile completion Excel</button>
+                <button id="refreshStudents" class="btn btn-secondary">Refresh</button>
+            </div>
+            <div class="glass-card table-shell"><table class="observer-table"><thead><tr><th>Student</th><th>Branch</th><th>Academic</th><th>Evidence</th><th>Resume</th><th>View</th></tr></thead><tbody id="observerStudents"><tr><td colspan="6">Loading profiles…</td></tr></tbody></table></div>
+            <div id="studentPagination" class="pagination-bar"></div>
+        </section>
+
+        <section id="observerTab-roster" class="tab-content" role="tabpanel">
+            <div class="observer-toolbar glass-card"><div><label class="form-label" for="rosterBranch">Branch</label><select id="rosterBranch" class="form-select"><option value="all">All branches</option><option value="AIML">AIML</option><option value="CT">CT</option><option value="EE">EE</option><option value="ME">ME</option><option value="CE">CE</option><option value="E&amp;C">E&amp;C</option></select></div><div class="search-wide"><label class="form-label" for="rosterSearch">Search uploaded roster</label><input id="rosterSearch" class="form-input" placeholder="Name or PRN"></div><button id="refreshRoster" class="btn btn-secondary">Refresh</button></div>
+            <div class="glass-card table-shell"><table class="observer-table"><thead><tr><th>PRN</th><th>Name</th><th>Branch</th><th>Class</th><th>Year</th><th>Profile status</th></tr></thead><tbody id="observerRoster"><tr><td colspan="6">Loading roster…</td></tr></tbody></table></div>
+            <div id="rosterPagination" class="pagination-bar"></div>
+        </section>
+
+        <section id="observerTab-drives" class="tab-content" role="tabpanel"><div id="observerDrives" class="drive-grid"><article class="glass-card empty-state">Loading placement drives…</article></div></section>
+
+        <section id="observerTab-dob" class="tab-content" role="tabpanel">
+            <div class="observer-toolbar glass-card" style="justify-content: space-between;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.1rem; color: #f1f5f9;">DOB Correction Requests</h3>
+                    <p style="margin: 0; font-size: 0.8rem; color: #94a3b8;">Pending and processed requests for your department.</p>
+                </div>
+                <button id="refreshDob" class="btn btn-secondary">Refresh</button>
+            </div>
+            <div class="glass-card table-shell">
+                <table class="observer-table">
+                    <thead>
+                        <tr>
+                            <th>PRN</th>
+                            <th>Name</th>
+                            <th>Submitted DOB</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="observerDobList">
+                        <tr><td colspan="5" style="padding: 16px; text-align: center; color: #94a3b8;">Loading requests...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <div id="observerModal" class="modal-backdrop"><div class="glass-card modal-card observer-modal"><div class="modal-header"><div><span class="eyebrow">Read-only student record</span><h3 id="observerModalTitle">Student profile</h3></div><button id="closeObserverModal" class="close-btn" aria-label="Close">&times;</button></div><div id="observerModalBody"></div></div></div>
+    <div id="toastContainer" class="toast-container"></div>
+    <script src="/js/security.js?v=20260812-qa1"></script>
+    <script src="/js/avatar-control.js?v=20260821-avatarfix1"></script>
+    <script src="/js/observer-dashboard.js?v=20260814-research1"></script>
+</body>
+</html>

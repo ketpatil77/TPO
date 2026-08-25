@@ -1,0 +1,11 @@
+.required-mark { color:var(--danger,#dc2626); font-weight:800; }
+.field-requirement { display:inline-flex; align-items:center; min-height:32px; padding:.3rem .65rem; border:1px solid color-mix(in srgb,var(--danger,#dc2626) 45%,var(--border-color)); border-radius:999px; color:var(--danger,#dc2626); font-size:.75rem; font-weight:700; }
+.field-requirement.is-complete { border-color:color-mix(in srgb,var(--success,#10b981) 45%,var(--border-color)); color:var(--success,#10b981); }
+.profile-avatar-editor.is-missing-required { border-color:color-mix(in srgb,var(--danger,#dc2626) 55%,var(--border-color)); }
+.lateral-entry-control { display:flex; align-items:flex-start; gap:.75rem; margin-top:.75rem; padding:.85rem 1rem; border:1px solid var(--border-color); border-radius:10px; background:var(--surface-muted); cursor:pointer; }
+.lateral-entry-control input { width:18px; height:18px; margin-top:.12rem; accent-color:var(--primary); cursor:pointer; }
+.lateral-entry-control span,.lateral-entry-control small { display:block; }
+.lateral-entry-control strong { color:var(--text-heading); }
+.lateral-entry-control small { margin-top:.18rem; color:var(--text-muted); line-height:1.4; }
+.semester-locked { opacity:.62; }
+.semester-locked .form-input:disabled { cursor:not-allowed; background:var(--surface-muted); border-style:dashed; }

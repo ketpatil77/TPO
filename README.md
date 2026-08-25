@@ -2,7 +2,7 @@
 
 Secure student and Training & Placement Officer portal with profiles, resumes, roster administration, exports, placement drives, deterministic candidate matching, shortlists, and audit logs.
 
-Live pilot: https://tpo-placement-portal.ketan-tpo-portal.workers.dev
+Live pilot: https://ait.ait-placement-portal.workers.dev
 
 Operations and recovery: [`docs/OPERATIONS.md`](docs/OPERATIONS.md)
 

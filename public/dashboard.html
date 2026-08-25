@@ -2,30 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard - TPO Placement Portal</title>
-    <script src="/js/theme.js"></script>
-    <link rel="stylesheet" href="/css/styles.css">
+    <title>Student Workspace - AIT Placement Portal</title>
+    <script src="/js/theme.js?v=20260812-advanced1"></script>
+    <link rel="stylesheet" href="/css/styles.css?v=20260818-uifinal1">
+    <link rel="stylesheet" href="/css/portal-layout-20260814.css?v=20260818-uifinal1">
 </head>
-<body>
+<body class="student-dashboard-page">
+    <a class="skip-link" href="#studentDashboard">Skip to dashboard</a>
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container navbar-inner">
             <a href="/dashboard" class="brand">
-                <div class="brand-icon">TPO</div>
+                <div class="brand-icon">AIT</div>
                 <div>
-                    <div class="brand-title">Placement Portal</div>
+                    <div class="brand-title">AIT Placement Portal</div>
                     <div class="brand-subtitle">Student Workspace</div>
                 </div>
             </a>
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <span id="navStudentPrn" class="badge badge-info">PRN: --</span>
-                <button id="logoutBtn" class="btn btn-secondary btn-sm">Sign Out 🚪</button>
+                <button id="notificationBell" class="notification-bell" type="button" onclick="openNotificationCenter()" aria-label="Open notifications"><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="bellUnreadCount" class="notification-bell-count" hidden>0</span></button>
+                <button id="logoutBtn" class="btn btn-secondary btn-sm">Sign out</button>
             </div>
         </div>
     </nav>
 
-    <main class="container dashboard-wrapper">
+    <main id="studentDashboard" class="container dashboard-wrapper" aria-busy="true">
+        <div id="dashboardSkeleton" class="dashboard-skeleton" role="status" aria-label="Loading student workspace">
+            <div class="skeleton-block skeleton-hero"></div>
+            <div class="skeleton-block skeleton-tabs"></div>
+            <div class="skeleton-grid"><div class="skeleton-block skeleton-panel"></div><div class="skeleton-block skeleton-panel"></div></div>
+            <span class="sr-only">Loading student workspace</span>
+        </div>
+        <div id="dashboardContent" class="dashboard-content" hidden>
         <!-- Header Profile Banner -->
         <div class="glass-card header-banner">
             <div class="student-meta">
@@ -47,56 +58,50 @@
         </div>
 
         <!-- Navigation Tabs -->
-        <div class="tabs-nav">
-            <button class="tab-btn active" onclick="switchTab('overview')">📊 Overview & Summary</button>
-            <button class="tab-btn" onclick="switchTab('edit-profile')">✏️ Edit Profile & CGPA</button>
-            <button class="tab-btn" onclick="switchTab('internships')">💼 Internships (<span id="internshipCount">0</span>)</button>
-            <button class="tab-btn" onclick="switchTab('certificates')">📜 Certificates (<span id="certCount">0</span>)</button>
-            <button class="tab-btn" onclick="switchTab('diploma')">🎓 Diploma Details (Optional)</button>
+        <div class="tabs-nav" role="tablist" aria-label="Student workspace sections">
+            <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-overview" onclick="switchTab('overview', this)">Overview</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-edit-profile" onclick="switchTab('edit-profile', this)">Profile and CGPA</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-internships" onclick="switchTab('internships', this)">Internships (<span id="internshipCount">0</span>)</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-certificates" onclick="switchTab('certificates', this)">Certificates (<span id="certCount">0</span>)</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-projects" onclick="switchTab('projects', this)">Projects (<span id="projectCount">0</span>)</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-research" onclick="switchTab('research', this)">Research Papers (<span id="researchCount">0</span>)</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-diploma" onclick="switchTab('diploma', this)">Diploma</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-opportunities" onclick="switchTab('opportunities', this)">Opportunities <span id="navNotificationUnread" class="badge badge-info" hidden>0</span></button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-jobs" onclick="switchTab('jobs', this); loadJobBoard();">Job Board</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-alumni" onclick="switchTab('alumni', this); loadAlumniNetwork();">Alumni Network</button>
         </div>
 
         <!-- TAB 1: OVERVIEW -->
-        <div id="tab-overview" class="tab-content active">
-            <div class="grid-2">
-                <!-- Academic Stats Card -->
-                <div class="glass-card" style="padding: 1.5rem;">
-                    <h3 style="margin-bottom: 1rem;">Academic Performance</h3>
-                    <div class="grid-4" style="margin-bottom: 1.5rem;">
-                        <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-color);">
-                            <span style="font-size: 0.8rem; color: var(--text-muted);">Overall CGPA</span>
-                            <div id="overviewCgpa" style="font-size: 1.6rem; font-weight: 700; color: var(--accent);">--</div>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-color);">
-                            <span style="font-size: 0.8rem; color: var(--text-muted);">Resume Link</span>
-                            <div id="overviewResume" style="margin-top: 0.25rem;">Not Uploaded</div>
-                        </div>
-                    </div>
-
-                    <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-muted);">Semester-wise CGPA Breakdown:</h4>
-                    <div id="semestersGrid" class="grid-semesters"></div>
-                </div>
-
-                <!-- Activities & Quick Summary -->
-                <div class="glass-card" style="padding: 1.5rem;">
-                    <h3 style="margin-bottom: 1rem;">Extracurriculars & Highlights</h3>
-                    <div id="overviewActivities" style="white-space: pre-wrap; font-size: 0.95rem; min-height: 120px; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
-                        No activities recorded yet. Click 'Edit Profile' to add extracurricular accomplishments.
-                    </div>
-
-                    <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-muted);">Lateral Entry / Diploma Status:</h4>
-                    <div id="overviewDiplomaBadge">
-                        <span class="badge badge-offline">No Diploma Record</span>
-                    </div>
-                </div>
+        <div id="tab-overview" class="tab-content active" role="tabpanel">
+            <div class="overview-layout">
+                <section class="glass-card overview-panel academic-overview-panel">
+                    <div class="overview-panel-heading"><div><span class="eyebrow">Academic record</span><h2>Performance overview</h2><p>Current CGPA and semester progression.</p></div><div id="overviewResume">Not uploaded</div></div>
+                    <div class="overview-score-row"><div class="overview-primary-score"><span>Overall CGPA</span><strong id="overviewCgpa">--</strong><small>out of 10</small></div><div class="overview-mini-stats"><div><span>Completed semesters</span><strong id="completedSemesterCount">0 / 8</strong></div><div><span>Active backlogs</span><strong id="overviewBacklogCount">0</strong></div></div></div>
+                    <div class="overview-subheading"><h3>Semester performance</h3><span>SGPA</span></div>
+                    <div id="semestersGrid" class="overview-semester-grid"></div>
+                </section>
+                <section class="glass-card overview-panel profile-overview-panel">
+                    <div class="overview-panel-heading"><div><span class="eyebrow">Placement profile</span><h2>Experience and highlights</h2><p>Recruiter-ready snapshot of profile strength.</p></div></div>
+                    <div class="profile-stat-grid"><div><strong id="overviewInternshipCount">0</strong><span>Internships</span></div><div><strong id="overviewCertificateCount">0</strong><span>Certificates</span></div><div><strong id="overviewProjectCount">0</strong><span>Projects</span></div><div><strong id="overviewResearchCount">0</strong><span>Research papers</span></div><div><strong id="overviewSkillCount">0</strong><span>Skills</span></div></div>
+                    <div id="overviewActivities" class="overview-highlights-text">No activities recorded yet.</div>
+                    <button id="overviewActivitiesToggle" type="button" class="text-action" onclick="toggleOverviewActivities()" hidden aria-expanded="false">Show full highlights</button>
+                    <div id="overviewProfileLinks" class="overview-profile-links"></div>
+                    <div class="overview-diploma-section"><span class="overview-label">Entry route</span><div id="overviewDiplomaBadge"><span class="badge badge-offline">No diploma record</span></div></div>
+                </section>
             </div>
         </div>
 
         <!-- TAB 2: EDIT PROFILE -->
-        <div id="tab-edit-profile" class="tab-content">
-            <div class="glass-card" style="padding: 2rem; max-width: 800px; margin: 0 auto;">
-                <h3 style="margin-bottom: 1.5rem;">Edit Personal & Academic Profile</h3>
-                <form id="profileForm">
-                    <div class="grid-2">
+        <div id="tab-edit-profile" class="tab-content" role="tabpanel">
+            <div class="glass-card student-profile-editor">
+                <div class="profile-editor-heading"><div><span class="eyebrow">Student record</span><h3>Edit personal and academic profile</h3><p>Keep placement details accurate. Overall CGPA updates automatically from semester entries.</p></div></div>
+                    <div class="avatar-editor profile-avatar-editor" id="profileAvatarField">
+                        <img id="studentAvatarPreview" class="avatar-editor-preview" alt="Student profile picture">
+                        <div class="avatar-editor-copy"><strong>Profile picture <span class="required-mark" aria-hidden="true">*</span></strong><p>Required. JPG, JPEG, or PNG under 1 MB. Square images work best.</p><div class="avatar-editor-actions"><label class="btn btn-secondary btn-sm" for="studentAvatarFile">Choose or replace picture</label><input id="studentAvatarFile" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" aria-required="true" hidden><span id="studentAvatarRequirement" class="field-requirement" role="status">Picture required</span></div></div>
+                </div>
+                <form id="profileForm" class="profile-editor-form">
+                    <div class="profile-form-section-title"><span>01</span><div><strong>Personal details</strong><small>Identity and contact information</small></div></div>
+                    <div class="grid-2 profile-contact-grid">
                         <div class="form-group">
                             <label class="form-label">Full Name</label>
                             <input type="text" id="editName" class="form-input" required>
@@ -108,13 +113,37 @@
                     </div>
 
                     <div class="grid-2">
+                        <div class="form-group"><label class="form-label" for="editEmail">Contact email <span class="required-mark" aria-hidden="true">*</span></label><input type="email" id="editEmail" class="form-input" maxlength="254" autocomplete="email" placeholder="student@example.com" required><div class="form-hint">Required. Used by placement staff to contact you.</div></div>
+                        <div class="form-group"><label class="form-label" for="editPhone">Mobile number <span class="required-mark" aria-hidden="true">*</span></label><input type="tel" id="editPhone" class="form-input" inputmode="tel" autocomplete="tel" pattern="\+?[0-9]{7,15}" placeholder="9876543210" required><div class="form-hint">Required. 7–15 digits. Country code optional.</div></div>
+                    </div>
+
+                    <div class="profile-form-section-title"><span>02</span><div><strong>Academic details</strong><small>Department, class, year, and performance</small></div></div>
+                    <div class="grid-2">
                         <div class="form-group">
-                            <label class="form-label">Branch</label>
-                            <input type="text" id="editBranch" class="form-input" required>
+                            <label class="form-label">SSC Marks (%) <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input type="number" step="0.01" min="0" max="100" id="editSscMarks" class="form-input" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Class</label>
-                            <input type="text" id="editClass" class="form-input" placeholder="e.g. BE-A" required>
+                            <label class="form-label">HSC/Diploma Marks (%) <span class="required-mark" aria-hidden="true">*</span></label>
+                            <input type="number" step="0.01" min="0" max="100" id="editHscMarks" class="form-input" required>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Branch</label>
+                            <select id="editBranch" class="form-select" required>
+                                <option value="AIML">AIML - Artificial Intelligence & Machine Learning</option>
+                                <option value="CT">CT - Computer Technology</option>
+                                <option value="EE">EE - Electrical Engineering</option>
+                                <option value="ME">ME - Mechanical Engineering</option>
+                                <option value="CE">CE - Civil Engineering</option>
+                                <option value="E&amp;C">E&amp;C - Electronics &amp; Communication Engineering</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="editClass">Class (Assigned by Placement Cell)</label>
+                            <input type="text" id="editClass" class="form-input locked-field" readonly aria-readonly="true">
+                            <div class="form-hint">Students cannot change assigned class.</div>
                         </div>
                     </div>
 
@@ -130,12 +159,72 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Overall CGPA</label>
-                            <input type="number" step="0.01" min="0" max="10" id="editOverallCgpa" class="form-input" placeholder="e.g. 8.75" required>
+                            <input type="number" step="0.01" min="0" max="10" id="editOverallCgpa" class="form-input" placeholder="Calculated automatically" readonly aria-describedby="overallCgpaHint">
+                            <div id="overallCgpaHint" class="form-hint">Average of entered semester CGPAs.</div>
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-top: 1rem;">
+                    <div id="employmentSection" class="form-group" style="display: none; background: rgba(0, 0, 0, 0.03); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.1); margin-top: 1rem; grid-column: 1 / -1;">
+                        <label class="form-label">Are you currently employed?</label>
+                        <select id="editIsEmployed" class="form-select">
+                            <option value="false">No</option>
+                            <option value="true">Yes</option>
+                        </select>
+                        <div id="employmentDetails" style="display: none; margin-top: 1rem;">
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Employment Type <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <select id="editEmpType" class="form-select">
+                                        <option value="Private">Private</option>
+                                        <option value="Govt">Govt</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Organization Type <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <select id="editOrgType" class="form-select">
+                                        <option value="Startup">Startup</option>
+                                        <option value="MNC">MNC</option>
+                                        <option value="PSU">PSU</option>
+                                        <option value="Govt">Govt</option>
+                                        <option value="SMB">Small/Medium Business (SMB)</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label class="form-label">Company / Organization Name <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <input type="text" id="editEmpCompany" class="form-input" placeholder="e.g. TCS, Govt of India">
+                                </div>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label class="form-label">Company Address <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <textarea id="editCompanyAddress" class="form-textarea" rows="2" placeholder="Full address of the organization"></textarea>
+                                </div>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Current CTC (LPA)</label>
+                                    <input type="number" step="0.01" id="editCurrentCtc" class="form-input" placeholder="e.g. 5.50">
+                                </div>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">HR Name (Optional)</label>
+                                    <input type="text" id="editEmpHrName" class="form-input" placeholder="Name of HR contact">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">HR Number (Optional)</label>
+                                    <input type="tel" id="editEmpHrNumber" class="form-input" placeholder="Contact number of HR">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group profile-semester-block">
                         <label class="form-label">Semester-wise CGPA (Sem 1 to Sem 8)</label>
+                        <label class="lateral-entry-control" for="lateralEntry"><input type="checkbox" id="lateralEntry"><span><strong>Diploma / lateral-entry student</strong><small>Semester 1 and 2 become 0 and stay locked.</small></span></label>
                         <div class="grid-semesters" style="margin-top: 0.5rem;">
                             <div>
                                 <label class="form-hint">Sem 1</label>
@@ -172,9 +261,42 @@
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-top: 1rem;">
-                        <label class="form-label" for="resumeFile">Private Resume PDF (maximum 5 MB)</label>
+                    <div class="profile-form-section-title"><span>03</span><div><strong>Placement readiness</strong><small>Backlogs, resume, skills, and achievements</small></div></div>
+                    <div class="form-group profile-readiness-block">
+                        <label class="form-label" for="resumeFile">Private Resume PDF (maximum 2 MB)</label>
+                        <div class="form-group" style="margin: 0 0 1rem;">
+                            <label class="form-label">Current uncleared backlogs by semester</label>
+                            <div class="form-hint">Enter pending subjects only. Change to 0 after clearing.</div>
+                            <div class="grid-semesters" style="margin-top: 0.5rem;">
+                                <div><label class="form-hint">Sem 1</label><input type="number" min="0" max="20" id="backlogSem1" class="form-input" value="0"></div><div><label class="form-hint">Sem 2</label><input type="number" min="0" max="20" id="backlogSem2" class="form-input" value="0"></div><div><label class="form-hint">Sem 3</label><input type="number" min="0" max="20" id="backlogSem3" class="form-input" value="0"></div><div><label class="form-hint">Sem 4</label><input type="number" min="0" max="20" id="backlogSem4" class="form-input" value="0"></div><div><label class="form-hint">Sem 5</label><input type="number" min="0" max="20" id="backlogSem5" class="form-input" value="0"></div><div><label class="form-hint">Sem 6</label><input type="number" min="0" max="20" id="backlogSem6" class="form-input" value="0"></div><div><label class="form-hint">Sem 7</label><input type="number" min="0" max="20" id="backlogSem7" class="form-input" value="0"></div><div><label class="form-hint">Sem 8</label><input type="number" min="0" max="20" id="backlogSem8" class="form-input" value="0"></div>
+                            </div>
+                        </div>
+                        <div id="currentResumeCard" class="current-resume-card" hidden>
+                            <div><strong>Current resume uploaded</strong><span>Stored privately. Choose another PDF only to replace it.</span></div>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="openResume()">View current resume</button>
+                        </div>
                         <input type="file" id="resumeFile" class="form-input" accept="application/pdf,.pdf">
+                        <div class="resume-tools"><button id="extractResumeSkills" type="button" class="btn btn-secondary btn-sm">Detect skills from resume</button><span>Review suggestions before adding.</span></div>
+                        <div id="resumeSkillSuggestions" class="skill-suggestion-panel" hidden aria-live="polite"></div>
+                        <div class="ats-scorer-panel" style="margin-top: 1rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <strong>AI ATS Scorer</strong>
+                                <span class="badge badge-primary" id="atsScoreBadge" style="display:none; padding: 0.2rem 0.5rem; font-size: 0.8rem;"></span>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <select id="atsTargetProfile" class="form-input" style="flex: 1;">
+                                    <option value="software">Software Engineer</option>
+                                    <option value="data">Data Scientist / Analyst</option>
+                                    <option value="electronics">Electronics / Core E&TC</option>
+                                    <option value="mechanical">Mechanical Engineer</option>
+                                    <option value="civil">Civil / Structural Engineer</option>
+                                    <option value="management">Product / Project Management</option>
+                                </select>
+                                <button id="scanAtsScore" type="button" class="btn btn-secondary">Analyze Resume</button>
+                            </div>
+                            <div id="atsAnalysisResult" hidden style="font-size: 0.85rem; color: var(--text-muted);"></div>
+                        </div>
+                        <div id="resumeUploadStatus" class="upload-status" aria-live="polite">Choose PDF, then save profile changes.</div>
                     </div>
 
                     <div class="form-group">
@@ -188,32 +310,55 @@
                         <textarea id="editActivities" class="form-textarea" rows="4" placeholder="List technical competitions, leadership roles, open source projects..."></textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">💾 Save Profile Changes</button>
+                    <div class="profile-save-bar"><span>Changes update your recruiter-facing profile.</span><button type="submit" class="btn btn-primary">Save profile changes</button></div>
                 </form>
             </div>
         </div>
 
         <!-- TAB 3: INTERNSHIPS -->
-        <div id="tab-internships" class="tab-content">
+        <div id="tab-internships" class="tab-content" role="tabpanel">
             <div class="section-header">
-                <h3>Internship History</h3>
-                <button class="btn btn-primary btn-sm" onclick="openInternshipModal()">+ Add New Internship</button>
+                <div><span class="eyebrow">Experience</span><h2>Internship history</h2><p class="section-note">Show recruiters where you worked and what role you held.</p></div>
+                <button class="btn btn-primary btn-sm" onclick="openInternshipModal()">Add internship</button>
             </div>
             <div id="internshipsList"></div>
         </div>
 
         <!-- TAB 4: CERTIFICATES -->
-        <div id="tab-certificates" class="tab-content">
+        <div id="tab-certificates" class="tab-content" role="tabpanel">
             <div class="section-header">
-                <h3>Certifications & Training</h3>
-                <button class="btn btn-primary btn-sm" onclick="openCertificateModal()">+ Add New Certificate</button>
+                <div><span class="eyebrow">Credentials</span><h2>Certifications and training</h2><p class="section-note">Add verified courses, credentials, and workshops.</p></div>
+                <button class="btn btn-primary btn-sm" onclick="openCertificateModal()">Add certificate</button>
             </div>
             <div id="certificatesList"></div>
         </div>
 
+        <div id="tab-projects" class="tab-content" role="tabpanel">
+            <div class="section-header">
+                <div><span class="eyebrow">Portfolio</span><h2>Student projects</h2><p class="section-note">Showcase practical work with technologies, live links, and repositories.</p></div>
+                <button class="btn btn-primary btn-sm" onclick="openProjectModal()">Add project</button>
+            </div>
+            <div id="projectsList" class="project-grid"></div>
+        </div>
+
+        <div id="tab-research" class="tab-content" role="tabpanel">
+            <div class="section-header">
+                <div><span class="eyebrow">Published work</span><h2>Research papers</h2><p class="section-note">Showcase verified publications, authorship, DOI, and paper links.</p></div>
+                <button class="btn btn-primary btn-sm" onclick="openResearchModal()">Add research paper</button>
+            </div>
+            <div id="researchList" class="project-grid"></div>
+        </div>
+
         <!-- TAB 5: DIPLOMA DETAILS (OPTIONAL) -->
-        <div id="tab-diploma" class="tab-content">
-            <div class="glass-card" style="padding: 2rem; max-width: 700px; margin: 0 auto;">
+        <div id="tab-opportunities" class="tab-content" role="tabpanel">
+            <div class="opportunity-hero"><div><span class="eyebrow">Placement center</span><h2>Opportunities and career activity</h2><p>Track eligible drives, applications, interviews, offers, and required profile changes.</p></div><div class="opportunity-hero-actions"><button class="btn btn-secondary" onclick="openNotificationCenter()">View notifications <span id="notificationUnread" class="badge badge-info">0</span></button><button class="btn btn-primary" onclick="loadStudentWorkflow()">Refresh dashboard</button></div></div>
+            <div id="profileCompletionPanel" class="glass-card profile-completion-panel readiness-card"></div>
+            <div class="opportunity-grid"><section class="glass-card opportunity-panel opportunity-drives"><div class="panel-title"><div><span class="eyebrow">For you</span><h3>Placement drives</h3></div><span class="panel-icon" aria-hidden="true">01</span></div><div id="studentOpportunities" class="record-stack"></div></section><section class="glass-card opportunity-panel"><div class="panel-title"><div><span class="eyebrow">Action needed</span><h3>Correction requests</h3></div><span class="panel-icon" aria-hidden="true">02</span></div><div id="studentCorrections" class="record-stack"></div></section><section class="glass-card opportunity-panel"><div class="panel-title"><div><span class="eyebrow">Upcoming</span><h3>Interviews and calendar</h3></div><span class="panel-icon" aria-hidden="true">03</span></div><div id="studentSchedule" class="record-stack"></div></section><section class="glass-card opportunity-panel"><div class="panel-title"><div><span class="eyebrow">Progress</span><h3>Training and offers</h3></div><span class="panel-icon" aria-hidden="true">04</span></div><div id="studentCareerRecords" class="record-stack"></div></section></div>
+        </div>
+
+        <!-- TAB 5: DIPLOMA DETAILS (OPTIONAL) -->
+        <div id="tab-diploma" class="tab-content" role="tabpanel">
+            <div class="glass-card diploma-workspace-panel">
                 <div class="section-header">
                     <h3>Diploma / Lateral Entry Information</h3>
                     <span class="badge badge-info">Optional</span>
@@ -245,20 +390,46 @@
                     </div>
 
                     <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                        <button type="submit" class="btn btn-primary">💾 Save Diploma Info</button>
+                        <button type="submit" class="btn btn-primary">Save diploma information</button>
                         <button type="button" id="deleteDiplomaBtn" class="btn btn-danger" style="display: none;" onclick="deleteDiploma()">Delete Diploma Record</button>
                     </div>
                 </form>
             </div>
+            </div>
         </div>
+
+        <!-- TAB 9: JOB BOARD -->
+        <div id="tab-jobs" class="tab-content" role="tabpanel">
+            <div class="overview-panel-heading" style="margin-bottom:1.5rem;">
+                <div><span class="eyebrow">Placements</span><h2>Active Job Drives</h2><p>Apply for open placement opportunities.</p></div>
+            </div>
+            <div id="jobBoardGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                <div style="color:var(--text-muted);">Loading drives...</div>
+            </div>
+        </div>
+
+        <!-- TAB 10: ALUMNI NETWORK -->
+        <div id="tab-alumni" class="tab-content" role="tabpanel">
+            <div class="overview-panel-heading" style="margin-bottom:1.5rem;">
+                <div><span class="eyebrow">Network</span><h2>Alumni Directory</h2><p>Connect with placed seniors.</p></div>
+            </div>
+            <div id="alumniGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                <div style="color:var(--text-muted);">Loading alumni...</div>
+            </div>
+        </div>
+
     </main>
+
+    <div id="notificationCenterModal" class="modal-backdrop notification-center-modal" role="dialog" aria-modal="true" aria-labelledby="notificationCenterTitle">
+        <div class="glass-card modal-card notification-center-card"><div class="modal-header"><div><span class="eyebrow">Student inbox</span><h3 id="notificationCenterTitle">Notifications</h3><p class="section-note">Alerts from Training and Placement Cell.</p></div><button class="close-btn" onclick="closeNotificationCenter()" aria-label="Close notifications">&times;</button></div><div class="notification-center-toolbar"><span id="notificationCenterUnread">0 unread</span><button class="btn btn-secondary btn-sm" onclick="markAllNotificationsRead()">Mark all read</button></div><div id="studentNotifications" class="notification-center-list" aria-live="polite"></div></div>
+    </div>
 
     <!-- Modal for Internship -->
     <div id="internshipModal" class="modal-backdrop">
         <div class="glass-card modal-card">
             <div class="modal-header">
                 <h3 id="internshipModalTitle">Add Internship</h3>
-                <button class="close-btn" onclick="closeInternshipModal()">&times;</button>
+                <button class="close-btn" onclick="closeInternshipModal()" aria-label="Close internship form">&times;</button>
             </div>
             <form id="internshipForm">
                 <input type="hidden" id="internshipId">
@@ -297,7 +468,7 @@
         <div class="glass-card modal-card">
             <div class="modal-header">
                 <h3 id="certModalTitle">Add Certificate</h3>
-                <button class="close-btn" onclick="closeCertificateModal()">&times;</button>
+                <button class="close-btn" onclick="closeCertificateModal()" aria-label="Close certificate form">&times;</button>
             </div>
             <form id="certForm">
                 <input type="hidden" id="certId">
@@ -327,9 +498,40 @@
         </div>
     </div>
 
+    <div id="projectModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="projectModalTitle">
+        <div class="glass-card modal-card">
+            <div class="modal-header"><div><span class="eyebrow">Portfolio item</span><h3 id="projectModalTitle">Add project</h3></div><button class="close-btn" type="button" onclick="closeProjectModal()" aria-label="Close project form">&times;</button></div>
+            <form id="projectForm">
+                <input type="hidden" id="projectId">
+                <div class="form-group"><label class="form-label" for="projectTitle">Project title</label><input type="text" id="projectTitle" class="form-input" maxlength="150" required></div>
+                <div class="form-group"><label class="form-label" for="projectSummary">What it does</label><textarea id="projectSummary" class="form-textarea" rows="4" maxlength="2000" required></textarea><small class="form-help">Lead with outcome, users, or measurable impact.</small></div>
+                <div class="form-group"><label class="form-label" for="projectTechnologies">Technologies</label><input type="text" id="projectTechnologies" class="form-input" maxlength="500" placeholder="Flask, React, Docker"></div>
+                <div class="grid-2"><div class="form-group"><label class="form-label" for="projectUrl">Live project URL</label><input type="url" id="projectUrl" class="form-input" placeholder="https://"></div><div class="form-group"><label class="form-label" for="projectRepositoryUrl">Repository URL</label><input type="url" id="projectRepositoryUrl" class="form-input" placeholder="https://github.com/"></div></div>
+                <div class="form-group"><label class="form-label" for="projectCompletedOn">Completion date</label><input type="date" id="projectCompletedOn" class="form-input"></div>
+                <button type="submit" class="btn btn-primary submit-btn">Save project</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="researchModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="researchModalTitle">
+        <div class="glass-card modal-card">
+            <div class="modal-header"><div><span class="eyebrow">Published work</span><h3 id="researchModalTitle">Add research paper</h3></div><button class="close-btn" type="button" onclick="closeResearchModal()" aria-label="Close research paper form">&times;</button></div>
+            <form id="researchForm">
+                <input type="hidden" id="researchId">
+                <div class="form-group"><label class="form-label" for="researchTitle">Paper title</label><input type="text" id="researchTitle" class="form-input" maxlength="250" required></div>
+                <div class="form-group"><label class="form-label" for="researchAuthors">Authors</label><input type="text" id="researchAuthors" class="form-input" maxlength="1000" placeholder="Ketan Patil, Co-author" required><small class="form-help">Use publication order.</small></div>
+                <div class="grid-2"><div class="form-group"><label class="form-label" for="researchPublication">Journal / conference</label><input type="text" id="researchPublication" class="form-input" maxlength="250" required></div><div class="form-group"><label class="form-label" for="researchPublishedOn">Publication date</label><input type="date" id="researchPublishedOn" class="form-input" required></div></div>
+                <div class="form-group"><label class="form-label" for="researchAbstract">Abstract / contribution</label><textarea id="researchAbstract" class="form-textarea" rows="4" maxlength="3000" required></textarea></div>
+                <div class="grid-2"><div class="form-group"><label class="form-label" for="researchDoiUrl">DOI URL</label><input type="url" id="researchDoiUrl" class="form-input" placeholder="https://doi.org/..."></div><div class="form-group"><label class="form-label" for="researchPaperUrl">Paper URL</label><input type="url" id="researchPaperUrl" class="form-input" placeholder="https://..."></div></div>
+                <button type="submit" class="btn btn-primary submit-btn">Save research paper</button>
+            </form>
+        </div>
+    </div>
+
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="/js/security.js"></script>
-    <script src="/js/dashboard.js"></script>
+    <script src="/js/security.js?v=20260812-intelligence1"></script>
+    <script src="/js/student-skill-catalog.js?v=20260825-release1"></script>
+    <script src="/js/dashboard.js?v=20260825-release1"></script>
 </body>
 </html>

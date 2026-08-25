@@ -6,17 +6,25 @@ let adminStudentPage = 1;
 const adminStudentPageSize = 50;
 
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.form-group').forEach(group => {
+        const label = group.querySelector('.form-label');
+        const control = group.querySelector('input, select, textarea');
+        if (label && control && !label.htmlFor && !control.getAttribute('aria-label')) {
+            control.setAttribute('aria-label', label.textContent.trim());
+        }
+    });
     document.getElementById('adminLogoutBtn').addEventListener('click', handleAdminLogout);
     setupStaffAvatar({ buttonId: 'adminAvatarButton', inputId: 'adminAvatarFile', imageId: 'adminAvatarImage', endpoint: '/api/admin/auth/avatar', onError: message => showToast(message, 'error') });
     document.getElementById('driveForm')?.addEventListener('submit', handleDriveSubmit);
     document.getElementById('notificationForm')?.addEventListener('submit', sendNotification);
     ['assessmentForm','interviewForm','offerForm','calendarForm'].forEach(id => document.getElementById(id)?.addEventListener('submit', saveAdvancedRecord));
     document.getElementById('staffCreateForm')?.addEventListener('submit', createStaffAccount);
+    document.getElementById('changeStudentPasswordFormDashboard')?.addEventListener('submit', handleChangeStudentPassword);
     document.getElementById('btnImpersonate')?.addEventListener('click', handleImpersonate);
     document.querySelector('.filter-bar')?.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); fetchFilteredStudents(); } });
     syncSgpaFilter();
     fetch('/api/admin/auth/me').then(r=>r.json()).then(j=>{if(j.admin){const isSuper=j.admin.role==='super_admin';document.getElementById('adminRoleBadge').textContent=isSuper?(j.admin.display_name||'IR DEV'):'Administrator';document.getElementById('advancedRoleEyebrow').textContent=isSuper?`Super Admin · ${j.admin.display_name||'IR DEV'}`:'Advanced operations';}}).catch(()=>{});
-    
+
     // Drag & Drop Setup
     const dropzone = document.getElementById('dropzone');
     if (dropzone) {
@@ -206,7 +214,7 @@ async function viewMatches(driveId) {
 async function loadRosterCount() {
     const token = localStorage.getItem('tpo_admin_token');
     try {
-        const res = await fetch('/api/roster', {
+        const res = await fetch('/api/admin/roster', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
@@ -219,7 +227,7 @@ async function loadRosterCount() {
 function populateBranchDropdown(branches) {
     const select = document.getElementById('filterBranch');
     const currentVal = select.value;
-    
+
     // Keep 'All Branches'
     select.innerHTML = '<option value="all">All Branches</option>';
     if (branches && Array.isArray(branches)) {
@@ -248,7 +256,7 @@ function renderStudentsTable(students) {
 
     tbody.innerHTML = students.map(s => {
         const cgpa = s.profile_active && s.cgpa_overall ? parseFloat(s.cgpa_overall).toFixed(2) : '—';
-        const resumeLink = s.resume_url 
+        const resumeLink = s.resume_url
             ? `<a class="btn btn-secondary btn-sm resume-open-link" href="/api/admin/students/${encodeURIComponent(s.id)}/resume/open" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open resume</a>`
             : `<span style="color: var(--text-muted); font-size: 0.75rem;">None</span>`;
 
@@ -355,7 +363,7 @@ function exportData(type) {
     const downloadUrl = `${endpoint}?${params.toString()}`;
 
     showToast(`Generating ${type.toUpperCase()} export...`, 'info');
-    
+
     // Trigger download with auth token in fetch or popup window
     fetch(downloadUrl, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -377,6 +385,26 @@ function exportData(type) {
     .catch(err => {
         showToast('Export failed: ' + err.message, 'error');
     });
+}
+
+function exportProfileCompletion() {
+    const params = new URLSearchParams();
+    const branch = document.getElementById('filterBranch').value;
+    const year = document.getElementById('filterYear').value;
+    if (branch && branch !== 'all') params.set('branch', branch);
+    if (year && year !== 'all') params.set('year', year);
+    showToast('Generating profile completion Excel…', 'info');
+    fetch(`/api/admin/profile-completion/excel?${params}`, { headers: { Authorization: `Bearer ${localStorage.getItem('tpo_admin_token')}` } })
+        .then(response => { if (!response.ok) throw new Error('Profile completion export failed.'); return response.blob(); })
+        .then(blob => downloadBlob(blob, `profile_completion_${branch || 'all'}_${year || 'all'}.xlsx`))
+        .then(() => showToast('Profile completion Excel downloaded.', 'success'))
+        .catch(error => showToast(error.message, 'error'));
+}
+
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a'); link.href = url; link.download = filename; document.body.appendChild(link); link.click(); link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 // Modal View
@@ -423,6 +451,8 @@ function openStudentModal(studentId) {
             </div>
             <div>
                 <p><strong>Overall CGPA:</strong> <span style="font-size: 1.2rem; font-weight: 700; color: var(--accent);">${student.cgpa_overall || '0.00'}</span></p>
+                <p><strong>SSC Marks:</strong> <strong style="color: var(--accent);">${student.ssc_marks !== null && student.ssc_marks !== undefined ? student.ssc_marks + '%' : '--'}</strong></p>
+                <p><strong>HSC/Diploma Marks:</strong> <strong style="color: var(--accent);">${student.hsc_marks !== null && student.hsc_marks !== undefined ? student.hsc_marks + '%' : (student.diploma ? student.diploma.percentage_or_cgpa : '--')}</strong></p>
                 <p><strong>Resume:</strong> ${student.resume_url ? `<a class="btn btn-secondary btn-sm resume-open-link" href="/api/admin/students/${encodeURIComponent(student.id)}/resume/open" target="_blank" rel="noopener">Open resume</a>` : 'None'}</p>
                 <div class="student-contact-actions">${student.email?`<a class="student-contact-link" href="${gmailComposeUrl(student.email)}" target="_blank" rel="noopener"><span>Email</span><strong>${escapeHtml(student.email)}</strong></a>`:''}${student.phone?`<a class="student-contact-link" href="tel:${escapeHtml(student.phone)}"><span>Mobile</span><strong>${escapeHtml(student.phone)}</strong></a>`:''}${!student.email&&!student.phone?'<span class="status-pending">Contact details pending</span>':''}</div>
             </div>
@@ -741,6 +771,7 @@ async function loadAdvancedOperations(){
     document.getElementById('savedFilters').innerHTML=filters.data.map(f=>`<button class="btn btn-secondary btn-sm" data-filter="${encodeURIComponent(JSON.stringify(f.filters))}" onclick="applySavedFilter(this.dataset.filter)">${escapeHtml(f.name)}</button>`).join('');
     document.getElementById('calendarList').innerHTML=events.data.length?events.data.map(e=>`<div class="workflow-card"><strong>${escapeHtml(e.title)}</strong><p>${new Date(e.starts_at).toLocaleString()} · ${escapeHtml(e.location||'')}</p></div>`).join(''):'<div class="workflow-card"><p>No calendar events.</p></div>';
     document.getElementById('operationsList').innerHTML=[...interviews.data.map(x=>({title:'Interview',text:new Date(x.starts_at).toLocaleString()})),...offers.data.map(x=>({title:`${x.company} · ${x.role}`,text:`${x.status} · ${x.package_lpa||0} LPA`}))].map(x=>`<div class="workflow-card"><strong>${escapeHtml(x.title)}</strong><p>${escapeHtml(x.text)}</p></div>`).join('')||'<div class="workflow-card"><p>No records.</p></div>';
+    loadDobCorrections();
 }
 async function runAdvancedSearch(){const p=new URLSearchParams({q:document.getElementById('advancedQuery').value,branch:document.getElementById('advancedBranch').value,minCgpa:document.getElementById('advancedCgpa').value,skill:document.getElementById('advancedSkill').value});const r=await fetch('/api/admin/advanced/search?'+p);const j=await r.json();document.getElementById('advancedResults').innerHTML=j.data.map(s=>`<article class="workflow-card"><div class="workflow-card-head"><div><strong>${escapeHtml(s.name)}</strong><p>${escapeHtml(s.prn)} · ${escapeHtml(s.branch)}</p></div><span class="branch-chip">${s.completion.score}%</span></div><p>CGPA ${s.cgpa_overall||0} · ${s.skills.map(escapeHtml).join(', ')||'No skills'}</p><div class="missing-list">${s.resumeReview.issues.map(x=>`<span>${escapeHtml(x)}</span>`).join('')||'<span class="eligibility-pass">Resume ready</span>'}</div><small>Student ID: ${s.id}</small></article>`).join('')||'<div class="workflow-card"><p>No matches.</p></div>';}
 function currentAdvancedFilters(){return{q:document.getElementById('advancedQuery').value,branch:document.getElementById('advancedBranch').value,minCgpa:document.getElementById('advancedCgpa').value,skill:document.getElementById('advancedSkill').value};}
@@ -792,14 +823,14 @@ async function loadAdminAnalytics() {
         });
         const json = await res.json();
         if (!res.ok || !json.success) throw new Error(json.error?.message || 'Failed to fetch analytics');
-        
+
         const data = json.data;
-        
+
         // Placements by Branch (Bar Chart)
         const branches = Object.keys(data.byBranch);
         const placedData = branches.map(b => data.byBranch[b].placed);
         const totalData = branches.map(b => data.byBranch[b].students);
-        
+
         if (analyticsCharts.placement) analyticsCharts.placement.destroy();
         analyticsCharts.placement = new Chart(document.getElementById('placementChart'), {
             type: 'bar',
@@ -857,7 +888,7 @@ async function loadAdminAnalytics() {
             },
             options: { responsive: true, plugins: { title: { display: true, text: 'Top 5 Recruiters', color: '#f8fafc' } }, color: '#cbd5e1', scales: { y: { beginAtZero: true } } }
         });
-        
+
     } catch (err) {
         showToast(err.message, 'error');
     }
@@ -870,10 +901,10 @@ async function renderCalendar() {
         setTimeout(() => calendarInstance.render(), 50);
         return;
     }
-    
+
     const calEl = document.getElementById('driveCalendar');
     if (!calEl || typeof FullCalendar === 'undefined') return;
-    
+
     calendarInstance = new FullCalendar.Calendar(calEl, {
         initialView: 'dayGridMonth',
         themeSystem: 'standard',
@@ -889,7 +920,7 @@ async function renderCalendar() {
                 const res = await fetch('/api/admin/drives', { headers: { 'Authorization': `Bearer ${token}` }});
                 const json = await res.json();
                 if (!json.success) throw new Error();
-                
+
                 const events = json.data.map(drive => ({
                     id: drive.id,
                     title: `${drive.company} - ${drive.role}`,
@@ -898,16 +929,116 @@ async function renderCalendar() {
                     backgroundColor: drive.status === 'open' ? '#10b981' : (drive.status === 'closed' ? '#f43f5e' : '#3b82f6'),
                     borderColor: 'transparent'
                 })).filter(e => e.start);
-                
+
                 successCallback(events);
             } catch (err) {
                 failureCallback(err);
             }
         }
     });
-    
+
     calendarInstance.render();
 }
- 
- a s y n c   f u n c t i o n   a d m i n R e s e t S t u d e n t D o b ( )   {   c o n s t   p r n   =   d o c u m e n t . g e t E l e m e n t B y I d ( ' r e s e t D o b P r n ' ) . v a l u e . t r i m ( ) ;   c o n s t   d o b   =   d o c u m e n t . g e t E l e m e n t B y I d ( ' r e s e t D o b V a l u e ' ) . v a l u e . t r i m ( ) ;   i f   ( ! p r n   | |   ! d o b )   r e t u r n   s h o w T o a s t ( ' P l e a s e   e n t e r   b o t h   P R N   a n d   n e w   D O B ' ,   ' e r r o r ' ) ;   c o n s t   b t n   =   d o c u m e n t . g e t E l e m e n t B y I d ( ' r e s e t D o b B t n ' ) ;   b t n . d i s a b l e d   =   t r u e ;   b t n . t e x t C o n t e n t   =   ' R e s e t t i n g . . . ' ;   t r y   {   c o n s t   r e s   =   a w a i t   f e t c h ( ' / a p i / a d m i n / r o s t e r / r e s e t - d o b ' ,   {   m e t h o d :   ' P O S T ' ,   h e a d e r s :   {   ' C o n t e n t - T y p e ' :   ' a p p l i c a t i o n / j s o n ' ,   ' A u t h o r i z a t i o n ' :   ' B e a r e r   '   +   t o k e n   } ,   b o d y :   J S O N . s t r i n g i f y ( {   p r n ,   d o b   } )   } ) ;   c o n s t   j s o n   =   a w a i t   r e s . j s o n ( ) ;   i f   ( ! r e s . o k   | |   ! j s o n . s u c c e s s )   t h r o w   n e w   E r r o r ( j s o n . e r r o r ? . m e s s a g e   | |   ' F a i l e d   t o   r e s e t   D O B ' ) ;   s h o w T o a s t ( ' S u c c e s s f u l l y   r e s e t   p a s s w o r d   ( D O B )   f o r   '   +   p r n ,   ' s u c c e s s ' ) ;   d o c u m e n t . g e t E l e m e n t B y I d ( ' r e s e t D o b P r n ' ) . v a l u e   =   ' ' ;   d o c u m e n t . g e t E l e m e n t B y I d ( ' r e s e t D o b V a l u e ' ) . v a l u e   =   ' ' ;   }   c a t c h ( e r r )   {   s h o w T o a s t ( e r r . m e s s a g e ,   ' e r r o r ' ) ;   }   f i n a l l y   {   b t n . d i s a b l e d   =   f a l s e ;   b t n . t e x t C o n t e n t   =   ' R e s e t   P a s s w o r d ' ;   }   }  
- 
+
+async function adminResetStudentDob() { const prn = document.getElementById('resetDobPrn').value.trim(); const dob = document.getElementById('resetDobValue').value.trim(); if (!prn || !dob) return showToast('Please enter both PRN and new DOB', 'error'); const btn = document.getElementById('resetDobBtn'); btn.disabled = true; btn.textContent = 'Resetting...'; try { const res = await fetch('/api/admin/roster/reset-dob', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ prn, dob }) }); const json = await res.json(); if (!res.ok || !json.success) throw new Error(json.error?.message || 'Failed to reset DOB'); showToast('Successfully reset password (DOB) for ' + prn, 'success'); document.getElementById('resetDobPrn').value = ''; document.getElementById('resetDobValue').value = ''; } catch(err) { showToast(err.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Reset Password'; } }
+
+async function handleChangeStudentPassword(e) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const studentPrn = document.getElementById('dashStudentPrn').value.trim();
+    const newDob = document.getElementById('dashNewDob').value.trim();
+    const statusDiv = document.getElementById('changePasswordStatus');
+    const btn = form.querySelector('button[type="submit"]');
+
+    if (!studentPrn || !newDob) {
+        statusDiv.textContent = 'Please provide both Student PRN and new DOB.';
+        statusDiv.style.color = 'var(--error)';
+        statusDiv.hidden = false;
+        return;
+    }
+
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Updating password...';
+    statusDiv.hidden = true;
+
+    try {
+        const response = await fetch('/api/admin/auth/change-student-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ studentPrn, newDob })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error?.message || result.error || 'Failed to update student password.');
+
+        statusDiv.textContent = 'Success: Student password updated.';
+        statusDiv.style.color = 'var(--primary)';
+        statusDiv.hidden = false;
+        form.reset();
+    } catch (err) {
+        statusDiv.textContent = err.message;
+        statusDiv.style.color = 'var(--error)';
+        statusDiv.hidden = false;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+}
+
+async function loadDobCorrections() {
+    const list = document.getElementById('dobCorrectionsAdminList');
+    if (!list) return;
+    try {
+        const res = await fetch('/api/admin/roster/dob-corrections');
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Failed to load requests.');
+
+        const formatDob = (isoString) => {
+            const [y, m, d] = isoString.split('-');
+            return `${d}/${m}/${y}`;
+        };
+
+        list.innerHTML = json.data.length ? json.data.map(req => {
+            const dateStr = formatDob(req.submitted_dob);
+            const statusClass = req.status === 'pending' ? 'badge-offline' : (req.status === 'approved' ? 'badge-online' : 'badge-offline');
+            const actions = req.status === 'pending'
+                ? `<button class="btn btn-secondary btn-sm" onclick="processDobRequest('${req.id}', 'approve')" style="margin-right:0.3rem;">Approve</button>
+                   <button class="btn btn-danger btn-sm" onclick="processDobRequest('${req.id}', 'reject')">Reject</button>`
+                : `<span style="color:var(--text-muted); font-size:0.8rem;">Processed</span>`;
+
+            const mismatchBadge = req.name_mismatch
+                ? `<span class="badge badge-offline" style="background-color:#f43f5e; color:#ffffff; font-size:0.75rem; margin-left:0.5rem; padding: 2px 6px; border-radius: 4px; border:none; display:inline-block;">Name Mismatch</span>`
+                : '';
+
+            return `
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 8px;"><strong>${escapeHtml(req.prn)}</strong></td>
+                    <td style="padding: 8px;">${escapeHtml(req.submitted_name)}${mismatchBadge}</td>
+                    <td style="padding: 8px;">${dateStr}</td>
+                    <td style="padding: 8px;"><span class="branch-chip">${escapeHtml(req.department)}</span></td>
+                    <td style="padding: 8px;"><span class="badge ${statusClass}">${escapeHtml(req.status)}</span></td>
+                    <td style="padding: 8px; text-align: right;">${actions}</td>
+                </tr>
+            `;
+        }).join('') : `<tr><td colspan="6" style="padding: 16px; text-align: center; color: #94a3b8;">No correction requests.</td></tr>`;
+    } catch (err) {
+        list.innerHTML = `<tr><td colspan="6" style="padding: 16px; text-align: center; color: #ef4444;">Error: ${escapeHtml(err.message)}</td></tr>`;
+    }
+}
+
+async function processDobRequest(id, action) {
+    if (!confirm(`Are you sure you want to ${action} this request?`)) return;
+    try {
+        const res = await fetch(`/api/admin/roster/dob-corrections/${id}/${action}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const json = await res.json();
+        showToast(res.ok ? `Request ${action}d successfully.` : (json.error || `Failed to ${action} request.`), res.ok ? 'success' : 'error');
+        if (res.ok) {
+            loadDobCorrections();
+        }
+    } catch (err) {
+        showToast('Error communicating with server.', 'error');
+    }
+}

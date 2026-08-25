@@ -1,0 +1,18 @@
+/* Immutable admin alignment patch. Keep after styles.css. */
+#driveForm > h3:first-child { grid-column:1/-1; margin:0 0 .15rem; }
+
+.workflow-workspace { align-items:stretch; }
+.workflow-workspace > .feature-panel { height:100%; }
+.workflow-workspace > .feature-panel:first-child,
+.workflow-workspace > .feature-panel:nth-child(2) { display:flex; flex-direction:column; }
+.workflow-workspace > .feature-panel:first-child #notificationForm { flex:1; align-content:start; }
+.workflow-workspace > .feature-panel:nth-child(2) #applicationPipeline { flex:1; max-height:none; min-height:0; }
+
+#tab-intelligence .launch-operations-grid { align-items:stretch; }
+#tab-intelligence .launch-operations-grid > .intelligence-control-card { display:flex; flex-direction:column; height:100%; }
+#tab-intelligence .launch-operations-grid > .intelligence-control-card > .record-stack { flex:1; min-height:0; }
+#tab-intelligence .launch-operations-grid > .intelligence-control-card .backup-history-list { max-height:none; overflow-y:auto; }
+
+@media (max-width:900px) {
+  .workflow-workspace > .feature-panel { height:auto; }
+}

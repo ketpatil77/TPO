@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const db = require('../config/database');
-const { parseDDMMYY, formatDateToYYYYMMDD } = require('../utils/dateHelper');
+const { normalizeStudentDob } = require('../utils/dateHelper');
 const { authenticateAdmin } = require('../middleware/auth');
 const { normalizeBranch, BRANCHES } = require('../config/branches');
 const ExcelJS = require('exceljs');
@@ -15,6 +15,16 @@ const MAX_IMPORT_ROWS = 10000;
 
 router.use(authenticateAdmin);
 
+// GET /api/admin/roster — returns roster count for dashboard stat card
+router.get('/', async (_req, res) => {
+    try {
+        const roster = await db.select('roster');
+        return res.json({ success: true, count: roster.length });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 router.post('/preview', upload.single('file'), async (req, res) => {
     const dataRows = await parseUploadedRows(req);
     if (!dataRows.length) return res.status(400).json({ success: false, error: 'No roster rows provided.' });
@@ -23,7 +33,7 @@ router.post('/preview', upload.single('file'), async (req, res) => {
     const rows = dataRows.map((values, index) => {
         const [prn, name, dob, branch, className, year] = values;
         const errors = [];
-        const formattedDob = formatDateToYYYYMMDD(String(dob || '').trim()) || parseDDMMYY(String(dob || '').trim());
+        const formattedDob = normalizeStudentDob(dob);
         const normalizedBranch = normalizeBranch(branch);
         if (!prn || !name || !dob) errors.push('PRN, name, and DOB required');
         if (dob && !formattedDob) errors.push('Invalid DOB');
@@ -73,10 +83,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
             const cleanPrn = String(prn).trim();
             const cleanName = String(name).trim();
-            let formattedDob = formatDateToYYYYMMDD(String(dob).trim());
-            if (!formattedDob) {
-                formattedDob = parseDDMMYY(String(dob).trim());
-            }
+            const formattedDob = normalizeStudentDob(dob);
 
             if (!formattedDob) {
                 errors.push(`Row ${i + 2} (PRN ${cleanPrn}): Invalid DOB format "${dob}". Use DD-MM-YYYY, DDMMYY, or YYYY-MM-DD.`);
@@ -279,10 +286,10 @@ router.post('/reset-dob', authenticateAdmin, async (req, res) => {
         const rosterEntry = await db.selectOne('roster', { prn: cleanPrn });
         if (!rosterEntry) return res.status(404).json({ success: false, error: { message: 'Student with this PRN not found in roster.' } });
         
-        const isoDate = formatDateToYYYYMMDD(cleanDob);
+        const isoDate = normalizeStudentDob(cleanDob);
         if (!isoDate) return res.status(400).json({ success: false, error: { message: 'Invalid DOB format. Please use DD-MM-YYYY or similar.' } });
         
-        await db.update('roster', { dob: isoDate }, { prn: cleanPrn });
+        await db.update('roster', { prn: cleanPrn }, { dob: isoDate });
         
         await db.logAudit('student_dob_reset', 'roster', rosterEntry.id, {
             prn: cleanPrn,
@@ -296,6 +303,79 @@ router.post('/reset-dob', authenticateAdmin, async (req, res) => {
     } catch (err) {
         console.error('DOB Reset Error:', err);
         res.status(500).json({ success: false, error: { message: 'Server error resetting DOB.' } });
+    }
+});
+
+router.get('/dob-corrections', authenticateAdmin, async (req, res) => {
+    try {
+        const rows = await db.select('dob_corrections');
+        res.json({ success: true, data: rows.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))) });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Failed to fetch DOB corrections.' });
+    }
+});
+
+router.post('/dob-corrections/:id/approve', authenticateAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const correction = await db.selectOne('dob_corrections', { id });
+        if (!correction) return res.status(404).json({ success: false, error: 'Request not found.' });
+        if (correction.status !== 'pending') return res.status(400).json({ success: false, error: 'Request already processed.' });
+
+        const formattedDob = normalizeStudentDob(correction.submitted_dob);
+        if (!formattedDob) return res.status(400).json({ success: false, error: 'Correction contains an invalid DOB.' });
+
+        const rosterEntry = await db.selectOne('roster', { prn: correction.prn });
+        if (rosterEntry) {
+            await db.update('roster', { prn: correction.prn }, { dob: formattedDob });
+        }
+
+        await db.update('dob_corrections', { id }, {
+            status: 'approved',
+            processed_at: new Date().toISOString(),
+            processed_by: req.admin.adminId
+        });
+
+        await db.logAudit('dob_correction_approve', 'dob_corrections', id, {
+            prn: correction.prn,
+            newDob: formattedDob,
+            processedBy: req.admin.adminId
+        });
+
+        if (adminStudentsRouter.clearStudentCache) {
+            await adminStudentsRouter.clearStudentCache();
+        }
+
+        res.json({ success: true, message: 'DOB correction request approved and updated.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Failed to approve request.' });
+    }
+});
+
+router.post('/dob-corrections/:id/reject', authenticateAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const correction = await db.selectOne('dob_corrections', { id });
+        if (!correction) return res.status(404).json({ success: false, error: 'Request not found.' });
+        if (correction.status !== 'pending') return res.status(400).json({ success: false, error: 'Request already processed.' });
+
+        await db.update('dob_corrections', { id }, {
+            status: 'rejected',
+            processed_at: new Date().toISOString(),
+            processed_by: req.admin.adminId
+        });
+
+        await db.logAudit('dob_correction_reject', 'dob_corrections', id, {
+            prn: correction.prn,
+            processedBy: req.admin.adminId
+        });
+
+        res.json({ success: true, message: 'DOB correction request rejected.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Failed to reject request.' });
     }
 });
 

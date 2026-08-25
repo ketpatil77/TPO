@@ -1,0 +1,24 @@
+alter table public.profiles add column if not exists display_name text;
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles add constraint profiles_role_check check (role in ('super_admin','admin','observer'));
+update public.profiles p set role='super_admin', display_name='IR DEV'
+from auth.users u where p.user_id=u.id and lower(u.email)='tpoait@gmail.com';
+create table if not exists public.saved_filters (id uuid primary key default gen_random_uuid(), owner_id uuid not null, name text not null, filters jsonb not null default '{}'::jsonb, created_at timestamptz not null default now());
+create table if not exists public.assessments (id uuid primary key default gen_random_uuid(), student_id uuid not null references public.students(id) on delete cascade, type text not null, title text not null, score numeric(6,2), max_score numeric(6,2), attended_on date, notes text, created_at timestamptz not null default now());
+create table if not exists public.interviews (id uuid primary key default gen_random_uuid(), drive_id uuid references public.placement_drives(id) on delete cascade, student_id uuid references public.students(id) on delete cascade, starts_at timestamptz not null, ends_at timestamptz not null, venue text, meeting_url text, panel text, status text not null default 'scheduled' check(status in ('scheduled','completed','cancelled')), notes text, created_at timestamptz not null default now());
+create table if not exists public.offers (id uuid primary key default gen_random_uuid(), student_id uuid not null references public.students(id) on delete cascade, drive_id uuid references public.placement_drives(id) on delete set null, company text not null, role text not null, package_lpa numeric(8,2), offer_date date, joining_date date, status text not null default 'offered' check(status in ('offered','accepted','declined','joined')), created_at timestamptz not null default now());
+create table if not exists public.calendar_events (id uuid primary key default gen_random_uuid(), title text not null, event_type text not null check(event_type in ('drive','test','interview','training','deadline','other')), starts_at timestamptz not null, ends_at timestamptz, location text, description text, created_by uuid, created_at timestamptz not null default now());
+alter table public.saved_filters enable row level security;
+alter table public.assessments enable row level security;
+alter table public.interviews enable row level security;
+alter table public.offers enable row level security;
+alter table public.calendar_events enable row level security;
+revoke all on public.saved_filters, public.assessments, public.interviews, public.offers, public.calendar_events from anon, authenticated;
+create index if not exists idx_saved_filters_owner on public.saved_filters(owner_id);
+create index if not exists idx_assessments_student on public.assessments(student_id,attended_on desc);
+create index if not exists idx_interviews_start on public.interviews(starts_at);
+create index if not exists idx_interviews_student on public.interviews(student_id);
+create index if not exists idx_interviews_drive on public.interviews(drive_id);
+create index if not exists idx_offers_student on public.offers(student_id);
+create index if not exists idx_offers_drive on public.offers(drive_id);
+create index if not exists idx_calendar_start on public.calendar_events(starts_at);

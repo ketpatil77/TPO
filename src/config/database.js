@@ -37,6 +37,7 @@ let localData = {
     ,notification_reads: []
     ,import_batches: []
     ,launch_backups: []
+    ,dob_corrections: []
 };
 
 const dataDir = path.join(process.cwd(), 'data');
@@ -46,7 +47,10 @@ function init() {
     SUPABASE_URL = process.env.SUPABASE_URL || SUPABASE_URL;
     SUPABASE_KEY = process.env.SUPABASE_KEY || SUPABASE_KEY;
 
-    if (SUPABASE_URL && SUPABASE_KEY && SUPABASE_URL.trim() !== '' && SUPABASE_KEY.trim() !== '') {
+    console.log('init() called, SUPABASE_URL length:', SUPABASE_URL ? SUPABASE_URL.length : 0);
+
+    const forceLocalTestDatabase = process.env.NODE_ENV === 'test';
+    if (!forceLocalTestDatabase && SUPABASE_URL && SUPABASE_KEY && SUPABASE_URL.trim() !== '' && SUPABASE_KEY.trim() !== '') {
         console.log('🔗 Connecting to Supabase Postgres instance...');
         supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
         useLocalDb = false;
@@ -76,8 +80,9 @@ function init() {
         if (localData.roster.length === 0) {
             console.log('Seeding initial test roster data...');
             localData.roster = [
-                { prn: '12345', name: 'Test Student', dob: '2000-01-01', branch: 'COMP', email: 'test@example.com' },
-                { prn: '67890', name: 'Jane Doe', dob: '2001-02-02', branch: 'IT', email: 'jane@example.com' }
+                { id: crypto.randomUUID(), prn: '24053651251515', name: 'Rahul Sharma', dob: '2003-07-31', branch: 'CT', class: 'BE-A', year: 'Final Year' },
+                { id: crypto.randomUUID(), prn: '24053651251516', name: 'Priya Patel', dob: '2004-01-15', branch: 'AIML', class: 'BE-B', year: 'Final Year' },
+                { id: crypto.randomUUID(), prn: '24053651251517', name: 'Aman Verma', dob: '2003-11-22', branch: 'EE', class: 'BE-A', year: 'Final Year' }
             ];
             saveLocalData();
         }

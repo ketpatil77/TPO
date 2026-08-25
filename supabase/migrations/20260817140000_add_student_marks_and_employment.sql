@@ -1,0 +1,8 @@
+ALTER TABLE students
+ADD COLUMN IF NOT EXISTS ssc_marks NUMERIC(5, 2),
+ADD COLUMN IF NOT EXISTS hsc_marks NUMERIC(5, 2),
+ADD COLUMN IF NOT EXISTS is_employed BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS employment_type TEXT CHECK (employment_type IN ('Govt', 'Private')),
+ADD COLUMN IF NOT EXISTS company_name TEXT,
+ADD COLUMN IF NOT EXISTS hr_name TEXT,
+ADD COLUMN IF NOT EXISTS hr_number TEXT;

@@ -27,10 +27,48 @@ function parseDDMMYY(ddmmyy) {
     // Assume 2000s for 00-40, 1900s for 41-99 (suitable for college student DOBs)
     const fullYear = yearShort <= 40 ? 2000 + yearShort : 1900 + yearShort;
 
-    const formattedMonth = String(month).padStart(2, '0');
-    const formattedDay = String(day).padStart(2, '0');
+    return validIsoDate(fullYear, month, day) || null;
+}
 
-    return `${fullYear}-${formattedMonth}-${formattedDay}`;
+function validIsoDate(year, month, day) {
+    const date = new Date(Date.UTC(year, month - 1, day));
+    if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return '';
+    return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+/** Normalize roster DOB inputs while keeping database storage as a real ISO date. */
+function normalizeStudentDob(value) {
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        return validIsoDate(value.getUTCFullYear(), value.getUTCMonth() + 1, value.getUTCDate());
+    }
+    if (typeof value === 'number' && Number.isFinite(value) && value >= 20000 && value <= 80000) {
+        const date = new Date(Date.UTC(1899, 11, 30) + Math.floor(value) * 86400000);
+        return validIsoDate(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
+    }
+    const text = String(value ?? '').trim();
+    if (!text) return '';
+    if (/^\d{5}(?:\.0+)?$/.test(text)) return normalizeStudentDob(Number(text));
+    let match = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:T.*)?$/);
+    if (match) return validIsoDate(Number(match[1]), Number(match[2]), Number(match[3]));
+    match = text.match(/^(\d{1,2})[-/.\s](\d{1,2})[-/.\s](\d{4})$/);
+    if (match) return validIsoDate(Number(match[3]), Number(match[2]), Number(match[1]));
+    match = text.match(/^(\d{1,2})[-/.\s](\d{1,2})[-/.\s](\d{2})$/);
+    if (match) {
+        const first = Number(match[1]);
+        const second = Number(match[2]);
+        const year = Number(match[3]) <= 40 ? 2000 + Number(match[3]) : 1900 + Number(match[3]);
+        if (first <= 12 && second > 12) return validIsoDate(year, first, second);
+        return validIsoDate(year, second, first);
+    }
+    const digits = text.replace(/\D/g, '');
+    if (digits.length === 6) return parseDDMMYY(digits) || '';
+    if (digits.length === 8) return validIsoDate(Number(digits.slice(4, 8)), Number(digits.slice(2, 4)), Number(digits.slice(0, 2)));
+    return '';
+}
+
+function dobPasswordFromStoredDate(value) {
+    const iso = normalizeStudentDob(value);
+    return iso ? `${iso.slice(8, 10)}${iso.slice(5, 7)}${iso.slice(2, 4)}` : '';
 }
 
 /**
@@ -39,30 +77,7 @@ function parseDDMMYY(ddmmyy) {
  * @returns {string}
  */
 function formatDateToYYYYMMDD(dateVal) {
-    if (!dateVal) return '';
-    if (typeof dateVal === 'string') {
-        const trimmed = dateVal.trim();
-        // If already YYYY-MM-DD
-        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
-        // Human-friendly DD-MM-YYYY or DD/MM/YYYY
-        const dayFirst = trimmed.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
-        if (dayFirst) {
-            const [, day, month, year] = dayFirst;
-            const candidate = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
-            if (candidate.getUTCFullYear() === Number(year) && candidate.getUTCMonth() === Number(month) - 1 && candidate.getUTCDate() === Number(day)) {
-                return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-            }
-            return '';
-        }
-        // If ISO string with T
-        if (trimmed.includes('T')) return trimmed.split('T')[0];
-    }
-    const d = new Date(dateVal);
-    if (isNaN(d.getTime())) return '';
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return normalizeStudentDob(dateVal);
 }
 
 /**
@@ -74,7 +89,7 @@ function formatDateToYYYYMMDD(dateVal) {
 function verifyDob(inputDob, dbDob) {
     if (!inputDob || !dbDob) return false;
     
-    const formattedDb = formatDateToYYYYMMDD(dbDob);
+    const formattedDb = normalizeStudentDob(dbDob);
     if (!formattedDb) return false;
 
     // Try standard YYYY-MM-DD match first
@@ -100,4 +115,6 @@ module.exports = {
     parseDDMMYY,
     formatDateToYYYYMMDD,
     verifyDob
+    ,normalizeStudentDob
+    ,dobPasswordFromStoredDate
 };

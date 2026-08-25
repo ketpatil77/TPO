@@ -20,11 +20,24 @@ CREATE TABLE IF NOT EXISTS students (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     prn TEXT UNIQUE NOT NULL REFERENCES roster(prn) ON DELETE CASCADE,
     name TEXT,
+    email TEXT,
+    phone TEXT,
     branch TEXT,
     class TEXT,
     year TEXT,
+    ssc_marks NUMERIC(5, 2),
+    hsc_marks NUMERIC(5, 2),
+    is_employed BOOLEAN DEFAULT false,
+    employment_type TEXT CHECK (employment_type IN ('Govt', 'Private')),
+    company_name TEXT,
+    hr_name TEXT,
+    hr_number TEXT,
+    org_type TEXT CHECK (org_type IN ('Startup', 'MNC', 'PSU', 'Govt', 'SMB', 'Other')),
+    current_ctc NUMERIC(5, 2),
+    company_address TEXT,
     cgpa_overall NUMERIC(4, 2),
     cgpa_semesterwise JSONB DEFAULT '{}'::jsonb,
+    backlogs_semesterwise JSONB DEFAULT '{}'::jsonb,
     activities TEXT,
     resume_url TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -58,7 +71,31 @@ CREATE TABLE IF NOT EXISTS certificates (
 
 CREATE INDEX IF NOT EXISTS idx_certificates_student_id ON certificates(student_id);
 
--- 5. Diploma Table (Optional - Lateral entry / diploma students)
+-- 5. Student Projects Table
+CREATE TABLE IF NOT EXISTS student_projects (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    technologies TEXT,
+    project_url TEXT,
+    repository_url TEXT,
+    completed_on DATE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_student_projects_student_id ON student_projects(student_id);
+
+CREATE TABLE IF NOT EXISTS research_papers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    title TEXT NOT NULL, authors TEXT NOT NULL, publication TEXT NOT NULL,
+    abstract TEXT NOT NULL, doi_url TEXT, paper_url TEXT,
+    published_on DATE NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_research_papers_student_id ON research_papers(student_id);
+
+-- 6. Diploma Table (Optional - Lateral entry / diploma students)
 CREATE TABLE IF NOT EXISTS diploma (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     student_id UUID UNIQUE NOT NULL REFERENCES students(id) ON DELETE CASCADE,
@@ -87,6 +124,8 @@ ALTER TABLE roster ENABLE ROW LEVEL SECURITY;
 ALTER TABLE students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE internships ENABLE ROW LEVEL SECURITY;
 ALTER TABLE certificates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE student_projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE research_papers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE diploma ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
 

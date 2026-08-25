@@ -1,0 +1,1 @@
+ALTER TABLE dob_corrections ADD COLUMN IF NOT EXISTS name_mismatch BOOLEAN DEFAULT FALSE;;

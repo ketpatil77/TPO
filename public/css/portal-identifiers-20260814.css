@@ -1,0 +1,70 @@
+/* Final cross-portal table policy: identifiers stay intact; pages never pan sideways. */
+:where(#navStudentPrn, #editPrn, [data-prn], [data-identifier], .portal-identifier) {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+    font-variant-numeric: tabular-nums;
+}
+
+:where(.table-responsive, .table-shell, .student-table-shell) {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden !important;
+}
+
+:where(.data-table, .observer-table, .student-table) {
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed !important;
+}
+
+:where(.data-table, .observer-table, .student-table) :where(th, td) {
+    min-width: 0;
+    padding-inline: clamp(.45rem, 1vw, 1rem);
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+}
+
+:where(.data-table, .observer-table, .student-table) td:first-child,
+:where(#applicationPipeline .workflow-card-head p, #advancedResults .workflow-card-head p,
+       #observerStudents td:first-child small, #observerRoster td:first-child,
+       .profile-summary-grid > div:first-child strong, #modalStudentName) {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 760px) {
+    :where(.data-table, .observer-table, .student-table) { display: block; }
+    :where(.data-table, .observer-table, .student-table) thead {
+        position: absolute; width: 1px; height: 1px; overflow: hidden;
+        clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+    }
+    :where(.data-table, .observer-table, .student-table) tbody {
+        display: grid; gap: .75rem; padding: .75rem;
+    }
+    :where(.data-table, .observer-table, .student-table) tr {
+        display: grid; grid-template-columns: minmax(0, 1fr); overflow: hidden;
+        border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-card);
+    }
+    :where(.data-table, .observer-table, .student-table) td {
+        display: grid; grid-template-columns: minmax(7.25rem, 38%) minmax(0, 1fr);
+        gap: .75rem; align-items: start; padding: .7rem .8rem;
+        border-bottom: 1px solid var(--border-color); text-align: left !important;
+    }
+    :where(.data-table, .observer-table, .student-table) td:last-child { border-bottom: 0; }
+    :where(.data-table, .observer-table, .student-table) td::before {
+        content: attr(data-label); color: var(--text-muted); font-size: .7rem;
+        font-weight: 700; letter-spacing: .04em; line-height: 1.4; text-transform: uppercase;
+    }
+    :where(.data-table, .observer-table, .student-table) td[colspan] { display: block; }
+    :where(.data-table, .observer-table, .student-table) td[colspan]::before { content: none; }
+    :where(.data-table, .observer-table, .student-table) td:first-child { white-space: normal !important; }
+    :where(.data-table, .observer-table, .student-table) .btn { width: 100%; }
+}
+
+@media (max-width: 380px) {
+    :where(.data-table, .observer-table, .student-table) td { grid-template-columns: 1fr; gap: .3rem; }
+}

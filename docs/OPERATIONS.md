@@ -2,8 +2,8 @@
 
 ## Live services
 
-- Application: `https://tpo-placement-portal.ketan-tpo-portal.workers.dev`
-- Cloudflare Worker: `tpo-placement-portal`
+- Application: `https://ait.ait-placement-portal.workers.dev`
+- Cloudflare Worker: `ait`
 - Supabase project: `lwqdrzxnrbuykvofutgs`
 
 Free plans provide best-effort availability and enforce quotas. They do not provide a 100% uptime SLA.
@@ -11,7 +11,7 @@ Free plans provide best-effort availability and enforce quotas. They do not prov
 ## Health and smoke checks
 
 ```powershell
-node -e "const b='https://tpo-placement-portal.ketan-tpo-portal.workers.dev'; Promise.all(['/api/health','/api/roster','/api/admin/students'].map(async p=>{const r=await fetch(b+p); console.log(p,r.status)}))"
+node -e "const b='https://ait.ait-placement-portal.workers.dev'; Promise.all(['/api/health','/api/roster','/api/admin/students'].map(async p=>{const r=await fetch(b+p); console.log(p,r.status)}))"
 ```
 
 Expected: health `200`, roster `404`, unauthenticated admin `401`.

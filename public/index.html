@@ -2,10 +2,111 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=/login">
-    <title>Redirecting to TPO Login...</title>
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placement Portal AIT</title>
+    <script src="/js/theme.js?v=20260812-qa1"></script>
+    <link rel="stylesheet" href="/css/styles.css?v=20260814-uiaudit2">
+    <script src="/js/portal.js?v=20260825-student-login1" defer></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initTurnstile&render=explicit" defer></script>
 </head>
-<body>
-    <p>Redirecting to <a href="/login">Student Login Page</a>...</p>
+<body class="unified-auth-shell">
+    <a class="skip-link" href="#mainContent">Skip to sign in</a>
+    <main id="mainContent" class="unified-auth-layout">
+        <section class="portal-story">
+            <a href="/" class="brand"><div class="brand-icon">AIT</div><div><div class="brand-title">AIT Placement Portal</div><div class="brand-subtitle">Training and Placement Cell</div></div></a>
+            <div class="portal-story-copy">
+                <h1>Placement services in one secure workspace.</h1>
+                <p>Profiles, academic records, placement operations, and department reporting for the AIT community.</p>
+            </div>
+            <div class="portal-role-summary">
+                <div><span>01</span><strong>Students</strong><small>Build placement profile</small></div>
+                <div><span>02</span><strong>Administrators</strong><small>Operate placement workflows</small></div>
+                <div><span>03</span><strong>TPC observers</strong><small>View college-wide readiness</small></div>
+            </div>
+            <div class="portal-trust"><span class="signal-dot"></span> Private profiles <span aria-hidden="true">&middot;</span> Role-based access <span aria-hidden="true">&middot;</span> Secure documents</div>
+        </section>
+
+        <section class="unified-login-panel">
+            <div class="login-panel-heading"><span class="eyebrow">Secure access</span><h2>Choose your workspace</h2><p>Use credentials assigned to your role.</p></div>
+            <div class="role-toggle" role="tablist" aria-label="Select portal role">
+                <button id="role-student" class="role-toggle-btn active" role="tab" data-role="student" aria-selected="true" aria-controls="studentUnifiedForm" tabindex="0"><span>S</span>Student</button>
+                <button id="role-admin" class="role-toggle-btn" role="tab" data-role="admin" aria-selected="false" aria-controls="adminUnifiedForm" tabindex="-1"><span>T</span>TPO</button>
+                <button id="role-observer" class="role-toggle-btn" role="tab" data-role="observer" aria-selected="false" aria-controls="observerUnifiedForm" tabindex="-1"><span>T</span>TPC</button>
+            </div>
+
+            <div id="unifiedAlert" class="alert alert-error" role="alert" aria-live="polite" hidden></div>
+
+            <form id="studentUnifiedForm" class="unified-role-form active" data-form-role="student" role="tabpanel" aria-labelledby="role-student" autocomplete="on">
+                <div class="role-context"><strong>Student workspace</strong><span>Profile, academics, experience, credentials, and resume</span></div>
+                <div class="form-group"><label class="form-label" for="studentPrn">PRN</label><input id="studentPrn" name="username" class="form-input" inputmode="numeric" pattern="[0-9]{6,20}" required autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Enter permanent registration number"></div>
+                <div class="form-group"><label class="form-label" for="studentDob">Date of birth password</label><input id="studentDob" name="password" type="password" class="form-input" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="current-password" placeholder="DDMMYY"><span class="form-hint">Example: 31 July 2003 becomes 310703</span></div>
+                <div style="margin-bottom:16px; display:flex; justify-content:center;">
+                    <div id="studentTurnstile" class="turnstile-slot" aria-live="polite"><span>Loading security verification…</span></div>
+                </div>
+                <div id="studentTurnstileStatus" class="turnstile-recovery" role="status" aria-live="polite" hidden><span></span><button type="button" class="btn btn-secondary btn-sm" data-turnstile-retry="student">Retry verification</button></div>
+                <button class="btn btn-primary unified-submit" type="submit">Open student workspace</button>
+                <a href="#" id="dobCorrectionLink" style="font-size:0.8rem; display:block; margin-top:0.75rem; text-align:center; color:#3b82f6; text-decoration:none;">Can't log in? / DOB correction request</a>
+            </form>
+
+            <form id="adminUnifiedForm" class="unified-role-form" data-form-role="admin" role="tabpanel" aria-labelledby="role-admin" autocomplete="off">
+                <div class="role-context"><strong>TPO workspace</strong><span>Roster, records, exports, audit, drives, and matching</span></div>
+                <div class="form-group"><label class="form-label" for="adminEmail">TPO email</label><input id="adminEmail" name="admin_email" type="email" class="form-input" required autocomplete="section-admin username" placeholder="Authorized email"></div>
+                <div class="form-group"><label class="form-label" for="adminPassword">Password</label><input id="adminPassword" type="password" class="form-input" minlength="8" required autocomplete="current-password"></div>
+                <div style="margin-bottom:16px; display:flex; justify-content:center;">
+                    <div id="adminTurnstile" class="turnstile-slot" aria-live="polite"><span>Loading security verification…</span></div>
+                </div>
+                <div id="adminTurnstileStatus" class="turnstile-recovery" role="status" aria-live="polite" hidden><span></span><button type="button" class="btn btn-secondary btn-sm" data-turnstile-retry="admin">Retry verification</button></div>
+                <button class="btn btn-primary unified-submit" type="submit">Open TPO workspace</button>
+            </form>
+
+            <form id="observerUnifiedForm" class="unified-role-form" data-form-role="observer" role="tabpanel" aria-labelledby="role-observer">
+                <div class="role-context"><strong>TPC observer workspace</strong><span>Read-only insight across AIML, CT, EE, ME, CE, and E&amp;C</span></div>
+                <div class="form-group"><label class="form-label" for="observerEmail">TPC email</label><input id="observerEmail" type="email" class="form-input" required autocomplete="username" placeholder="Department observer email"></div>
+                <div class="form-group"><label class="form-label" for="observerPassword">Password</label><input id="observerPassword" type="password" class="form-input" minlength="8" required autocomplete="current-password"></div>
+                <div style="margin-bottom:16px; display:flex; justify-content:center;">
+                    <div id="observerTurnstile" class="turnstile-slot" aria-live="polite"><span>Loading security verification…</span></div>
+                </div>
+                <div id="observerTurnstileStatus" class="turnstile-recovery" role="status" aria-live="polite" hidden><span></span><button type="button" class="btn btn-secondary btn-sm" data-turnstile-retry="observer">Retry verification</button></div>
+                <button class="btn btn-primary unified-submit" type="submit">Open observer workspace</button>
+            </form>
+
+            <p class="portal-help">Need access help? <a href="https://mail.google.com/mail/?view=cm&fs=1&to=ket.patil77%40gmail.com&su=AIT%20Placement%20Portal%20login%20help&body=Hello%20Ketan%2C%0A%0AI%20need%20help%20logging%20in%20to%20the%20AIT%20Placement%20Portal.%0A%0APlease%20help%20me%20resolve%20my%20access%20issue.%0A%0AThank%20you." target="_blank" rel="noopener">Contact Him</a>.</p>
+            <p class="portal-copyright">All rights reserved to <a href="https://www.codeminelabs.in/" target="_blank" rel="noopener">CodeMineLabs</a>.</p>
+        </section>
+    </main>
+
+    <!-- DOB Correction Modal -->
+    <div id="dobCorrectionModal" class="dob-correction-modal" role="dialog" aria-modal="true" aria-labelledby="dobCorrectionTitle" hidden>
+        <div class="dob-correction-dialog">
+            <button id="closeDobModal" class="modal-close-button" type="button" aria-label="Close DOB correction form">&times;</button>
+            <h3 id="dobCorrectionTitle" style="margin-top:0; margin-bottom:8px; font-size:1.25rem;">Request DOB Correction</h3>
+            <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:16px; line-height:1.4;">Your DOB is used as your password. If it is wrong in the roster, submit this request to have your department TPC correct it.</p>
+            <form id="dobCorrectionForm">
+                <div style="margin-bottom:12px;">
+                    <label class="form-label" for="correctionPrn" style="display:block; margin-bottom:4px; font-size:0.85rem;">PRN</label>
+                    <input id="correctionPrn" class="form-input" inputmode="numeric" autocomplete="username" required placeholder="Enter PRN">
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label class="form-label" for="correctionName" style="display:block; margin-bottom:4px; font-size:0.85rem;">Full Name</label>
+                    <input id="correctionName" class="form-input" autocomplete="off" list="correctionNameSuggestions" required placeholder="Start typing your roster name">
+                    <datalist id="correctionNameSuggestions"></datalist>
+                    <small id="correctionNameHint" class="form-help">Enter PRN, then type at least 2 letters. Select exact roster name.</small>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label class="form-label" for="correctionDob" style="display:block; margin-bottom:4px; font-size:0.85rem;">Correct DOB (DDMMYY)</label>
+                    <input id="correctionDob" class="form-input" inputmode="numeric" autocomplete="bday" required pattern="[0-9]{6}" maxlength="6" placeholder="DDMMYY">
+                </div>
+                <div style="margin-bottom:16px; display:flex; justify-content:center;">
+                    <div id="correctionTurnstile" class="turnstile-slot" aria-live="polite"><span>Loading security verification…</span></div>
+                </div>
+                <div id="correctionTurnstileStatus" class="turnstile-recovery" role="status" aria-live="polite" hidden><span></span><button type="button" class="btn btn-secondary btn-sm" data-turnstile-retry="correction">Retry verification</button></div>
+                <button class="btn btn-primary" type="submit" style="width:100%;">Submit Request</button>
+            </form>
+            <div id="correctionResult" style="margin-top:12px; font-size:0.85rem; text-align:center; font-weight:500;"></div>
+        </div>
+    </div>
+
+    <script src="/js/security.js?v=20260812-qa1"></script>
 </body>
 </html>

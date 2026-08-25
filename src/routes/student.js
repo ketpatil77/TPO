@@ -43,14 +43,9 @@ router.get('/profile', async (req, res) => {
     try {
         const studentId = req.student.studentId;
 
-        // Fetch Student Record
-        const student = await db.selectOne('students', { id: studentId });
-        if (!student) {
-            return res.status(404).json({ success: false, error: 'Student record not found.' });
-        }
-
-        // Independent profile sections load in parallel to keep dashboard latency bounded.
-        const [internships, certificates, projects, researchPapers, diploma, skills] = await Promise.all([
+        // Fetch student record and sections in parallel to reduce database network roundtrips to 1
+        const [student, internships, certificates, projects, researchPapers, diploma, skills] = await Promise.all([
+            db.selectOne('students', { id: studentId }),
             db.select('internships', { student_id: studentId }),
             db.select('certificates', { student_id: studentId }),
             db.select('student_projects', { student_id: studentId }),
@@ -58,6 +53,10 @@ router.get('/profile', async (req, res) => {
             db.selectOne('diploma', { student_id: studentId }),
             db.select('student_skills', { student_id: studentId })
         ]);
+
+        if (!student) {
+            return res.status(404).json({ success: false, error: 'Student record not found.' });
+        }
 
         return res.json({
             success: true,
@@ -344,7 +343,7 @@ router.post('/internships', validate(internshipSchema), async (req, res) => {
  * @route   PUT /api/student/internships/:id
  * @desc    Update an existing internship record
  */
-router.put('/internships/:id', async (req, res) => {
+router.put('/internships/:id', validate(internshipSchema), async (req, res) => {
     try {
         const studentId = req.student.studentId;
         const internshipId = req.params.id;
@@ -644,34 +643,47 @@ router.post('/drives/:id/apply', async (req, res) => {
     }
 });
 
-/**
- * @route GET /api/student/alumni
- * @desc Fetch placed alumni network
- */
+let cachedAlumni = null;
+let lastAlumniCacheTime = 0;
+const ALUMNI_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
 router.get('/alumni', async (req, res) => {
     try {
-        const students = await db.select('students', {});
-        const profiles = await db.select('profiles', {});
-        const offers = await db.select('offers', {});
-        
-        const alumni = students.filter(s => {
-            const hasAcceptedOffer = offers.some(o => o.student_id === s.id && ['accepted', 'joined'].includes(o.status));
-            return hasAcceptedOffer;
-        }).map(s => {
-            const prof = profiles.find(p => p.student_id === s.id) || {};
-            const offer = offers.find(o => o.student_id === s.id && ['accepted', 'joined'].includes(o.status)) || {};
+        if (cachedAlumni && (Date.now() - lastAlumniCacheTime < ALUMNI_CACHE_TTL)) {
+            return res.json({ success: true, data: cachedAlumni });
+        }
+
+        const [students, profiles, offers] = await Promise.all([
+            db.select('students'),
+            db.select('profiles'),
+            db.select('offers')
+        ]);
+
+        const studentMap = new Map(students.map(s => [s.id, s]));
+        const profileMap = new Map(profiles.map(p => [p.student_id, p]));
+
+        const acceptedOffers = offers.filter(o => ['accepted', 'joined'].includes(o.status));
+
+        const alumni = acceptedOffers.map(offer => {
+            const s = studentMap.get(offer.student_id);
+            if (!s) return null;
+            const prof = profileMap.get(s.id) || {};
             return {
                 id: s.id,
-                name: s.first_name + ' ' + s.last_name,
+                name: s.name || `${s.first_name || ''} ${s.last_name || ''}`.trim() || 'Alumni',
                 branch: s.branch,
                 company: offer.company || 'Unknown',
                 role: offer.role || 'Placed',
                 linkedin: prof.linkedin_url || ''
             };
-        });
-        
+        }).filter(Boolean);
+
+        cachedAlumni = alumni;
+        lastAlumniCacheTime = Date.now();
+
         return res.json({ success: true, data: alumni });
     } catch (err) {
+        console.error('Alumni fetch error:', err);
         return res.status(500).json({ success: false, error: { message: 'Failed to fetch alumni.' } });
     }
 });

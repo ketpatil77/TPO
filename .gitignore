@@ -8,5 +8,10 @@ supabase/.temp/
 .dev.vars
 data/db.test.json
 data/db.json
+data/production-backups/
 *.log
 *.cpuprofile
+cj.txt
+testlogin.json
+tmp/
+output/

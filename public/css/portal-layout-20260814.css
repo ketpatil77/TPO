@@ -1,0 +1,134 @@
+/* Immutable final layout authority for Student, Admin, and TPC dashboards. */
+:root { --portal-gap:1rem; --portal-card-pad:1.1rem; --z-sticky:20; --z-overlay:50; --z-toast:60; }
+html { min-width:0; overflow-x:hidden; }
+body { min-width:0; max-width:100%; overflow-x:hidden; }
+.dashboard-wrapper,.tab-content,.glass-card,form,fieldset { min-width:0; }
+.tab-content.active { width:100%; }
+.glass-card { box-sizing:border-box; }
+.section-header { align-items:flex-start; gap:1rem; }
+.section-header > :first-child { min-width:0; }
+.section-header .workflow-actions { justify-content:flex-end; }
+.btn,.form-input,.form-select,.form-textarea { box-sizing:border-box; max-width:100%; }
+.btn { min-height:44px; }
+.form-input,.form-select { min-height:46px; }
+.form-textarea { min-height:112px; resize:vertical; }
+.form-group { min-width:0; }
+.form-label,.field-help,.form-hint { overflow-wrap:anywhere; }
+
+/* Shared grids: equal cards inside each visual row. */
+.metric-grid,.branch-grid,.drive-grid,.project-grid,.opportunity-grid,
+.overview-layout,.notification-admin-layout,.advanced-forms,.roster-input-grid,
+.sent-notification-grid,.skeleton-grid { align-items:stretch; }
+.metric-grid > *,.branch-grid > *,.drive-grid > *,.project-grid > *,
+.opportunity-grid > *,.overview-layout > *,.notification-admin-layout > *,
+.advanced-forms > *,.roster-input-grid > *,.sent-notification-grid > * { min-width:0; height:100%; }
+.metric-grid,.branch-grid,.drive-grid,.project-grid,.sent-notification-grid { grid-auto-rows:1fr; }
+
+/* Student portal. */
+.student-dashboard-page .overview-panel { height:100%; }
+.student-dashboard-page .opportunity-panel { display:flex; flex-direction:column; height:100%; }
+.student-dashboard-page .opportunity-panel > .record-stack { flex:1; }
+.student-dashboard-page .project-card { display:flex; flex-direction:column; height:100%; }
+.student-dashboard-page .project-card > p { flex:1; }
+.student-dashboard-page .item-card { align-items:center; }
+.student-dashboard-page .profile-editor-form > .form-group { align-self:start; width:100%; }
+.student-dashboard-page .profile-save-bar { width:100%; }
+.student-dashboard-page .current-resume-card { width:100%; }
+.student-dashboard-page .modal-card { width:min(94vw,780px); }
+
+/* Admin portal. */
+.admin-tabs { align-items:stretch; }
+.admin-tabs .tab-btn { height:100%; }
+.workflow-workspace { align-items:stretch; }
+.workflow-workspace > .feature-panel { display:flex; flex-direction:column; height:100%; }
+.workflow-workspace #notificationForm { flex:1; align-content:start; }
+.workflow-workspace #applicationPipeline { flex:1; min-height:0; }
+.advanced-forms { align-items:stretch; }
+.advanced-forms > form { height:100%; align-content:start; }
+.drive-create-panel > h3:first-child { grid-column:1/-1; margin:0 0 .2rem; }
+.drive-create-panel > .drive-wide,.drive-create-panel > .grid-2 { grid-column:1/-1; }
+.drive-create-panel > button[type="submit"] { align-self:end; min-height:46px; }
+.launch-operations-grid { align-items:start; }
+.launch-operations-grid > .intelligence-control-card { display:flex; flex-direction:column; height:auto; }
+.launch-operations-grid > .intelligence-control-card > .record-stack { flex:1; min-height:0; }
+.launch-operations-grid .backup-history-list { max-height:360px; overflow-y:auto; overscroll-behavior:contain; }
+#tab-intelligence .intelligence-tool-columns {
+  grid-template-columns:1fr;
+  grid-template-areas:"parser" "ranking" "fraud" "staff";
+  align-items:stretch;
+}
+#tab-intelligence .intelligence-tool-card { width:100%; }
+.table-responsive,.table-shell,.student-table-shell { max-width:100%; overflow:auto; }
+.data-table,.observer-table { width:100%; }
+.data-table th,.observer-table th { position:sticky; top:0; z-index:2; }
+.navbar { z-index:var(--z-sticky); }
+.profile-save-bar { z-index:var(--z-sticky); }
+.modal-backdrop { z-index:var(--z-overlay); }
+.toast-container { z-index:var(--z-toast); }
+.close-btn { display:grid; place-items:center; min-width:44px; min-height:44px; }
+
+/* TPC portal. */
+.observer-shell .metric-card,.observer-shell .branch-card,.observer-shell .drive-observer-card { height:100%; }
+.observer-shell .branch-card,.observer-shell .drive-observer-card { display:flex; flex-direction:column; }
+.observer-shell .drive-description { flex:1; }
+.observer-shell .observer-toolbar { align-items:end; }
+.observer-shell .observer-toolbar > * { min-width:0; }
+.observer-shell .table-shell { max-height:min(66vh,680px); }
+.observer-shell .observer-modal { width:min(94vw,780px); }
+
+/* Empty/loading regions reserve usable geometry without oversized gaps. */
+.panel-empty,.empty-state,.notification-empty { min-height:112px; }
+.bounded-history-list,.bounded-card-grid,.bounded-workspace-list { scrollbar-gutter:stable; }
+.bounded-workspace-list { max-height:min(60vh,640px); overflow-y:auto; overscroll-behavior:contain; padding-right:.35rem; }
+#applicationPipeline.bounded-workspace-list,
+#tab-intelligence #staffList.bounded-workspace-list,
+#tab-intelligence #rankingResults.bounded-workspace-list,
+#tab-intelligence #fraudResults.bounded-workspace-list,
+#tab-intelligence #jdParserResult.bounded-workspace-list,
+#advancedResults.bounded-workspace-list { max-height:min(60vh,640px); overflow-y:auto; }
+#tab-intelligence .launch-operations-grid { align-items:start; }
+#tab-intelligence .launch-operations-grid > .intelligence-control-card { height:auto; }
+#tab-intelligence .launch-operations-grid > .intelligence-control-card .backup-history-list {
+  max-height:360px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+.advanced-search-grid .form-group,
+.advanced-forms .form-group,
+.intelligence-tool-card .form-group { margin:0; min-width:0; }
+.advanced-forms > form { display:grid; gap:.75rem; }
+.advanced-forms > form > h3 { margin-bottom:.1rem; }
+
+@media (max-width:1100px) {
+  .admin-tabs { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .observer-shell .metric-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media (max-width:900px) {
+  .workflow-workspace,.overview-layout,.roster-input-grid { grid-template-columns:1fr; }
+  .workflow-workspace > .feature-panel { height:auto; }
+  .student-dashboard-page .profile-editor-form { grid-template-columns:1fr; }
+  .student-dashboard-page .profile-editor-form > * { grid-column:1!important; }
+}
+@media (max-width:760px) {
+  :root { --portal-gap:.75rem; --portal-card-pad:.9rem; }
+  .dashboard-wrapper { padding-inline:.75rem; }
+  .section-header { align-items:stretch; flex-direction:column; }
+  .section-header .workflow-actions { display:grid; grid-template-columns:1fr; width:100%; }
+  .section-header .workflow-actions .btn { width:100%; }
+  .admin-tabs { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .observer-shell .metric-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .observer-shell .branch-grid,.observer-shell .drive-grid { grid-template-columns:1fr; }
+  .observer-shell .observer-toolbar { grid-template-columns:1fr; }
+  .observer-shell .observer-toolbar .btn { width:100%; }
+  .profile-save-bar,.current-resume-card { align-items:stretch; flex-direction:column; }
+  .profile-save-bar .btn,.current-resume-card .btn { width:100%; }
+  .bounded-workspace-list { max-height:480px; }
+}
+@media (max-width:420px) {
+  .observer-shell .metric-grid,.profile-stat-grid,.overview-semester-grid { grid-template-columns:1fr 1fr; }
+  .grid-2,.advanced-search-grid,.notification-timing-grid { grid-template-columns:1fr; }
+  .modal-card { width:calc(100vw - 1rem); max-height:calc(100dvh - 1rem); }
+}
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after { scroll-behavior:auto!important; transition-duration:.01ms!important; animation-duration:.01ms!important; animation-iteration-count:1!important; }
+}

@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "tpo-placement-portal",
+  "name": "ait",
   "workers_dev": true,
   "preview_urls": false,
   "main": "worker/index.mjs",
@@ -9,13 +9,22 @@
   "vars": {
     "NODE_ENV": "production",
     "CLOUDFLARE_WORKER": "true",
-    "ALLOWED_ORIGINS": "https://tpo-placement-portal.ketan-tpo-portal.workers.dev"
+    "ALLOWED_ORIGINS": "https://ait.ait-placement-portal.workers.dev"
   },
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
     "html_handling": "none",
-    "run_worker_first": ["/api/*", "/", "/login", "/dashboard", "/admin", "/admin/*"]
+    "run_worker_first": ["/api/*", "/", "/login", "/dashboard", "/admin", "/admin/*", "/observer", "/observer/*"]
+  },
+  "kv_namespaces": [
+    {
+      "binding": "TPO_CACHE",
+      "id": "3ce7e386abc24eceb2c09f9538243b48"
+    }
+  ],
+  "triggers": {
+    "crons": ["*/5 * * * *"]
   },
   "observability": { "enabled": true, "head_sampling_rate": 1 }
 }

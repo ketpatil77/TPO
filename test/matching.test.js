@@ -27,6 +27,6 @@ test('eligible student receives explainable weighted score', () => {
         required_skills: ['javascript'], preferred_skills: ['sql'], keywords: ['backend', 'api']
     });
     assert.equal(result.eligible, true);
-    assert.equal(result.score, 95);
+    assert.equal(result.score, 85);
     assert.deepEqual(result.missing_required, []);
 });

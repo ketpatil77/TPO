@@ -13,7 +13,7 @@
         root.style.colorScheme = theme;
         document.querySelectorAll('[data-theme-toggle]').forEach(button => {
             const dark = theme === 'dark';
-            button.textContent = dark ? 'Light mode' : 'Dark mode';
+            button.textContent = dark ? 'Light' : 'Dark';
             button.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
             button.setAttribute('aria-pressed', String(dark));
         });
@@ -36,6 +36,21 @@
             nav.appendChild(button);
         }
         applyTheme(root.dataset.theme || preferredTheme());
+
+        document.querySelectorAll('.tabs-nav[role="tablist"]').forEach(tablist => {
+            const tabs = [...tablist.querySelectorAll('[role="tab"]')];
+            tabs.forEach((tab, index) => {
+                tab.tabIndex = tab.getAttribute('aria-selected') === 'true' ? 0 : -1;
+                tab.addEventListener('keydown', event => {
+                    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+                    event.preventDefault();
+                    const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+                    tabs[next].focus();
+                    tabs[next].click();
+                    tabs.forEach(item => { item.tabIndex = item === tabs[next] ? 0 : -1; });
+                });
+            });
+        });
     });
 
     media.addEventListener('change', event => {
