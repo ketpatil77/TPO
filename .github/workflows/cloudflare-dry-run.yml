@@ -31,5 +31,6 @@ jobs:
           node --check src/routes/profileRankingView.js
           node --check public/js/profile-ranking.js
           node --check public/js/portal-responsive.js
+          node --check public/js/portal-back-guard.js
       - name: Cloudflare dry run
         run: npm run deploy:dry-run
