@@ -36,6 +36,16 @@
 .evidence-review-toolbar { align-items:end; }
 .evidence-no-link { color:var(--text-muted); font-size:.78rem; margin:.6rem 0; }
 
+/* Verification visibility on normal student profile cards. */
+.evidence-status-holder { display:flex; align-items:center; margin-top:.35rem; }
+.evidence-status-inline { display:inline-flex; margin-left:.45rem; vertical-align:middle; }
+.evidence-status-badge { display:inline-flex; align-items:center; width:max-content; max-width:100%; border:1px solid var(--border-color); border-radius:999px; padding:.25rem .5rem; font-size:.68rem; font-weight:800; line-height:1.1; }
+.evidence-status-pending { color:var(--warning); background:color-mix(in srgb,var(--warning) 10%,transparent); border-color:color-mix(in srgb,var(--warning) 38%,var(--border-color)); }
+.evidence-status-verified { color:var(--success); background:color-mix(in srgb,var(--success) 10%,transparent); border-color:color-mix(in srgb,var(--success) 38%,var(--border-color)); }
+.evidence-status-rejected { color:var(--danger); background:color-mix(in srgb,var(--danger) 10%,transparent); border-color:color-mix(in srgb,var(--danger) 38%,var(--border-color)); }
+.skill-verification-summary { margin-top:.45rem; padding:.55rem .65rem; border:1px solid var(--border-color); border-radius:10px; background:var(--surface-muted); color:var(--text-muted); font-size:.72rem; line-height:1.4; }
+.skill-verification-summary strong { color:var(--text-heading); }
+
 @media (max-width:760px) {
   .ranking-trust-hero { grid-template-columns:1fr; padding:1rem; }
   .ranking-my-summary { justify-self:stretch; }
@@ -50,4 +60,6 @@
   .ranking-evidence-item strong { font-size:.8rem; }
   .evidence-integrity-note { flex-direction:column; gap:.25rem; padding:.75rem; }
   .evidence-review-toolbar { grid-template-columns:1fr !important; }
+  .evidence-status-inline { display:flex; margin:.35rem 0 0; }
+  .evidence-status-badge { font-size:.63rem; }
 }
