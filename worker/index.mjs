@@ -40,7 +40,7 @@ export default {
             if (['/dashboard.html', '/admin-dashboard.html', '/observer-dashboard.html'].includes(assetPath)) {
                 let html = await response.text();
                 if (assetPath === '/dashboard.html') {
-                    html = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260901-ranking-v3-force2');
+                    html = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260901-ranking-v3-force3');
                 }
                 if (assetPath === '/admin-dashboard.html') {
                     html = html.replace(/\/js\/admin-dashboard\.js\?v=[^"']+/g, '/js/admin-dashboard.js?v=20260819-ssc-hsc');
@@ -52,13 +52,18 @@ export default {
                 const profileRequirements = assetPath === '/dashboard.html' ? '<link rel="stylesheet" href="/css/profile-requirements-20260814.css">' : '';
                 const rankingV3Patch = assetPath === '/dashboard.html' ? `<script>
 window.addEventListener('load', function () {
+  ['#academicVerificationBadge','.evidence-status-inline','.evidence-status-holder','.skill-verification-summary'].forEach(function (selector) {
+    document.querySelectorAll(selector).forEach(function (node) { node.remove(); });
+  });
   document.querySelectorAll('.tabs-nav [aria-controls="tab-ranking"]').forEach(function (node) { node.remove(); });
-  var oldPanel = document.getElementById('tab-ranking');
-  if (oldPanel) oldPanel.remove();
-  var oldSpotlight = document.getElementById('overviewRankSpotlight');
-  if (oldSpotlight) oldSpotlight.remove();
+  document.querySelectorAll('#tab-ranking').forEach(function (node) { node.remove(); });
+  document.querySelectorAll('#overviewRankSpotlight').forEach(function (node) { node.remove(); });
+  var cleanup = document.createElement('script');
+  cleanup.src = '/js/evidence-status-ui.js?v=20260901-cleanup-only1';
+  cleanup.setAttribute('data-obsolete-evidence-cleanup', 'true');
+  document.body.appendChild(cleanup);
   var script = document.createElement('script');
-  script.src = '/js/profile-ranking.js?v=20260901-competition-only-force2';
+  script.src = '/js/profile-ranking.js?v=20260901-competition-only-force3';
   script.setAttribute('data-ranking-authoritative-v3', 'true');
   document.body.appendChild(script);
 });
