@@ -15,6 +15,7 @@ const studentRoutes = require('./routes/student');
 const competitionRoutes = require('./routes/competitions');
 const competitionReviewRoutes = require('./routes/competitionReview');
 const profileRankingRoutes = require('./routes/profileRanking');
+const profileRankingViewRoutes = require('./routes/profileRankingView');
 const rosterRoutes = require('./routes/roster');
 
 // Admin Routes (Part 2)
@@ -89,6 +90,7 @@ app.use('/api/student', protectCollegeAcademics);
 app.use('/api/student', studentRoutes);
 app.use('/api/student/competitions', competitionRoutes);
 app.use('/api/student/rankings', profileRankingRoutes.student);
+app.use('/api/student/rankings-view', profileRankingViewRoutes);
 app.use('/api/student/workflow', workflowRoutes.student);
 app.use('/api/student/advanced', advancedRoutes.student);
 // Legacy roster routes intentionally not mounted: roster data is admin-only.
