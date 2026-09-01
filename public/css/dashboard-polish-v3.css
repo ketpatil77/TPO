@@ -1,0 +1,584 @@
+/* Premium mobile polish for the Student header and TPO placement calendar.
+   Uses existing portal theme variables so dark/light and role colors remain consistent. */
+
+/* ---------- TPO calendar shell ---------- */
+.admin-dashboard-page #tab-calendar > .header-split {
+    position: relative;
+    overflow: hidden;
+    padding: 1.15rem 1.25rem;
+    margin-bottom: 0.85rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--bg-card), color-mix(in srgb, var(--surface-muted) 76%, var(--bg-card)));
+    box-shadow: var(--shadow-subtle);
+}
+
+.admin-dashboard-page #tab-calendar > .header-split::after {
+    content: "▦";
+    position: absolute;
+    right: 1.15rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-muted);
+    color: var(--text-muted);
+    font-size: 1.65rem;
+    line-height: 1;
+}
+
+.admin-dashboard-page #tab-calendar > .header-split > div {
+    padding-right: 76px;
+}
+
+.admin-dashboard-page #tab-calendar > .header-split .section-title {
+    margin: 0;
+}
+
+.admin-dashboard-page #tab-calendar > .header-split p {
+    margin-top: 0.2rem;
+    color: var(--text-muted);
+}
+
+.admin-dashboard-page #tab-calendar > .glass-card {
+    margin-top: 0 !important;
+    padding: 1rem !important;
+    border-color: var(--border-color) !important;
+    background: var(--bg-card) !important;
+    overflow: hidden;
+}
+
+/* Keep FullCalendar's native controls as the functional engine, but replace the visual toolbar. */
+.admin-dashboard-page #driveCalendar .fc-header-toolbar {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+}
+
+.ait-calendar-toolbar {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+}
+
+.ait-calendar-primary-row {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.ait-calendar-title {
+    min-width: 0;
+    color: var(--text-heading);
+    text-align: center;
+    font-weight: 800;
+    font-size: clamp(1.2rem, 2.4vw, 1.7rem);
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+.ait-calendar-nav,
+.ait-calendar-today,
+.ait-calendar-view {
+    appearance: none;
+    border: 1px solid var(--border-color);
+    background: var(--surface-muted);
+    color: var(--text-body);
+    font: inherit;
+    cursor: pointer;
+    transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+.ait-calendar-nav {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    color: var(--text-heading);
+    font-size: 1.65rem;
+    line-height: 1;
+}
+
+.ait-calendar-nav:hover,
+.ait-calendar-today:hover,
+.ait-calendar-view:hover {
+    border-color: color-mix(in srgb, var(--primary) 65%, var(--border-color));
+    background: color-mix(in srgb, var(--primary-light) 58%, var(--surface-muted));
+}
+
+.ait-calendar-nav:active,
+.ait-calendar-today:active,
+.ait-calendar-view:active {
+    transform: translateY(1px);
+}
+
+.ait-calendar-secondary-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.7rem;
+    align-items: stretch;
+}
+
+.ait-calendar-today {
+    min-height: 42px;
+    padding: 0 0.9rem;
+    border-radius: 11px;
+    font-size: 0.82rem;
+    font-weight: 750;
+}
+
+.ait-calendar-segmented {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-radius: 11px;
+    background: var(--surface-muted);
+}
+
+.ait-calendar-view {
+    min-height: 42px;
+    padding: 0 0.75rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.ait-calendar-view + .ait-calendar-view {
+    border-left: 1px solid var(--border-color);
+}
+
+.ait-calendar-view.is-active {
+    background: color-mix(in srgb, var(--primary) 42%, var(--surface-muted));
+    color: var(--text-heading);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 48%, transparent);
+}
+
+/* Calendar body */
+.admin-dashboard-page #driveCalendar .fc {
+    color: var(--text-body);
+}
+
+.admin-dashboard-page #driveCalendar .fc-scrollgrid {
+    overflow: hidden;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--surface-muted) 35%, var(--bg-card));
+}
+
+.admin-dashboard-page #driveCalendar .fc-theme-standard td,
+.admin-dashboard-page #driveCalendar .fc-theme-standard th {
+    border-color: color-mix(in srgb, var(--border-color) 76%, transparent) !important;
+}
+
+.admin-dashboard-page #driveCalendar .fc-col-header-cell {
+    background: color-mix(in srgb, var(--surface-muted) 82%, var(--bg-card));
+}
+
+.admin-dashboard-page #driveCalendar .fc-col-header-cell-cushion {
+    padding: 0.55rem 0.25rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.admin-dashboard-page #driveCalendar .fc-daygrid-day {
+    background: transparent;
+    transition: background var(--transition-fast);
+}
+
+.admin-dashboard-page #driveCalendar .fc-daygrid-day:hover {
+    background: color-mix(in srgb, var(--primary-light) 45%, transparent);
+}
+
+.admin-dashboard-page #driveCalendar .fc-daygrid-day-number {
+    padding: 0.42rem 0.48rem;
+    color: var(--text-body);
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 650;
+}
+
+.admin-dashboard-page #driveCalendar .fc-day-other .fc-daygrid-day-number {
+    color: var(--text-muted);
+    opacity: 0.3;
+}
+
+.admin-dashboard-page #driveCalendar .fc-day-today {
+    position: relative;
+    background: color-mix(in srgb, var(--primary) 16%, transparent) !important;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 42%, transparent);
+}
+
+.admin-dashboard-page #driveCalendar .fc-day-today .fc-daygrid-day-number {
+    color: var(--text-heading);
+    font-weight: 850;
+}
+
+.admin-dashboard-page #driveCalendar .fc-day-today .fc-daygrid-day-number::after {
+    content: "";
+    display: block;
+    width: 4px;
+    height: 4px;
+    margin: 2px auto 0;
+    border-radius: 50%;
+    background: var(--text-heading);
+    opacity: 0.75;
+}
+
+.admin-dashboard-page #driveCalendar .fc-event {
+    border-radius: 6px;
+    border-color: color-mix(in srgb, var(--primary) 70%, var(--border-color));
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.68rem;
+    padding: 1px 3px;
+}
+
+.admin-dashboard-page #driveCalendar .fc-list {
+    border-color: var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.admin-dashboard-page #driveCalendar .fc-list-day-cushion,
+.admin-dashboard-page #driveCalendar .fc-list-event:hover td {
+    background: var(--surface-muted);
+}
+
+/* ---------- Student top workspace header ---------- */
+@media (max-width: 760px) {
+    .student-dashboard-page .navbar {
+        width: auto !important;
+        margin: 10px 12px 0 !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 18px !important;
+        background: var(--bg-card) !important;
+        box-shadow: var(--shadow-subtle) !important;
+        overflow: hidden;
+    }
+
+    .student-dashboard-page .navbar .container {
+        width: 100% !important;
+        max-width: none !important;
+        padding: 13px !important;
+    }
+
+    .student-dashboard-page .navbar-inner {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        grid-template-areas:
+            "brand theme"
+            "actions actions" !important;
+        align-items: center !important;
+        gap: 11px 9px !important;
+    }
+
+    .student-dashboard-page .navbar-inner > .brand {
+        grid-area: brand;
+        min-width: 0;
+        display: grid !important;
+        grid-template-columns: 46px minmax(0, 1fr);
+        align-items: center;
+        gap: 10px !important;
+    }
+
+    .student-dashboard-page .navbar .brand-icon {
+        width: 46px !important;
+        height: 46px !important;
+        min-width: 46px !important;
+        border-radius: 13px !important;
+        border: 1px solid var(--border-color);
+        background: var(--surface-muted) !important;
+        color: var(--student-gold) !important;
+        box-shadow: none !important;
+        font-size: 0.9rem !important;
+        letter-spacing: 0.04em;
+    }
+
+    .student-dashboard-page .navbar .brand-title {
+        color: var(--text-heading) !important;
+        font-size: 1.02rem !important;
+        line-height: 1.15 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .student-dashboard-page .navbar .brand-subtitle {
+        margin-top: 2px;
+        color: var(--text-muted) !important;
+        font-size: 0.68rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .student-dashboard-page .navbar-inner > div:nth-child(2) {
+        grid-area: actions;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) 44px auto;
+        align-items: center !important;
+        width: 100%;
+        gap: 8px !important;
+    }
+
+    .student-dashboard-page #navStudentPrn {
+        display: flex !important;
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
+        min-width: 0;
+        height: 44px;
+        padding: 0 11px !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 12px !important;
+        background: var(--surface-muted) !important;
+        color: var(--text-heading) !important;
+        font-size: 0.74rem !important;
+        font-weight: 760 !important;
+        white-space: nowrap !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .student-dashboard-page #navStudentPrn::before {
+        content: "ID";
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        margin-right: 8px;
+        flex: 0 0 auto;
+        border: 1px solid color-mix(in srgb, var(--student-gold) 48%, var(--border-color));
+        border-radius: 8px;
+        color: var(--student-gold);
+        font-size: 0.58rem;
+        letter-spacing: 0.04em;
+    }
+
+    .student-dashboard-page .notification-bell {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 12px !important;
+        background: var(--surface-muted) !important;
+        color: var(--text-heading) !important;
+        box-shadow: none !important;
+    }
+
+    .student-dashboard-page #logoutBtn {
+        min-width: 0 !important;
+        height: 44px !important;
+        padding: 0 12px !important;
+        border-radius: 12px !important;
+        border-color: var(--border-color) !important;
+        background: var(--surface-muted) !important;
+        color: var(--text-heading) !important;
+        font-size: 0.73rem !important;
+        white-space: nowrap;
+    }
+
+    .student-dashboard-page #logoutBtn::before {
+        content: "↪";
+        color: var(--danger);
+        font-size: 1rem;
+    }
+
+    .student-dashboard-page .theme-toggle {
+        grid-area: theme;
+        align-self: center;
+        min-width: 66px !important;
+        height: 40px !important;
+        margin: 0 !important;
+        padding: 0 10px !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 12px !important;
+        background: var(--surface-muted) !important;
+        color: var(--text-heading) !important;
+        box-shadow: none !important;
+        font-size: 0.72rem !important;
+        font-weight: 750 !important;
+    }
+
+    /* Calendar layout mirrors the approved mockup while preserving admin colors. */
+    .admin-dashboard-page #tab-calendar > .header-split {
+        min-height: 96px;
+        padding: 14px !important;
+        margin-bottom: 9px !important;
+    }
+
+    .admin-dashboard-page #tab-calendar > .header-split::after {
+        right: 12px;
+        width: 46px;
+        height: 46px;
+        border-radius: 13px;
+        font-size: 1.35rem;
+    }
+
+    .admin-dashboard-page #tab-calendar > .header-split > div {
+        padding-right: 58px;
+    }
+
+    .admin-dashboard-page #tab-calendar > .header-split .section-title {
+        font-size: 1.25rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .admin-dashboard-page #tab-calendar > .header-split p {
+        margin-top: 4px;
+        font-size: 0.78rem !important;
+        line-height: 1.4 !important;
+    }
+
+    .admin-dashboard-page #tab-calendar > .glass-card {
+        padding: 11px !important;
+        border-radius: 15px !important;
+    }
+
+    .ait-calendar-toolbar {
+        gap: 8px;
+        margin-bottom: 9px;
+    }
+
+    .ait-calendar-primary-row {
+        grid-template-columns: 40px minmax(0, 1fr) 40px;
+        gap: 7px;
+    }
+
+    .ait-calendar-title {
+        font-size: 1.24rem;
+    }
+
+    .ait-calendar-nav {
+        width: 40px;
+        height: 40px;
+        border-radius: 11px;
+        font-size: 1.5rem;
+    }
+
+    .ait-calendar-secondary-row {
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 7px;
+    }
+
+    .ait-calendar-today,
+    .ait-calendar-view {
+        min-height: 38px;
+        font-size: 0.72rem;
+    }
+
+    .ait-calendar-today {
+        padding: 0 0.72rem;
+    }
+
+    .admin-dashboard-page #driveCalendar .fc-col-header-cell-cushion {
+        padding: 7px 1px;
+        font-size: 0.68rem;
+    }
+
+    .admin-dashboard-page #driveCalendar .fc-daygrid-day-frame {
+        min-height: 52px !important;
+    }
+
+    .admin-dashboard-page #driveCalendar .fc-daygrid-day-number {
+        padding: 6px;
+        font-size: 0.74rem;
+    }
+
+    .admin-dashboard-page #driveCalendar .fc-view-harness {
+        height: 390px !important;
+        min-height: 390px !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .student-dashboard-page .navbar-inner > .brand {
+        grid-template-columns: 42px minmax(0, 1fr);
+    }
+
+    .student-dashboard-page .navbar .brand-icon {
+        width: 42px !important;
+        height: 42px !important;
+        min-width: 42px !important;
+    }
+
+    .student-dashboard-page .navbar .brand-title {
+        font-size: 0.92rem !important;
+    }
+
+    .student-dashboard-page .navbar-inner > div:nth-child(2) {
+        grid-template-columns: minmax(0, 1fr) 40px auto;
+        gap: 6px !important;
+    }
+
+    .student-dashboard-page #navStudentPrn,
+    .student-dashboard-page .notification-bell,
+    .student-dashboard-page #logoutBtn {
+        height: 40px !important;
+    }
+
+    .student-dashboard-page .notification-bell {
+        width: 40px !important;
+        min-width: 40px !important;
+    }
+
+    .student-dashboard-page #logoutBtn {
+        padding: 0 9px !important;
+        font-size: 0.68rem !important;
+    }
+
+    .student-dashboard-page #navStudentPrn {
+        padding: 0 8px !important;
+        font-size: 0.67rem !important;
+    }
+
+    .student-dashboard-page #navStudentPrn::before {
+        width: 24px;
+        height: 24px;
+        margin-right: 6px;
+    }
+
+    .student-dashboard-page .theme-toggle {
+        min-width: 58px !important;
+        height: 36px !important;
+        padding: 0 8px !important;
+        font-size: 0.68rem !important;
+    }
+
+    .ait-calendar-title {
+        font-size: 1.08rem;
+    }
+
+    .ait-calendar-secondary-row {
+        grid-template-columns: 1fr;
+    }
+
+    .ait-calendar-today {
+        justify-self: start;
+    }
+
+    .admin-dashboard-page #driveCalendar .fc-daygrid-day-frame {
+        min-height: 47px !important;
+    }
+
+    .admin-dashboard-page #driveCalendar .fc-view-harness {
+        height: 360px !important;
+        min-height: 360px !important;
+    }
+}
