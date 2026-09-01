@@ -20,4 +20,5 @@
 .ranking-points small{display:block;margin-top:.2rem;color:#f5c75b;font-size:.62rem;line-height:1.3}
 .ranking-my-summary small b{color:var(--text-heading)}
 .ranking-my-summary small{line-height:1.35}
+.overview-rank-trust{display:none!important}
 @media(max-width:760px){.ranking-score-explainer{grid-template-columns:1fr;gap:.1rem;padding:.7rem}.ranking-score-explainer span{margin-bottom:.3rem}.ranking-category-score{padding:.55rem .6rem!important}.ranking-reason-head{align-items:flex-start}.ranking-reason-head>div{justify-content:flex-start}.pending-evidence-divider{align-items:flex-start}.ranking-evidence-points.pending small{max-width:64px}.ranking-points{min-width:76px}.ranking-points strong{font-size:1rem}}
