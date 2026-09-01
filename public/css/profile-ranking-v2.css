@@ -1,0 +1,53 @@
+/* Transparent Profile Points v2 */
+.ranking-trust-hero { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:1rem; align-items:center; padding:1.25rem; }
+.ranking-trust-hero h2 { margin:.15rem 0 .35rem; }
+.ranking-trust-strip,.overview-rank-trust { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.7rem; }
+.ranking-trust-strip span,.overview-rank-trust span { border:1px solid var(--border-color); background:var(--surface-muted); color:var(--text-muted); border-radius:999px; padding:.28rem .55rem; font-size:.72rem; }
+.ranking-caption { color:var(--text-muted); font-size:.82rem; margin-top:.2rem; }
+.ranking-person small { display:block; color:var(--text-muted); font-size:.72rem; margin-top:.15rem; }
+.ranking-why { grid-column:1 / -1; margin-top:.7rem; border-top:1px solid var(--border-color); padding-top:.7rem; }
+.ranking-why > summary { cursor:pointer; color:var(--text-heading); font-weight:700; }
+.ranking-explanation-list { display:grid; gap:.7rem; margin-top:.8rem; }
+.ranking-reason-group { border:1px solid var(--border-color); background:color-mix(in srgb,var(--surface-muted) 70%,transparent); border-radius:12px; padding:.75rem; }
+.ranking-reason-head { display:flex; align-items:center; justify-content:space-between; gap:.7rem; text-transform:capitalize; margin-bottom:.55rem; }
+.ranking-reason-head span { color:var(--student-gold,var(--accent)); font-weight:800; }
+.ranking-evidence-item { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.75rem; align-items:start; padding:.55rem 0; border-top:1px solid color-mix(in srgb,var(--border-color) 70%,transparent); }
+.ranking-evidence-item:first-of-type { border-top:0; }
+.ranking-evidence-item strong { display:block; color:var(--text-heading); font-size:.86rem; }
+.ranking-evidence-item small { display:block; color:var(--text-muted); font-size:.74rem; margin-top:.12rem; }
+.ranking-evidence-points { color:var(--success); font-weight:850; white-space:nowrap; }
+.ranking-evidence-links { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.3rem; }
+.ranking-evidence-links a { font-size:.7rem; color:var(--accent); text-decoration:none; }
+.ranking-empty-reason { color:var(--text-muted); font-size:.78rem; }
+.ranking-rule-banner { padding:.75rem; border:1px solid var(--border-color); background:var(--surface-muted); border-radius:12px; margin-bottom:.7rem; }
+.ranking-rule-banner strong { display:block; color:var(--text-heading); margin-bottom:.2rem; }
+.ranking-rule-banner span { color:var(--text-muted); font-size:.8rem; }
+
+.overview-rank-spotlight { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:1rem; align-items:center; padding:1rem 1.15rem; margin-bottom:1rem; border-top:3px solid var(--student-gold,var(--accent)); }
+.overview-rank-copy h2 { margin:.15rem 0 .25rem; font-size:1.25rem; }
+.overview-rank-copy p { color:var(--text-muted); margin:0; }
+.overview-rank-score { min-width:120px; text-align:center; border:1px solid var(--border-color); border-radius:13px; background:var(--surface-muted); padding:.7rem .8rem; }
+.overview-rank-score span,.overview-rank-score small { display:block; color:var(--text-muted); font-size:.7rem; }
+.overview-rank-score strong { display:block; color:var(--text-heading); font-size:1.55rem; line-height:1.1; margin:.1rem 0; }
+
+.evidence-integrity-note { display:flex; gap:.75rem; align-items:flex-start; padding:.8rem 1rem; margin-bottom:1rem; }
+.evidence-integrity-note strong { color:var(--text-heading); white-space:nowrap; }
+.evidence-integrity-note span { color:var(--text-muted); font-size:.82rem; }
+.evidence-review-toolbar { align-items:end; }
+.evidence-no-link { color:var(--text-muted); font-size:.78rem; margin:.6rem 0; }
+
+@media (max-width:760px) {
+  .ranking-trust-hero { grid-template-columns:1fr; padding:1rem; }
+  .ranking-my-summary { justify-self:stretch; }
+  .overview-rank-spotlight { grid-template-columns:minmax(0,1fr) auto; gap:.7rem; padding:.9rem; }
+  .overview-rank-copy { grid-column:1 / -1; }
+  .overview-rank-score { min-width:105px; }
+  .overview-rank-spotlight #overviewRankOpen { justify-self:end; align-self:center; }
+  .overview-rank-copy h2 { font-size:1.12rem; }
+  .overview-rank-trust span,.ranking-trust-strip span { font-size:.65rem; padding:.23rem .45rem; }
+  .ranking-breakdown-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+  .ranking-evidence-item { gap:.5rem; }
+  .ranking-evidence-item strong { font-size:.8rem; }
+  .evidence-integrity-note { flex-direction:column; gap:.25rem; padding:.75rem; }
+  .evidence-review-toolbar { grid-template-columns:1fr !important; }
+}
