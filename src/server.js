@@ -12,6 +12,8 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const studentRoutes = require('./routes/student');
 const competitionRoutes = require('./routes/competitions');
+const competitionReviewRoutes = require('./routes/competitionReview');
+const profileRankingRoutes = require('./routes/profileRanking');
 const rosterRoutes = require('./routes/roster');
 
 // Admin Routes (Part 2)
@@ -83,6 +85,7 @@ if (!isCloudflareWorker) app.use(express.static(path.join(process.cwd(), 'public
 app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/student/competitions', competitionRoutes);
+app.use('/api/student/rankings', profileRankingRoutes.student);
 app.use('/api/student/workflow', workflowRoutes.student);
 app.use('/api/student/advanced', advancedRoutes.student);
 // Legacy roster routes intentionally not mounted: roster data is admin-only.
@@ -94,12 +97,16 @@ app.use('/api/admin/students', adminStudentsRoutes);
 app.use('/api/admin/profile-completion', profileCompletionRoutes.admin);
 app.use('/api/admin/audit-logs', adminAuditRoutes);
 app.use('/api/admin/drives', adminDriveRoutes);
+app.use('/api/admin/competitions', competitionReviewRoutes.admin);
+app.use('/api/admin/rankings', profileRankingRoutes.admin);
 app.use('/api/admin/workflow', workflowRoutes.admin);
 app.use('/api/admin/advanced', advancedRoutes.admin);
 app.use('/api/admin/intelligence', intelligenceRoutes);
 app.use('/api/admin/launch', launchOperationsRoutes);
 app.use('/api/observer/auth', observerAuthRoutes);
 app.use('/api/observer/profile-completion', profileCompletionRoutes.observer);
+app.use('/api/observer/competitions', competitionReviewRoutes.observer);
+app.use('/api/observer/rankings', profileRankingRoutes.observer);
 app.use('/api/observer', observerRoutes);
 
 // View Routing - Student
