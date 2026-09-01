@@ -27,6 +27,7 @@
     loadStylesheet('/css/profile-ranking-v2.css?v=20260901-2', 'profile-ranking-v2');
     loadStylesheet('/css/candidate-profile-v2.css?v=20260901-1', 'candidate-profile-v2');
     loadStylesheet('/css/college-academics.css?v=20260901-1', 'college-academics');
+    loadStylesheet('/css/mobile-overflow-fix.css?v=20260901-1', 'mobile-overflow-fix');
 
     function loadCompactRecordStyles() {
         loadStylesheet('/css/mobile-records.css?v=20260901-4', 'mobile-records');
@@ -101,7 +102,7 @@
 
             loadScript('/js/competitions.js?v=20260901-4', 'competitions-module', () => {
                 loadCompactRecordStyles();
-                loadScript('/js/profile-ranking.js?v=20260901-2', 'profile-ranking-module');
+                loadScript('/js/profile-ranking.js?v=20260901-3', 'profile-ranking-module');
                 loadScript('/js/evidence-status-ui.js?v=20260901-2', 'evidence-status-ui', () => {
                     loadScript('/js/college-academics-ui.js?v=20260901-1', 'college-academics-ui');
                 });
