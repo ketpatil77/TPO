@@ -5,6 +5,7 @@
     const token = () => localStorage.getItem('tpo_token');
     let profileData = null;
     let scheduled = false;
+    let initialized = false;
 
     function statusLabel(status) {
         const value = ['verified', 'rejected'].includes(status) ? status : 'pending';
@@ -23,7 +24,7 @@
         cards.forEach((card, index) => {
             const record = records?.[index];
             if (!record) return;
-            card.querySelector('.evidence-status-badge')?.remove();
+            card.querySelector('.evidence-status-holder')?.remove();
             const holder = document.createElement('div');
             holder.className = 'evidence-status-holder';
             holder.innerHTML = badge(record.verification_status, record.verification_note);
@@ -93,9 +94,14 @@
         } catch (_) { /* Ranking still explains verification if this visual enhancement cannot load. */ }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    function init() {
+        if (initialized) return;
+        initialized = true;
         load();
         document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
         window.addEventListener('focus', load);
-    });
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+    else init();
 })();
