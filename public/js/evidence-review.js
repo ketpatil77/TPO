@@ -111,7 +111,7 @@
             const response = await fetch(`/api/${role === 'admin' ? 'admin' : 'observer'}/rankings/evidence?${params}`);
             const json = await response.json();
             if (!response.ok || !json.success) throw new Error(json.error?.message || json.error || 'Unable to load evidence.');
-            render(json.data || [], json.rules_version || '');
+            render((json.data || []).filter(item => item.kind !== 'academics'), json.rules_version || '');
         } catch (error) {
             host.innerHTML = `<div class="panel-empty"><strong>Could not load evidence queue</strong><p>${esc(error.message)}</p></div>`;
         }
