@@ -109,6 +109,7 @@ router.post('/', validate(competitionSchema), async (req, res) => {
             ...req.body,
             verification_status: 'pending',
             verified_by: null,
+            verified_role: null,
             verified_at: null,
             verification_note: null,
             created_at: now,
@@ -131,6 +132,7 @@ router.put('/:id', validate(competitionSchema), async (req, res) => {
             ...req.body,
             verification_status: 'pending',
             verified_by: null,
+            verified_role: null,
             verified_at: null,
             verification_note: null,
             updated_at: new Date().toISOString()
