@@ -24,7 +24,7 @@
     loadStylesheet('/css/mobile-tabs-fix.css?v=20260901-1', 'mobile-tabs-fix');
     loadStylesheet('/css/dashboard-polish-v3.css?v=20260901-1', 'dashboard-polish-v3');
     loadStylesheet('/css/dashboard-audit-v4.css?v=20260901-1', 'dashboard-audit-v4');
-    loadStylesheet('/css/profile-ranking-v2.css?v=20260901-1', 'profile-ranking-v2');
+    loadStylesheet('/css/profile-ranking-v2.css?v=20260901-2', 'profile-ranking-v2');
 
     function loadCompactRecordStyles() {
         loadStylesheet('/css/mobile-records.css?v=20260901-4', 'mobile-records');
@@ -96,6 +96,7 @@
             loadScript('/js/competitions.js?v=20260901-4', 'competitions-module', () => {
                 loadCompactRecordStyles();
                 loadScript('/js/profile-ranking.js?v=20260901-2', 'profile-ranking-module');
+                loadScript('/js/evidence-status-ui.js?v=20260901-1', 'evidence-status-ui');
             });
         }
 
