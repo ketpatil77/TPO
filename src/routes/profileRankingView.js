@@ -107,8 +107,8 @@ function scoreStudent(profile, related) {
   explanations.academics.push({
     label: `CGPA ${Number(profile.cgpa_overall || 0).toFixed(2)}`,
     points: earned.academics,
-    status: 'college-record',
-    reason: 'College-supplied CGPA counts automatically from the published CGPA band.'
+    status: 'auto-counted',
+    reason: 'Profile CGPA counts automatically from the published CGPA band; no verification step is required.'
   });
 
   const certificates = [...all.certificates].sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
@@ -267,7 +267,7 @@ async function buildLeaderboard(currentStudentId, branchQuery, yearQuery) {
     rules: {
       version: RULE_VERSION,
       note: 'CGPA and student profile records count automatically using fixed rules. Only competition points require TPO/TPC verification.',
-      academics: 'College CGPA: <5 = 0, 5–5.99 = 5, 6–6.99 = 10, 7–7.99 = 15, 8–8.99 = 20, 9+ = 25.',
+      academics: 'Profile CGPA: <5 = 0, 5–5.99 = 5, 6–6.99 = 10, 7–7.99 = 15, 8–8.99 = 20, 9+ = 25. No verification step.',
       certificates: 'Certificates count automatically: first 5 = 2 each, next 5 = 1.5 each, later certificates = 0.75 each.',
       projects: 'Project = 4 base + 2 repository + 2 live project URL.',
       research: 'Publication = 8 + 2 valid DOI + 1 paper link.',
