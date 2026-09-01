@@ -20,7 +20,7 @@
     "directory": "./public",
     "binding": "ASSETS",
     "html_handling": "none",
-    "run_worker_first": ["/api/*", "/", "/login", "/dashboard", "/admin", "/admin/*", "/observer", "/observer/*"]
+    "run_worker_first": ["/api/*", "/", "/login", "/dashboard", "/admin", "/admin/*", "/observer", "/observer/*", "/js/*", "/css/*"]
   },
   "kv_namespaces": [
     {
