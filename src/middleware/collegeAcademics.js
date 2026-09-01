@@ -1,8 +1,7 @@
-function protectCollegeAcademics(req, _res, next) {
-    if (req.method === 'PUT' && req.path === '/profile' && req.body && typeof req.body === 'object') {
-        delete req.body.cgpa_overall;
-        delete req.body.cgpa_semesterwise;
-    }
+function protectCollegeAcademics(_req, _res, next) {
+    // Students are allowed to edit CGPA and semester CGPA from their profile.
+    // Academic values count automatically for Profile Points and do not require
+    // a separate TPO/TPC evidence-verification workflow.
     next();
 }
 
@@ -11,8 +10,8 @@ function blockAcademicVerification(req, res, next) {
         return res.status(409).json({
             success: false,
             error: {
-                code: 'COLLEGE_ACADEMICS_AUTHORITATIVE',
-                message: 'CGPA and semester academic records are supplied by the college and do not require profile-evidence verification.'
+                code: 'ACADEMIC_VERIFICATION_NOT_REQUIRED',
+                message: 'CGPA and semester academic records do not require profile-evidence verification.'
             }
         });
     }
