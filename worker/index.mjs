@@ -40,7 +40,7 @@ export default {
             if (['/dashboard.html', '/admin-dashboard.html', '/observer-dashboard.html'].includes(assetPath)) {
                 let html = await response.text();
                 if (assetPath === '/dashboard.html') {
-                    html = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260901-ranking-v3');
+                    html = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260901-ranking-v3-force2');
                 }
                 if (assetPath === '/admin-dashboard.html') {
                     html = html.replace(/\/js\/admin-dashboard\.js\?v=[^"']+/g, '/js/admin-dashboard.js?v=20260819-ssc-hsc');
@@ -50,7 +50,21 @@ export default {
                 }
                 const rolePatch = assetPath === '/admin-dashboard.html' ? '<link rel="stylesheet" href="/css/admin-alignment-20260814.css">' : '';
                 const profileRequirements = assetPath === '/dashboard.html' ? '<link rel="stylesheet" href="/css/profile-requirements-20260814.css">' : '';
-                const patched = html.replace('</head>', `<link rel="stylesheet" href="/css/portal-layout-20260814.css?v=20260817-responsive1"><link rel="stylesheet" href="/css/portal-identifiers-20260814.css?v=20260817-responsive1"><script src="/js/responsive-tables.js?v=20260817-responsive1" defer></script>${profileRequirements}${rolePatch}<link rel="stylesheet" href="/css/portal-responsive.css?v=20260831"></head>`);
+                const rankingV3Patch = assetPath === '/dashboard.html' ? `<script>
+window.addEventListener('load', function () {
+  document.querySelectorAll('.tabs-nav [aria-controls="tab-ranking"]').forEach(function (node) { node.remove(); });
+  var oldPanel = document.getElementById('tab-ranking');
+  if (oldPanel) oldPanel.remove();
+  var oldSpotlight = document.getElementById('overviewRankSpotlight');
+  if (oldSpotlight) oldSpotlight.remove();
+  var script = document.createElement('script');
+  script.src = '/js/profile-ranking.js?v=20260901-competition-only-force2';
+  script.setAttribute('data-ranking-authoritative-v3', 'true');
+  document.body.appendChild(script);
+});
+</script>` : '';
+                let patched = html.replace('</head>', `<link rel="stylesheet" href="/css/portal-layout-20260814.css?v=20260817-responsive1"><link rel="stylesheet" href="/css/portal-identifiers-20260814.css?v=20260817-responsive1"><script src="/js/responsive-tables.js?v=20260817-responsive1" defer></script>${profileRequirements}${rolePatch}<link rel="stylesheet" href="/css/portal-responsive.css?v=20260831"></head>`);
+                if (rankingV3Patch) patched = patched.replace('</body>', `${rankingV3Patch}</body>`);
                 return noStore(new Response(patched, { status: response.status, headers: response.headers }), true, env);
             }
             return noStore(response, true, env);
