@@ -93,6 +93,14 @@
             loadScript('/js/login-autofill.js?v=20260901-2', 'login-autofill');
         }
 
+        const authenticatedWorkspace = document.body.classList.contains('student-dashboard-page') ||
+            document.body.classList.contains('admin-dashboard-page') ||
+            document.body.classList.contains('observer-shell');
+        if (authenticatedWorkspace) {
+            loadStylesheet('/css/portal-back-guard.css?v=20260901-1', 'portal-back-guard');
+            loadScript('/js/portal-back-guard.js?v=20260901-1', 'portal-back-guard-js');
+        }
+
         document.getElementById('notificationGateSignOut')?.addEventListener('click', () => document.getElementById('logoutBtn')?.click());
 
         if (document.body.classList.contains('student-dashboard-page')) {
