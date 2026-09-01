@@ -58,6 +58,8 @@
     document.querySelectorAll('.role-toggle-btn').forEach(button => button.addEventListener('click', () => {
       window.setTimeout(() => isolateRole(button.dataset.role), 0);
     }));
+    new MutationObserver(() => isolateRole(document.body.dataset.activeRole || 'student'))
+      .observe(document.body, { attributes: true, attributeFilter: ['data-active-role'] });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install); else install();
