@@ -1,11 +1,19 @@
 (() => {
     function loadCompactRecordStyles() {
-        if (document.querySelector('link[data-mobile-records]')) return;
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = '/css/mobile-records.css?v=20260901-2';
-        link.dataset.mobileRecords = 'true';
-        document.head.appendChild(link);
+        if (!document.querySelector('link[data-mobile-records]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = '/css/mobile-records.css?v=20260901-3';
+            link.dataset.mobileRecords = 'true';
+            document.head.appendChild(link);
+        }
+        if (!document.querySelector('link[data-competition-compact]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = '/css/competitions.css?v=20260901-3';
+            link.dataset.competitionCompact = 'true';
+            document.head.appendChild(link);
+        }
     }
 
     function compactResearchCards() {
@@ -72,7 +80,7 @@
 
             if (!document.querySelector('script[data-competitions-module]')) {
                 const script = document.createElement('script');
-                script.src = '/js/competitions.js?v=20260901-2';
+                script.src = '/js/competitions.js?v=20260901-3';
                 script.defer = true;
                 script.dataset.competitionsModule = 'true';
                 script.addEventListener('load', loadCompactRecordStyles);
