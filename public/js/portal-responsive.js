@@ -21,6 +21,7 @@
     }
 
     loadStylesheet('/css/mobile-system-v2.css?v=20260901-1', 'mobile-system-v2');
+    loadStylesheet('/css/mobile-tabs-fix.css?v=20260901-1', 'mobile-tabs-fix');
 
     function loadCompactRecordStyles() {
         loadStylesheet('/css/mobile-records.css?v=20260901-4', 'mobile-records');
