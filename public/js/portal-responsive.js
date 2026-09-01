@@ -115,7 +115,8 @@
             loadScript('/js/college-academics-ui.js?v=20260901-2', 'college-academics-ui');
             loadStylesheet('/css/student-engagement-v1.css?v=20260902-2', 'student-engagement-v1');
             loadScript('/js/student-engagement-v2.js?v=20260902-2', 'student-engagement-v2-js');
-            loadScript('/js/semester-completion-fix.js?v=20260902-1', 'semester-completion-fix');
+            loadStylesheet('/css/profile-declarations.css?v=20260902-1', 'profile-declarations');
+            loadScript('/js/profile-declarations-ui.js?v=20260902-1', 'profile-declarations-ui');
         }
 
         if (document.body.classList.contains('admin-dashboard-page')) {
