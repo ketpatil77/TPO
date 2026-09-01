@@ -1,0 +1,32 @@
+name: Cloudflare Dry Run
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Syntax checks
+        run: |
+          node --check worker/index.mjs
+          node --check src/server.js
+          node --check src/routes/profileRankingView.js
+          node --check public/js/profile-ranking.js
+          node --check public/js/portal-responsive.js
+      - name: Cloudflare dry run
+        run: npm run deploy:dry-run
