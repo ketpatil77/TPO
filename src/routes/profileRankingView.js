@@ -5,7 +5,7 @@ const { authenticateStudent } = require('../middleware/auth');
 const router = express.Router();
 router.use(authenticateStudent);
 
-const RULE_VERSION = '2026-27 v2.1';
+const RULE_VERSION = '2026-27 v3.0';
 const LEVEL_POINTS = {
   'Department': 1,
   'Institute / College': 2,
@@ -103,52 +103,52 @@ function scoreStudent(profile, related) {
   const explanations = emptyExplanationSet();
   const pendingExplanations = emptyExplanationSet();
 
-  // College academics are authoritative. They are never part of staff evidence verification.
   earned.academics = cgpaPoints(profile.cgpa_overall);
   explanations.academics.push({
     label: `CGPA ${Number(profile.cgpa_overall || 0).toFixed(2)}`,
     points: earned.academics,
     status: 'college-record',
-    reason: 'College-supplied CGPA automatically receives points from the published CGPA band.'
+    reason: 'College-supplied CGPA counts automatically from the published CGPA band.'
   });
 
-  const verifiedCertificates = all.certificates.filter(item => statusOf(item) === 'verified').sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
-  const pendingCertificates = all.certificates.filter(item => statusOf(item) === 'pending').sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
-  verifiedCertificates.forEach((item, index) => {
+  const certificates = [...all.certificates].sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+  certificates.forEach((item, index) => {
     const points = certificatePointAt(index);
     earned.certificates += points;
-    explanations.certificates.push({ label: item.name || 'Certificate', points, status: 'verified', reason: `${item.issuer || 'Issuer'} · verified certificate #${index + 1}` });
-  });
-  pendingCertificates.forEach((item, index) => {
-    const points = certificatePointAt(verifiedCertificates.length + index);
-    pending.certificates += points;
-    pendingExplanations.certificates.push({ label: item.name || 'Certificate', points, status: 'pending', reason: `${item.issuer || 'Issuer'} · adds ${points} point${points === 1 ? '' : 's'} after verification.` });
+    explanations.certificates.push({
+      label: item.name || 'Certificate',
+      points,
+      status: 'auto-counted',
+      reason: `${item.issuer || 'Issuer'} · certificate #${index + 1} counted automatically.`
+    });
   });
 
   all.projects.forEach(item => {
     const repoBonus = isHttpsUrl(item.repository_url) ? 2 : 0;
     const liveBonus = isHttpsUrl(item.project_url) ? 2 : 0;
     const points = 4 + repoBonus + liveBonus;
-    const detail = {
-      label: item.title || 'Project', points, status: statusOf(item),
+    earned.projects += points;
+    explanations.projects.push({
+      label: item.title || 'Project',
+      points,
+      status: 'auto-counted',
       reason: `4 base${repoBonus ? ' + 2 repository' : ''}${liveBonus ? ' + 2 live project' : ''}`,
       links: [item.repository_url, item.project_url].filter(isHttpsUrl)
-    };
-    if (statusOf(item) === 'verified') { earned.projects += points; explanations.projects.push(detail); }
-    else if (statusOf(item) === 'pending') { pending.projects += points; pendingExplanations.projects.push(detail); }
+    });
   });
 
   all.research.forEach(item => {
     const doiBonus = isDoiUrl(item.doi_url) ? 2 : 0;
     const paperBonus = isHttpsUrl(item.paper_url) ? 1 : 0;
     const points = 8 + doiBonus + paperBonus;
-    const detail = {
-      label: item.title || 'Research paper', points, status: statusOf(item),
+    earned.research += points;
+    explanations.research.push({
+      label: item.title || 'Research paper',
+      points,
+      status: 'auto-counted',
       reason: `8 publication${doiBonus ? ' + 2 valid DOI' : ''}${paperBonus ? ' + 1 paper link' : ''}`,
       links: [item.doi_url, item.paper_url].filter(isHttpsUrl)
-    };
-    if (statusOf(item) === 'verified') { earned.research += points; explanations.research.push(detail); }
-    else if (statusOf(item) === 'pending') { pending.research += points; pendingExplanations.research.push(detail); }
+    });
   });
 
   all.competitions.forEach(item => {
@@ -156,37 +156,41 @@ function scoreStudent(profile, related) {
     const result = RESULT_POINTS[item.result_status] || 0;
     const points = level + result;
     const detail = {
-      label: item.title || 'Competition', points, status: statusOf(item),
+      label: item.title || 'Competition',
+      points,
+      status: statusOf(item),
       reason: `${item.level || 'Level'} ${level} + ${item.result_status || 'Result'} ${result}`,
       links: [item.source_url, item.proof_url].filter(isHttpsUrl)
     };
-    if (statusOf(item) === 'verified') { earned.competitions += points; explanations.competitions.push(detail); }
-    else if (statusOf(item) === 'pending') { pending.competitions += points; pendingExplanations.competitions.push(detail); }
+    if (statusOf(item) === 'verified') {
+      earned.competitions += points;
+      explanations.competitions.push(detail);
+    } else if (statusOf(item) === 'pending') {
+      pending.competitions += points;
+      pendingExplanations.competitions.push(detail);
+    }
   });
 
   all.internships.forEach(item => {
-    const detail = { label: `${item.company || 'Internship'}${item.role ? ` · ${item.role}` : ''}`, points: 6, status: statusOf(item), reason: 'Verified internship = 6 points.' };
-    if (statusOf(item) === 'verified') { earned.internships += 6; explanations.internships.push(detail); }
-    else if (statusOf(item) === 'pending') { pending.internships += 6; pendingExplanations.internships.push(detail); }
+    earned.internships += 6;
+    explanations.internships.push({
+      label: `${item.company || 'Internship'}${item.role ? ` · ${item.role}` : ''}`,
+      points: 6,
+      status: 'auto-counted',
+      reason: 'Internship record = 6 points.'
+    });
   });
 
-  const verifiedSkills = all.skills.filter(item => statusOf(item) === 'verified').sort((a, b) => String(a.skill || '').localeCompare(String(b.skill || '')));
-  const pendingSkills = all.skills.filter(item => statusOf(item) === 'pending').sort((a, b) => String(a.skill || '').localeCompare(String(b.skill || '')));
-  verifiedSkills.forEach((item, index) => {
+  const skills = [...all.skills].sort((a, b) => String(a.skill || '').localeCompare(String(b.skill || '')));
+  skills.forEach((item, index) => {
     const points = index < 20 ? 0.5 : 0;
     earned.skills += points;
-    explanations.skills.push({ label: item.skill || 'Skill', points, status: 'verified', reason: points ? 'Verified skill = 0.5 point; maximum 20 scored skills.' : 'Verified, but the 20-skill scoring cap has been reached.' });
-  });
-  let pendingSkillSlots = Math.max(0, 20 - verifiedSkills.length);
-  pendingSkills.forEach((item, index) => {
-    const points = index < pendingSkillSlots ? 0.5 : 0;
-    pending.skills += points;
-    if (points || index === pendingSkillSlots) {
-      pendingExplanations.skills.push({
-        label: item.skill || 'Skill', points, status: 'pending',
-        reason: points ? 'Would add 0.5 point after verification.' : `${pendingSkills.length - pendingSkillSlots} additional pending skill${pendingSkills.length - pendingSkillSlots === 1 ? '' : 's'} are beyond the 20-skill scoring cap.`
-      });
-    }
+    explanations.skills.push({
+      label: item.skill || 'Skill',
+      points,
+      status: 'auto-counted',
+      reason: points ? 'Skill = 0.5 point; maximum 20 scored skills.' : 'Recorded, but the 20-skill scoring cap has been reached.'
+    });
   });
 
   const resumePoints = profile.resume_url ? 3 : 0;
@@ -197,12 +201,12 @@ function scoreStudent(profile, related) {
 
   Object.keys(earned).forEach(key => { earned[key] = money(earned[key]); pending[key] = money(pending[key]); });
   const points = money(Object.values(earned).reduce((sum, value) => sum + value, 0));
-  const pendingPoints = money(Object.values(pending).reduce((sum, value) => sum + value, 0));
+  const pendingPoints = money(pending.competitions);
   const potentialPoints = money(points + pendingPoints);
 
-  const evidenceCounts = Object.values(all).flat().reduce((acc, item) => {
-    const status = statusOf(item);
-    acc[status] = (acc[status] || 0) + 1;
+  const competitionCounts = all.competitions.reduce((acc, item) => {
+    const state = statusOf(item);
+    acc[state] = (acc[state] || 0) + 1;
     return acc;
   }, { pending: 0, verified: 0, rejected: 0 });
 
@@ -214,7 +218,8 @@ function scoreStudent(profile, related) {
     pending_breakdown: pending,
     explanations,
     pending_explanations: pendingExplanations,
-    evidence_counts: evidenceCounts
+    evidence_counts: competitionCounts,
+    competition_counts: competitionCounts
   };
 }
 
@@ -261,14 +266,14 @@ async function buildLeaderboard(currentStudentId, branchQuery, yearQuery) {
     current: rows.find(row => row.student_id === currentStudentId) || null,
     rules: {
       version: RULE_VERSION,
-      note: 'Rank uses earned points only. Pending potential is shown for transparency but does not affect rank until TPO/TPC verifies the evidence.',
+      note: 'CGPA and student profile records count automatically using fixed rules. Only competition points require TPO/TPC verification.',
       academics: 'College CGPA: <5 = 0, 5–5.99 = 5, 6–6.99 = 10, 7–7.99 = 15, 8–8.99 = 20, 9+ = 25.',
-      certificates: 'Verified certificates: first 5 = 2 each, next 5 = 1.5 each, later certificates = 0.75 each.',
-      projects: 'Verified project = 4 base + 2 repository + 2 live project URL.',
-      research: 'Verified publication = 8 + 2 valid DOI + 1 paper link.',
-      competitions: 'Verified competition = published level points + result points.',
-      internships: 'Verified internship = 6 points.',
-      skills: 'Verified skill = 0.5 point, maximum 20 scored skills.',
+      certificates: 'Certificates count automatically: first 5 = 2 each, next 5 = 1.5 each, later certificates = 0.75 each.',
+      projects: 'Project = 4 base + 2 repository + 2 live project URL.',
+      research: 'Publication = 8 + 2 valid DOI + 1 paper link.',
+      competitions: 'Competition points count only after TPO/TPC verification: published level points + result points.',
+      internships: 'Internship = 6 points.',
+      skills: 'Skill = 0.5 point, maximum 20 scored skills.',
       profile: 'Resume = 3; complete required profile fields = 2.'
     }
   };
