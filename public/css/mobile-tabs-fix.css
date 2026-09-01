@@ -1,0 +1,103 @@
+/* Compact mobile dashboard navigation. This intentionally overrides legacy and mobile-system-v2 tab styling. */
+@media (max-width: 760px) {
+  .tabs-nav,
+  .dashboard-wrapper .tabs-nav,
+  .admin-tabs,
+  .observer-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 2px !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 0 10px !important;
+    padding: 0 0 4px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    scroll-snap-type: none !important;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tabs-nav::-webkit-scrollbar,
+  .admin-tabs::-webkit-scrollbar,
+  .observer-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tabs-nav .tab-btn,
+  .dashboard-wrapper .tabs-nav .tab-btn,
+  .admin-tabs .tab-btn,
+  .observer-tabs .tab-btn {
+    position: relative !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 34px !important;
+    height: 34px !important;
+    margin: 0 !important;
+    padding: 5px 9px 7px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--text-muted) !important;
+    font-size: .72rem !important;
+    font-weight: 650 !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    white-space: nowrap !important;
+    transform: none !important;
+  }
+
+  .tabs-nav .tab-btn::before,
+  .tabs-nav .tab-btn::after,
+  .admin-tabs .tab-btn::before,
+  .admin-tabs .tab-btn::after,
+  .observer-tabs .tab-btn::before,
+  .observer-tabs .tab-btn::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  .tabs-nav .tab-btn:hover,
+  .dashboard-wrapper .tabs-nav .tab-btn:hover,
+  .admin-tabs .tab-btn:hover,
+  .observer-tabs .tab-btn:hover {
+    background: transparent !important;
+    color: var(--text-body) !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .tabs-nav .tab-btn.active,
+  .tabs-nav .tab-btn[aria-selected="true"],
+  .dashboard-wrapper .tabs-nav .tab-btn.active,
+  .admin-tabs .tab-btn.active,
+  .observer-tabs .tab-btn.active {
+    background: transparent !important;
+    color: var(--student-gold, var(--primary)) !important;
+    border: 0 !important;
+    border-bottom: 2px solid var(--student-gold, var(--primary)) !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .tabs-nav .tab-btn,
+  .dashboard-wrapper .tabs-nav .tab-btn,
+  .admin-tabs .tab-btn,
+  .observer-tabs .tab-btn {
+    min-height: 32px !important;
+    height: 32px !important;
+    padding: 5px 8px 6px !important;
+    font-size: .69rem !important;
+  }
+}
