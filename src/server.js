@@ -5,7 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { rateLimit } = require('express-rate-limit');
 const { csrfProtection } = require('./middleware/security');
-const { protectCollegeAcademics, blockAcademicVerification } = require('./middleware/collegeAcademics');
+const { protectCollegeAcademics } = require('./middleware/collegeAcademics');
 
 require('dotenv').config();
 
@@ -14,7 +14,6 @@ const authRoutes = require('./routes/auth');
 const studentRoutes = require('./routes/student');
 const competitionRoutes = require('./routes/competitions');
 const competitionReviewRoutes = require('./routes/competitionReview');
-const profileRankingRoutes = require('./routes/profileRanking');
 const profileRankingViewRoutes = require('./routes/profileRankingView');
 const rosterRoutes = require('./routes/roster');
 
@@ -89,7 +88,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/student', protectCollegeAcademics);
 app.use('/api/student', studentRoutes);
 app.use('/api/student/competitions', competitionRoutes);
-app.use('/api/student/rankings', profileRankingRoutes.student);
 app.use('/api/student/rankings-view', profileRankingViewRoutes);
 app.use('/api/student/workflow', workflowRoutes.student);
 app.use('/api/student/advanced', advancedRoutes.student);
@@ -103,8 +101,6 @@ app.use('/api/admin/profile-completion', profileCompletionRoutes.admin);
 app.use('/api/admin/audit-logs', adminAuditRoutes);
 app.use('/api/admin/drives', adminDriveRoutes);
 app.use('/api/admin/competitions', competitionReviewRoutes.admin);
-app.use('/api/admin/rankings', blockAcademicVerification);
-app.use('/api/admin/rankings', profileRankingRoutes.admin);
 app.use('/api/admin/workflow', workflowRoutes.admin);
 app.use('/api/admin/advanced', advancedRoutes.admin);
 app.use('/api/admin/intelligence', intelligenceRoutes);
@@ -112,8 +108,6 @@ app.use('/api/admin/launch', launchOperationsRoutes);
 app.use('/api/observer/auth', observerAuthRoutes);
 app.use('/api/observer/profile-completion', profileCompletionRoutes.observer);
 app.use('/api/observer/competitions', competitionReviewRoutes.observer);
-app.use('/api/observer/rankings', blockAcademicVerification);
-app.use('/api/observer/rankings', profileRankingRoutes.observer);
 app.use('/api/observer', observerRoutes);
 
 // View Routing - Student
