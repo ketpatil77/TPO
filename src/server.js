@@ -5,7 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { rateLimit } = require('express-rate-limit');
 const { csrfProtection } = require('./middleware/security');
-const { protectCollegeAcademics } = require('./middleware/collegeAcademics');
+const { protectCollegeAcademics, blockAcademicVerification } = require('./middleware/collegeAcademics');
 
 require('dotenv').config();
 
@@ -101,6 +101,7 @@ app.use('/api/admin/profile-completion', profileCompletionRoutes.admin);
 app.use('/api/admin/audit-logs', adminAuditRoutes);
 app.use('/api/admin/drives', adminDriveRoutes);
 app.use('/api/admin/competitions', competitionReviewRoutes.admin);
+app.use('/api/admin/rankings', blockAcademicVerification);
 app.use('/api/admin/rankings', profileRankingRoutes.admin);
 app.use('/api/admin/workflow', workflowRoutes.admin);
 app.use('/api/admin/advanced', advancedRoutes.admin);
@@ -109,6 +110,7 @@ app.use('/api/admin/launch', launchOperationsRoutes);
 app.use('/api/observer/auth', observerAuthRoutes);
 app.use('/api/observer/profile-completion', profileCompletionRoutes.observer);
 app.use('/api/observer/competitions', competitionReviewRoutes.observer);
+app.use('/api/observer/rankings', blockAcademicVerification);
 app.use('/api/observer/rankings', profileRankingRoutes.observer);
 app.use('/api/observer', observerRoutes);
 
