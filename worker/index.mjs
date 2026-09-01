@@ -40,6 +40,10 @@ export default {
             const response = await env.ASSETS.fetch(new Request(url, request));
             if (['/dashboard.html', '/admin-dashboard.html', '/observer-dashboard.html'].includes(assetPath)) {
                 let html = await response.text();
+                if (assetPath === '/dashboard.html') {
+                    // Keep the outer responsive loader version fresh so nested ranking/UI assets cannot be stranded behind a browser cache.
+                    html = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260901-ranking-potential2');
+                }
                 if (assetPath === '/admin-dashboard.html') {
                     html = html.replace(/\/js\/admin-dashboard\.js\?v=[^"']+/g, '/js/admin-dashboard.js?v=20260819-ssc-hsc');
                 }
