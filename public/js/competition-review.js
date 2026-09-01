@@ -124,16 +124,18 @@
     }
 
     async function decide(id, status) {
-        let note = null;
+        let note = '';
         if (status === 'rejected') {
-            note = prompt('Why is this competition record being rejected? The student will see this reason.');
-            if (!note || note.trim().length < 3) return;
+            note = prompt('Why is this competition record being rejected? The student will see this reason.') || '';
+            if (note.trim().length < 3) return;
         } else if (!confirm('Verify this competition record? Verified competitions can contribute to Profile Points.')) return;
+
+        const payload = status === 'rejected' ? { status, note: note.trim() } : { status };
         try {
             const response = await fetch(`/api/${role === 'admin' ? 'admin' : 'observer'}/competitions/${encodeURIComponent(id)}/verification`, {
                 method: 'PUT',
                 headers: { 'Content-Type':'application/json' },
-                body: JSON.stringify({ status, note })
+                body: JSON.stringify(payload)
             });
             const json = await response.json();
             if (!response.ok || !json.success) throw new Error(json.error?.message || json.error || 'Unable to update verification.');
