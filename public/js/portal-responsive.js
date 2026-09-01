@@ -29,6 +29,7 @@
     loadStylesheet('/css/candidate-profile-v2.css?v=20260901-1', 'candidate-profile-v2');
     loadStylesheet('/css/college-academics.css?v=20260901-2', 'college-academics');
     loadStylesheet('/css/mobile-overflow-fix.css?v=20260901-1', 'mobile-overflow-fix');
+    loadStylesheet('/css/mobile-modal-scroll-fix.css?v=20260901-1', 'mobile-modal-scroll-fix');
 
     function loadCompactRecordStyles() {
         loadStylesheet('/css/mobile-records.css?v=20260901-4', 'mobile-records');
@@ -119,7 +120,7 @@
         }
 
         if (document.body.classList.contains('observer-shell')) {
-            loadScript('/js/dob-view-controls.js?v=20260901-1', 'dob-view-controls');
+            loadScript('/js/dob-view-controls.js?v=20260901-2', 'dob-view-controls');
         }
 
         if (document.body.classList.contains('admin-dashboard-page') || document.body.classList.contains('observer-shell')) {
