@@ -1,0 +1,81 @@
+/* Mobile/desktop modal scroll contract. Keep long forms usable on small viewports and with the soft keyboard open. */
+.modal-backdrop.active {
+    overflow: hidden !important;
+    overscroll-behavior: contain;
+}
+
+.modal-backdrop .modal-card,
+.modal-backdrop .observer-modal,
+#studentDetailModal > div {
+    max-height: calc(100dvh - 2rem) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    scrollbar-gutter: stable;
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom)) !important;
+}
+
+.modal-backdrop .modal-header {
+    position: sticky;
+    top: -1px;
+    z-index: 8;
+    background: var(--bg-card);
+    padding-top: .15rem;
+    padding-bottom: .55rem;
+}
+
+.modal-backdrop form > button[type="submit"]:last-child,
+.modal-backdrop form > .btn[type="submit"]:last-child,
+.modal-backdrop .modal-actions:last-child {
+    position: sticky;
+    bottom: 0;
+    z-index: 7;
+}
+
+.modal-backdrop form > button[type="submit"]:last-child,
+.modal-backdrop form > .btn[type="submit"]:last-child {
+    box-shadow: 0 -10px 18px var(--bg-card);
+}
+
+@media (max-width: 760px) {
+    .modal-backdrop,
+    .modal-backdrop.active {
+        height: 100dvh !important;
+        min-height: 100dvh !important;
+        padding: 4px !important;
+        align-items: flex-end !important;
+    }
+
+    .modal-backdrop .modal-card,
+    .modal-backdrop .observer-modal,
+    #studentDetailModal > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: calc(100dvh - 8px) !important;
+        border-radius: 18px 18px 0 0 !important;
+        padding: 14px 14px max(18px, env(safe-area-inset-bottom)) !important;
+        overflow-y: scroll !important;
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y !important;
+    }
+
+    .modal-backdrop .modal-card form,
+    .modal-backdrop .observer-modal form {
+        min-height: min-content;
+        padding-bottom: 8px;
+    }
+
+    .modal-backdrop .modal-header {
+        margin-bottom: 8px !important;
+    }
+
+    .modal-backdrop form > button[type="submit"]:last-child,
+    .modal-backdrop form > .btn[type="submit"]:last-child {
+        width: 100% !important;
+        min-height: 46px !important;
+        margin-top: 12px !important;
+    }
+}
