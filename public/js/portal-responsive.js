@@ -27,7 +27,7 @@
     loadStylesheet('/css/profile-ranking-v2.css?v=20260901-2', 'profile-ranking-v2');
     loadStylesheet('/css/profile-ranking-potential.css?v=20260901-2', 'profile-ranking-potential');
     loadStylesheet('/css/candidate-profile-v2.css?v=20260901-1', 'candidate-profile-v2');
-    loadStylesheet('/css/college-academics.css?v=20260901-1', 'college-academics');
+    loadStylesheet('/css/college-academics.css?v=20260901-2', 'college-academics');
     loadStylesheet('/css/mobile-overflow-fix.css?v=20260901-1', 'mobile-overflow-fix');
 
     function loadCompactRecordStyles() {
@@ -103,7 +103,7 @@
 
             loadScript('/js/competitions.js?v=20260901-4', 'competitions-module');
             loadScript('/js/profile-ranking.js?v=20260901-6', 'profile-ranking-module');
-            loadScript('/js/college-academics-ui.js?v=20260901-1', 'college-academics-ui');
+            loadScript('/js/college-academics-ui.js?v=20260901-2', 'college-academics-ui');
         }
 
         if (document.body.classList.contains('admin-dashboard-page')) {
