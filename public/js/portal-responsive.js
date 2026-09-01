@@ -1,19 +1,30 @@
 (() => {
+    function loadStylesheet(href, marker) {
+        if (document.querySelector(`link[data-${marker}]`)) return;
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        link.setAttribute(`data-${marker}`, 'true');
+        document.head.appendChild(link);
+    }
+
+    function loadScript(src, marker, onLoad) {
+        const existing = document.querySelector(`script[data-${marker}]`);
+        if (existing) { if (onLoad) existing.addEventListener('load', onLoad, { once:true }); return existing; }
+        const script = document.createElement('script');
+        script.src = src;
+        script.defer = true;
+        script.setAttribute(`data-${marker}`, 'true');
+        if (onLoad) script.addEventListener('load', onLoad, { once:true });
+        document.body.appendChild(script);
+        return script;
+    }
+
+    loadStylesheet('/css/mobile-system-v2.css?v=20260901-1', 'mobile-system-v2');
+
     function loadCompactRecordStyles() {
-        if (!document.querySelector('link[data-mobile-records]')) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = '/css/mobile-records.css?v=20260901-3';
-            link.dataset.mobileRecords = 'true';
-            document.head.appendChild(link);
-        }
-        if (!document.querySelector('link[data-competition-compact]')) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = '/css/competitions.css?v=20260901-3';
-            link.dataset.competitionCompact = 'true';
-            document.head.appendChild(link);
-        }
+        loadStylesheet('/css/mobile-records.css?v=20260901-4', 'mobile-records');
+        loadStylesheet('/css/competitions.css?v=20260901-4', 'competition-compact');
     }
 
     function compactResearchCards() {
@@ -76,16 +87,16 @@
             loadCompactRecordStyles();
             compactResearchCards();
             const researchList = document.getElementById('researchList');
-            if (researchList) new MutationObserver(compactResearchCards).observe(researchList, { childList: true });
+            if (researchList) new MutationObserver(compactResearchCards).observe(researchList, { childList:true });
 
-            if (!document.querySelector('script[data-competitions-module]')) {
-                const script = document.createElement('script');
-                script.src = '/js/competitions.js?v=20260901-3';
-                script.defer = true;
-                script.dataset.competitionsModule = 'true';
-                script.addEventListener('load', loadCompactRecordStyles);
-                document.body.appendChild(script);
-            }
+            loadScript('/js/competitions.js?v=20260901-4', 'competitions-module', () => {
+                loadCompactRecordStyles();
+                loadScript('/js/profile-ranking.js?v=20260901-1', 'profile-ranking-module');
+            });
+        }
+
+        if (document.body.classList.contains('admin-dashboard-page') || document.body.classList.contains('observer-shell')) {
+            loadScript('/js/competition-review.js?v=20260901-1', 'competition-review-module');
         }
     });
 })();
