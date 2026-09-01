@@ -47,6 +47,8 @@ Production deploys use Cloudflare Workers Builds connected to `ketpatil77/TPO`:
 - Deploy command: `npm run deploy`
 - Worker: `ait`
 
+Every push to `master` now triggers the production build automatically.
+
 `keep_vars` is enabled in `wrangler.jsonc` so Git-triggered deploys preserve runtime variables configured on the existing Worker. Encrypted values remain Worker secrets and must never be committed or added as build variables.
 
 The current pilot Worker is deployed at the live URL above. After deployment, verify `/api/health` returns 200, `/api/roster` returns 404, and an unauthenticated `/api/admin/students` request returns 401.
