@@ -2,49 +2,43 @@
   function apply() {
     if (!document.body.classList.contains('student-dashboard-page')) return;
 
+    // CGPA is editable by students and counts automatically. It does not use
+    // the general profile-evidence verification workflow.
     document.getElementById('academicVerificationBadge')?.remove();
+    document.getElementById('collegeAcademicNotice')?.remove();
 
     const overall = document.getElementById('editOverallCgpa');
     if (overall) {
-      overall.readOnly = true;
-      overall.classList.add('locked-field');
-      overall.setAttribute('aria-readonly', 'true');
+      overall.readOnly = false;
+      overall.classList.remove('locked-field', 'college-managed-academic');
+      overall.removeAttribute('aria-readonly');
+      overall.removeAttribute('title');
       const hint = document.getElementById('overallCgpaHint');
-      if (hint) hint.textContent = 'College-managed academic record. Students cannot edit CGPA.';
+      if (hint && /college-managed|cannot edit|supplied by the college/i.test(hint.textContent || '')) {
+        hint.textContent = '';
+      }
     }
 
-    const semesterInputs = [...document.querySelectorAll('.sem-input')];
-    semesterInputs.forEach(input => {
-      input.readOnly = true;
-      input.classList.add('locked-field', 'college-managed-academic');
-      input.setAttribute('aria-readonly', 'true');
-      input.title = 'College-managed academic record';
+    document.querySelectorAll('.sem-input').forEach(input => {
+      input.readOnly = false;
+      input.classList.remove('locked-field', 'college-managed-academic');
+      input.removeAttribute('aria-readonly');
+      input.removeAttribute('title');
     });
-
-    const semesterGrid = document.querySelector('.grid-semesters');
-    if (semesterGrid && !document.getElementById('collegeAcademicNotice')) {
-      const note = document.createElement('div');
-      note.id = 'collegeAcademicNotice';
-      note.className = 'college-academic-notice';
-      note.innerHTML = '<strong>College academic record</strong><span>Semester SGPA and overall CGPA are supplied by the college and are automatically trusted for Profile Points. Contact TPO/TPC if a value is incorrect.</span>';
-      semesterGrid.before(note);
-    }
 
     const lateral = document.getElementById('lateralEntry');
     if (lateral) {
-      lateral.disabled = true;
-      lateral.closest('.lateral-entry-control')?.classList.add('college-managed-academic');
+      lateral.disabled = false;
+      lateral.closest('.lateral-entry-control')?.classList.remove('college-managed-academic');
     }
-  }
 
-  function removeAcademicBadge() {
-    document.getElementById('academicVerificationBadge')?.remove();
+    document.querySelectorAll('.college-managed-academic').forEach(node => node.classList.remove('college-managed-academic'));
   }
 
   function install() {
     apply();
     if (document.body.classList.contains('student-dashboard-page')) {
-      new MutationObserver(() => { removeAcademicBadge(); apply(); }).observe(document.getElementById('dashboardContent') || document.body, { childList:true, subtree:true });
+      new MutationObserver(apply).observe(document.getElementById('dashboardContent') || document.body, { childList:true, subtree:true });
     }
   }
 
