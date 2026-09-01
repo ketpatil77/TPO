@@ -62,15 +62,14 @@
         const list = document.getElementById('rankingList');
         if (!list) return;
         list.innerHTML = '<div class="panel-empty">Calculating profile points…</div>';
-        const branch = document.getElementById('rankingBranch').value;
-        const year = document.getElementById('rankingYear').value;
+        const branchSelect = document.getElementById('rankingBranch');
+        const yearSelect = document.getElementById('rankingYear');
         const params = new URLSearchParams();
-        if (branch !== 'all') params.set('branch', branch);
-        else params.set('branch', 'all');
-        if (year !== 'all') params.set('year', year);
-        else params.set('year', 'all');
+        if (branchSelect.dataset.initialized === 'true') params.set('branch', branchSelect.value);
+        if (yearSelect.dataset.initialized === 'true') params.set('year', yearSelect.value);
         try {
-            const response = await fetch(`/api/student/rankings/profile?${params}`, { headers: { Authorization: `Bearer ${token()}` } });
+            const suffix = params.toString() ? `?${params}` : '';
+            const response = await fetch(`/api/student/rankings/profile${suffix}`, { headers: { Authorization: `Bearer ${token()}` } });
             const json = await response.json();
             if (!response.ok || !json.success) throw new Error(json.error?.message || json.error || 'Could not calculate ranking.');
             render(json.data);
