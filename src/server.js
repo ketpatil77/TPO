@@ -5,6 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { rateLimit } = require('express-rate-limit');
 const { csrfProtection } = require('./middleware/security');
+const { protectCollegeAcademics } = require('./middleware/collegeAcademics');
 
 require('dotenv').config();
 
@@ -83,6 +84,8 @@ if (!isCloudflareWorker) app.use(express.static(path.join(process.cwd(), 'public
 
 // API Endpoints - Student
 app.use('/api/auth', authRoutes);
+// College-provided CGPA / semester SGPA are authoritative and cannot be changed from Student Workspace.
+app.use('/api/student', protectCollegeAcademics);
 app.use('/api/student', studentRoutes);
 app.use('/api/student/competitions', competitionRoutes);
 app.use('/api/student/rankings', profileRankingRoutes.student);
