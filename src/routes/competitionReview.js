@@ -12,7 +12,7 @@ observer.use(authenticateObserver);
 
 const decisionSchema = z.object({
     status: z.enum(['verified', 'rejected']),
-    note: z.string().trim().max(1000).optional().transform(value => value || null)
+    note: z.union([z.string().trim().max(1000), z.null()]).optional().transform(value => value || null)
 }).strict().superRefine((value, ctx) => {
     if (value.status === 'rejected' && (!value.note || value.note.length < 3)) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['note'], message: 'Add a short reason when rejecting a competition.' });
