@@ -22,6 +22,7 @@
 
     loadStylesheet('/css/mobile-system-v2.css?v=20260901-1', 'mobile-system-v2');
     loadStylesheet('/css/mobile-tabs-fix.css?v=20260901-1', 'mobile-tabs-fix');
+    loadStylesheet('/css/dashboard-polish-v3.css?v=20260901-1', 'dashboard-polish-v3');
 
     function loadCompactRecordStyles() {
         loadStylesheet('/css/mobile-records.css?v=20260901-4', 'mobile-records');
@@ -94,6 +95,10 @@
                 loadCompactRecordStyles();
                 loadScript('/js/profile-ranking.js?v=20260901-1', 'profile-ranking-module');
             });
+        }
+
+        if (document.body.classList.contains('admin-dashboard-page')) {
+            loadScript('/js/calendar-polish.js?v=20260901-1', 'calendar-polish');
         }
 
         if (document.body.classList.contains('admin-dashboard-page') || document.body.classList.contains('observer-shell')) {
