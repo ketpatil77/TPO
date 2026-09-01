@@ -11,6 +11,7 @@ require('dotenv').config();
 // Student Routes
 const authRoutes = require('./routes/auth');
 const studentRoutes = require('./routes/student');
+const competitionRoutes = require('./routes/competitions');
 const rosterRoutes = require('./routes/roster');
 
 // Admin Routes (Part 2)
@@ -81,6 +82,7 @@ if (!isCloudflareWorker) app.use(express.static(path.join(process.cwd(), 'public
 // API Endpoints - Student
 app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
+app.use('/api/student/competitions', competitionRoutes);
 app.use('/api/student/workflow', workflowRoutes.student);
 app.use('/api/student/advanced', advancedRoutes.student);
 // Legacy roster routes intentionally not mounted: roster data is admin-only.
