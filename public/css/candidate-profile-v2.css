@@ -1,0 +1,297 @@
+/* Candidate/Profile view v2: shared by Student, TPO and TPC */
+html, body { max-width: 100%; }
+
+#studentDetailModal,
+#observerModal { overflow-x: hidden !important; }
+
+#studentDetailModal .modal-card,
+#observerModal .modal-card {
+  width: min(980px, calc(100vw - 24px)) !important;
+  max-width: 980px !important;
+  max-height: min(92vh, 980px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 0 !important;
+}
+
+#studentDetailModal .modal-header,
+#observerModal .modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  background: color-mix(in srgb, var(--bg-card) 94%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-color);
+  padding: .85rem 1rem;
+  min-width: 0;
+}
+
+#studentDetailModal .modal-header h3,
+#observerModal .modal-header h3 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .92rem;
+  color: var(--text-muted);
+  max-width: calc(100% - 52px);
+}
+
+#modalContent,
+#observerModalBody {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  padding: 1rem;
+}
+
+.candidate-profile-v2,
+.candidate-profile-v2 * { box-sizing: border-box; min-width: 0; }
+
+.candidate-profile-v2 {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+  overflow: hidden;
+}
+
+.candidate-profile-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .9rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-top: 3px solid var(--accent);
+  border-radius: 16px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--bg-card) 94%, transparent), color-mix(in srgb, var(--surface-muted) 88%, transparent));
+}
+
+.candidate-profile-hero .eyebrow { margin-bottom: .25rem; }
+.candidate-profile-hero h2 {
+  margin: 0;
+  font-size: clamp(1.25rem, 3.6vw, 1.9rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+.candidate-profile-hero p { margin: .28rem 0 0; color: var(--text-muted); font-size: .82rem; }
+.candidate-profile-meta { display: flex; flex-wrap: wrap; gap: .42rem; margin-top: .7rem; }
+.candidate-profile-meta span {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: .28rem .55rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--text-body);
+  font-size: .72rem;
+  overflow-wrap: anywhere;
+}
+.candidate-profile-actions { display: flex; gap: .45rem; flex-wrap: wrap; justify-content: flex-end; }
+
+.candidate-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .7rem;
+}
+.candidate-kpi {
+  padding: .85rem;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--surface-muted);
+}
+.candidate-kpi small { display: block; color: var(--text-muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; }
+.candidate-kpi strong { display: block; margin-top: .25rem; font-size: 1.35rem; color: var(--text-heading); overflow-wrap: anywhere; }
+.candidate-kpi strong.good { color: var(--success); }
+.candidate-kpi strong.warn { color: #fbbf24; }
+.candidate-kpi strong.bad { color: #fb7185; }
+
+.candidate-section {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg-card) 90%, var(--surface-muted));
+  overflow: hidden;
+}
+.candidate-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .7rem;
+  margin-bottom: .75rem;
+}
+.candidate-section-head h3 { margin: 0; font-size: 1rem; color: var(--text-heading); }
+.candidate-section-head span { color: var(--text-muted); font-size: .72rem; white-space: nowrap; }
+
+.candidate-semester-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .55rem;
+}
+.candidate-semester {
+  padding: .7rem .5rem;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--surface-muted);
+}
+.candidate-semester small { display: block; color: var(--text-muted); font-size: .65rem; text-transform: uppercase; }
+.candidate-semester strong { display: block; margin: .2rem 0; font-size: 1rem; }
+.candidate-semester span { font-size: .62rem; color: var(--text-muted); }
+.candidate-semester.completed { border-color: color-mix(in srgb, var(--success) 45%, var(--border-color)); background: color-mix(in srgb, var(--success) 8%, var(--surface-muted)); }
+.candidate-semester.completed strong,
+.candidate-semester.completed span { color: var(--success); }
+
+.candidate-record-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+.candidate-record-card {
+  display: grid;
+  gap: .32rem;
+  padding: .75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--surface-muted);
+  overflow: hidden;
+}
+.candidate-record-card strong {
+  color: var(--text-heading);
+  font-size: .86rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.candidate-record-card p,
+.candidate-record-card span,
+.candidate-record-card small {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: .74rem;
+  line-height: 1.42;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.candidate-record-card .record-summary {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+.candidate-record-card details { margin-top: .15rem; }
+.candidate-record-card details summary { cursor: pointer; color: var(--accent); font-size: .72rem; font-weight: 700; }
+.candidate-record-card details[open] .record-summary { display: block; }
+.candidate-record-links { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .18rem; }
+.candidate-record-links a { font-size: .7rem; color: var(--accent); text-decoration: none; font-weight: 700; }
+.candidate-record-links a:hover { text-decoration: underline; }
+
+.candidate-empty {
+  padding: .85rem;
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  color: var(--text-muted);
+  font-size: .78rem;
+  text-align: center;
+}
+.candidate-chip-list { display: flex; flex-wrap: wrap; gap: .4rem; }
+.candidate-chip-list span { padding: .3rem .5rem; border: 1px solid var(--border-color); border-radius: 999px; background: var(--surface-muted); color: var(--text-body); font-size: .7rem; }
+
+.candidate-contact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
+.candidate-contact-grid a {
+  display: grid;
+  gap: .15rem;
+  padding: .7rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--surface-muted);
+  text-decoration: none;
+  overflow: hidden;
+}
+.candidate-contact-grid small { color: var(--text-muted); font-size: .64rem; text-transform: uppercase; }
+.candidate-contact-grid strong { color: var(--text-heading); font-size: .78rem; overflow-wrap: anywhere; }
+
+.candidate-activity-text { color: var(--text-body); font-size: .82rem; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.candidate-correction-panel { border-color: color-mix(in srgb, var(--accent) 35%, var(--border-color)); }
+
+/* Student-owned record cards use the same density and wrapping rules. */
+.student-dashboard-page #internshipsList,
+.student-dashboard-page #certificatesList,
+.student-dashboard-page #projectsList,
+.student-dashboard-page #researchList {
+  width: 100%;
+  min-width: 0;
+}
+.student-dashboard-page .item-card,
+.student-dashboard-page .project-card,
+.student-dashboard-page .research-card {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  padding: .85rem !important;
+}
+.student-dashboard-page .item-details,
+.student-dashboard-page .project-card-head,
+.student-dashboard-page .research-publication,
+.student-dashboard-page .research-abstract-preview {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.student-dashboard-page .project-card > p:not(.research-publication),
+.student-dashboard-page .research-abstract-preview.is-collapsed {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+}
+.student-dashboard-page .item-actions,
+.student-dashboard-page .compact-record-actions,
+.student-dashboard-page .project-links { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+@media (max-width: 760px) {
+  #studentDetailModal .modal-card,
+  #observerModal .modal-card {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    max-height: 100dvh !important;
+    height: 100dvh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+  }
+  #modalContent,
+  #observerModalBody { padding: .75rem; }
+  .candidate-profile-v2 { gap: .75rem; }
+  .candidate-profile-hero { grid-template-columns: 1fr; padding: .85rem; border-radius: 13px; }
+  .candidate-profile-actions { justify-content: flex-start; }
+  .candidate-profile-actions .btn { min-height: 36px; }
+  .candidate-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
+  .candidate-kpi { padding: .7rem; }
+  .candidate-kpi strong { font-size: 1.12rem; }
+  .candidate-semester-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .38rem; }
+  .candidate-semester { padding: .58rem .2rem; }
+  .candidate-record-grid,
+  .candidate-contact-grid { grid-template-columns: 1fr; }
+  .candidate-section { padding: .8rem; border-radius: 13px; }
+  .candidate-record-card { padding: .68rem; }
+
+  /* Kill old forced desktop two-column layouts if old markup flashes before v2 renderer. */
+  #modalContent > div[style*="grid-template-columns: 1fr 1fr"],
+  #observerModalBody > div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+  }
+  #modalContent ul,
+  #observerModalBody ul { padding-left: 1rem !important; }
+
+  .student-dashboard-page .item-card,
+  .student-dashboard-page .project-card,
+  .student-dashboard-page .research-card { padding: .75rem !important; border-radius: 13px !important; }
+}
+
+@media (max-width: 420px) {
+  .candidate-semester-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .candidate-profile-meta span { font-size: .66rem; }
+  .candidate-section-head { align-items: center; }
+}
