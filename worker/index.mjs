@@ -20,7 +20,6 @@ export default {
             const { default: db } = await import('../src/config/database.js');
             db.init();
 
-            // Fire async database wakeup ping in background to avoid blocking the first user request
             if (!db.isLocal()) {
                 db.supabaseClient().from('roster').select('id').limit(1).then(() => {
                     console.log('Supabase successfully warmed up in background on cold boot.');
@@ -41,8 +40,7 @@ export default {
             if (['/dashboard.html', '/admin-dashboard.html', '/observer-dashboard.html'].includes(assetPath)) {
                 let html = await response.text();
                 if (assetPath === '/dashboard.html') {
-                    // Keep the outer responsive loader version fresh so nested ranking/UI assets cannot be stranded behind a browser cache.
-                    html = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260901-ranking-potential2');
+                    html = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260901-ranking-v3');
                 }
                 if (assetPath === '/admin-dashboard.html') {
                     html = html.replace(/\/js\/admin-dashboard\.js\?v=[^"']+/g, '/js/admin-dashboard.js?v=20260819-ssc-hsc');
