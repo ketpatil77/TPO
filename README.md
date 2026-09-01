@@ -40,6 +40,15 @@ npx.cmd wrangler secret put SUPABASE_KEY
 
 Set `ALLOWED_ORIGINS` to deployed origin, test with `npm.cmd run deploy:dry-run`, then run `npm.cmd run deploy`.
 
+Production deploys use Cloudflare Workers Builds connected to `ketpatil77/TPO`:
+
+- Production branch: `master`
+- Build command: `npm run check`
+- Deploy command: `npm run deploy`
+- Worker: `ait`
+
+`keep_vars` is enabled in `wrangler.jsonc` so Git-triggered deploys preserve runtime variables configured on the existing Worker. Encrypted values remain Worker secrets and must never be committed or added as build variables.
+
 The current pilot Worker is deployed at the live URL above. After deployment, verify `/api/health` returns 200, `/api/roster` returns 404, and an unauthenticated `/api/admin/students` request returns 401.
 
 Cloudflare Workers serves static assets and Express API using current Node HTTP compatibility. Supabase Free may pause inactive projects and has storage/database quotas. Free pilot has no uptime SLA.

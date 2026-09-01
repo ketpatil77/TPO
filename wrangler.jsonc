@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "ait",
+  "keep_vars": true,
   "workers_dev": true,
   "preview_urls": false,
   "main": "worker/index.mjs",
