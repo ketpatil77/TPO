@@ -34,7 +34,7 @@ function initSkillAutocomplete() {
 
         matches.forEach(match => {
             const li = document.createElement('li');
-            li.style.cssText = 'padding: 8px 12px; cursor: pointer; color: var(--text-body); border-bottom: 1px solid var(--border-color); font-family: "Times New Roman", Times, serif;';
+            li.style.cssText = 'padding: 8px 12px; cursor: pointer; color: var(--text-body); border-bottom: 1px solid var(--border-color); font-family: var(--font-default);';
             li.innerHTML = `<strong>${match.substring(0, lastPart.length)}</strong>${match.substring(lastPart.length)}`;
             
             li.addEventListener('mouseenter', () => {
@@ -86,6 +86,7 @@ let currentStudentData = null;
 let studentNotificationCache = [];
 let workflowLoaded = false;
 let studentAvatarReady = false;
+let studentWorkspaceStarted = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -98,6 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    document.getElementById('enableMandatoryNotifications').addEventListener('click', enableMandatoryNotifications);
+    document.getElementById('retryNotificationSetup').addEventListener('click', checkMandatoryNotificationAccess);
     document.getElementById('profileForm').addEventListener('submit', handleProfileSubmit);
     document.getElementById('internshipForm').addEventListener('submit', handleInternshipSubmit);
     document.getElementById('certForm').addEventListener('submit', handleCertSubmit);
@@ -113,14 +116,150 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('editBranch').addEventListener('change', toggleEmploymentSection);
     document.getElementById('editIsEmployed').addEventListener('change', toggleEmploymentDetails);
 
-    loadDashboardData();
+    checkMandatoryNotificationAccess();
     window.setInterval(() => { if (!document.hidden) loadStudentNotifications(); }, 30000);
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) loadStudentNotifications(); });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) checkMandatoryNotificationAccess(); });
+});
+
+function urlBase64ToUint8Array(value) {
+    const padding = '='.repeat((4 - value.length % 4) % 4);
+    const raw = atob((value + padding).replace(/-/g, '+').replace(/_/g, '/'));
+    return Uint8Array.from([...raw].map(character => character.charCodeAt(0)));
+}
+
+function setMandatoryNotificationGate(blocked, message = '') {
+    const gate = document.getElementById('mandatoryNotificationGate');
+    const dashboard = document.getElementById('studentDashboard');
+    gate.hidden = !blocked;
+    document.body.classList.toggle('notifications-blocked', blocked);
+    dashboard.inert = blocked;
+    dashboard.setAttribute('aria-hidden', String(blocked));
+    if (message) document.getElementById('mandatoryNotificationMessage').textContent = message;
+    if (blocked) document.getElementById('enableMandatoryNotifications').focus();
+}
+
+function startStudentWorkspace() {
+    if (studentWorkspaceStarted) return;
+    studentWorkspaceStarted = true;
+    loadDashboardData();
     if (new URLSearchParams(location.search).get('tab') === 'opportunities') {
         const tab = document.querySelector('[aria-controls="tab-opportunities"]');
         if (tab) switchTab('opportunities', tab);
     }
-});
+}
+
+async function pushConfiguration() {
+    const response = await window.PushGateUtils.withTimeout(fetch('/api/student/push/config', { headers: { Authorization: `Bearer ${localStorage.getItem('tpo_token')}` } }), 12000, 'Notification setup timed out. Check connection and retry.');
+    if (response.status === 401) {
+        localStorage.removeItem('tpo_token');
+        window.location.href = '/';
+        return null;
+    }
+    if (!response.ok) throw new Error('Notification service unavailable. Refresh and try again.');
+    return (await response.json()).data;
+}
+
+async function savePushSubscription(subscription) {
+    const response = await window.PushGateUtils.withTimeout(fetch('/api/student/push/subscriptions', { method: 'POST', headers: { Authorization: `Bearer ${localStorage.getItem('tpo_token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify(subscription.toJSON()) }), 12000, 'Saving notification access timed out. Retry once.');
+    if (!response.ok) {
+        const error = new Error('Permission is allowed, but notification delivery setup could not be saved. Retry setup.');
+        error.status = response.status;
+        throw error;
+    }
+}
+
+async function ensureMandatorySubscription(data, registration) {
+    if (!data.publicKey) throw new Error('Notification service is not configured. Your workspace remains available.');
+    if (!registration.active) registration = await window.PushGateUtils.withTimeout(navigator.serviceWorker.ready, 10000, 'Notification worker is still starting. Retry setup.');
+    let subscription = await window.PushGateUtils.withTimeout(registration.pushManager.getSubscription(), 5000, 'Checking notification access timed out.');
+    const expectedKey = urlBase64ToUint8Array(data.publicKey);
+    const previousKey = subscription?.options?.applicationServerKey;
+    if (previousKey && String(new Uint8Array(previousKey)) !== String(expectedKey)) {
+        await window.PushGateUtils.withTimeout(subscription.unsubscribe(), 5000, 'Old notification setup could not be refreshed. Retry setup.');
+        subscription = null;
+    }
+    if (!subscription) {
+        subscription = await window.PushGateUtils.withTimeout(
+            registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(data.publicKey) }),
+            15000,
+            'Chrome did not finish notification setup. Check internet access, then retry.'
+        );
+    }
+    try { await savePushSubscription(subscription); }
+    catch (error) {
+        // Shared devices must obtain a new endpoint, never transfer another student's alerts.
+        if (error.status !== 409) throw error;
+        await window.PushGateUtils.withTimeout(subscription.unsubscribe(), 5000, 'Could not refresh this device. Retry setup.');
+        subscription = await window.PushGateUtils.withTimeout(registration.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey:expectedKey }), 15000, 'Notification setup timed out. Retry setup.');
+        await savePushSubscription(subscription);
+    }
+    return subscription;
+}
+
+function mandatoryServiceWorkerRegistration() {
+    return window.PushGateUtils.withTimeout(navigator.serviceWorker.register('/student-push-sw.js', { scope: '/' }), 10000, 'Notification worker setup timed out. Retry once.');
+}
+
+let notificationSyncPromise = null;
+function notificationSetupStatus(message = '') {
+    const status = document.getElementById('notificationSetupStatus');
+    status.hidden = !message;
+    document.getElementById('notificationSetupMessage').textContent = message;
+}
+
+async function checkMandatoryNotificationAccess() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+        setMandatoryNotificationGate(true, 'This browser cannot receive required placement notifications. Use current Chrome or Edge.');
+        return false;
+    }
+    if (Notification.permission !== 'granted') {
+        setMandatoryNotificationGate(true, Notification.permission === 'denied'
+            ? 'Notifications are blocked for this site. Allow them in browser site settings, then return here.'
+            : 'Turn on notifications to receive placement updates. Permission is requested only when you tap the button.');
+        return false;
+    }
+    // Granted permission opens the workspace independently of network delivery setup.
+    setMandatoryNotificationGate(false);
+    startStudentWorkspace();
+    if (notificationSyncPromise) return notificationSyncPromise;
+    notificationSyncPromise = (async () => {
+        try {
+            notificationSetupStatus('Notifications allowed. Connecting delivery on this device…');
+            const data = await pushConfiguration();
+            if (!data) return false;
+            const registration = await mandatoryServiceWorkerRegistration();
+            await ensureMandatorySubscription(data, registration);
+            notificationSetupStatus('');
+            return true;
+        } catch (error) {
+            notificationSetupStatus(error.message || 'Notifications allowed, but delivery is not connected. Retry setup.');
+            return false;
+        }
+    })();
+    try { return await notificationSyncPromise; }
+    finally { notificationSyncPromise = null; }
+}
+
+async function enableMandatoryNotifications() {
+    const button = document.getElementById('enableMandatoryNotifications');
+    button.disabled = true;
+    button.textContent = 'Checking notification permission…';
+    try {
+        // Invoke directly inside the tap gesture, before any asynchronous network work.
+        const permission = Notification.permission === 'granted' ? 'granted' : await window.PushGateUtils.withTimeout(Notification.requestPermission(), 20000, 'Browser permission prompt did not finish. Check site settings, then retry.');
+        if (permission !== 'granted') throw new Error('Notifications remain blocked. Allow them in Chrome site settings to use Student Workspace.');
+        await checkMandatoryNotificationAccess();
+    } catch (error) {
+        if (Notification.permission === 'granted') {
+            setMandatoryNotificationGate(false);
+            startStudentWorkspace();
+            notificationSetupStatus(error.message);
+        } else setMandatoryNotificationGate(true, error.message || 'Notifications must be enabled to use Student Workspace.');
+    } finally {
+        button.disabled = false;
+        button.textContent = 'Turn on notifications';
+    }
+}
 
 async function loadDashboardData() {
     const token = localStorage.getItem('tpo_token');
@@ -228,7 +367,7 @@ async function scanAtsScore() {
         badge.innerText = `${data.score}% - ${data.status}`;
         
         let html = `<div style="margin-top:0.5rem; display:flex; flex-direction:column; gap:0.5rem;">
-            <div><strong style="color:var(--text-body);">Matched Keywords:</strong><br>${data.matched.length ? data.matched.map(k => `<span class="badge" style="background:rgba(45,212,191,0.1);color:#2dd4bf;margin-right:4px;margin-bottom:4px;">${escapeHtml(k)}</span>`).join('') : 'None'}</div>
+            <div><strong style="color:var(--text-body);">Matched Keywords:</strong><br>${data.matched.length ? data.matched.map(k => `<span class="badge" style="background:rgba(71,85,105,0.2);color:#e2e8f0;border:1px solid rgba(148,163,184,0.3);margin-right:4px;margin-bottom:4px;">${escapeHtml(k)}</span>`).join('') : 'None'}</div>
             <div><strong style="color:var(--text-body);">Missing Keywords:</strong><br>${data.missing.length ? data.missing.map(k => `<span class="badge" style="background:rgba(244,63,94,0.1);color:#f43f5e;margin-right:4px;margin-bottom:4px;">${escapeHtml(k)}</span>`).join('') : 'None'}</div>
         </div>`;
         resultDiv.innerHTML = html;
@@ -260,6 +399,23 @@ function setDashboardLoading(loading) {
     root.setAttribute('aria-busy', String(loading));
     skeleton.hidden = !loading;
     content.hidden = loading;
+}
+
+function semesterProgress(student, diploma) {
+    const scores = student.cgpa_semesterwise || {};
+    const lateralEntry = Boolean(student.lateral_entry || diploma);
+    const cards = Array.from({ length: 8 }, (_, index) => {
+        const semester = index + 1;
+        const rawScore = Number(scores[`sem${semester}`]);
+        if (lateralEntry && semester <= 2) {
+            return { semester, state: 'credited', display: 'Completed', detail: 'Diploma credit' };
+        }
+        if (Number.isFinite(rawScore) && rawScore > 0) {
+            return { semester, state: 'scored', display: rawScore.toFixed(2), detail: '' };
+        }
+        return { semester, state: 'pending', display: '--', detail: '' };
+    });
+    return { completed: cards.filter(card => card.state !== 'pending').length, cards };
 }
 
 function renderDashboard(data) {
@@ -297,16 +453,13 @@ function renderDashboard(data) {
 
     // Semester Breakdown Grid
     const semGrid = document.getElementById('semestersGrid');
-    const sems = student.cgpa_semesterwise || {};
-    const completedSemesters = Object.values(sems).filter(value => Number(value) > 0).length;
+    const progress = semesterProgress(student, diploma);
     const backlogCount = Object.values(student.backlogs_semesterwise || {}).reduce((sum, value) => sum + (Number(value) || 0), 0);
-    document.getElementById('completedSemesterCount').textContent = `${completedSemesters} / 8`;
+    document.getElementById('completedSemesterCount').textContent = `${progress.completed} / 8`;
     document.getElementById('overviewBacklogCount').textContent = backlogCount;
     const semesterCards = [];
-    for (let i = 1; i <= 8; i++) {
-        const key = `sem${i}`;
-        const val = sems[key] ? parseFloat(sems[key]).toFixed(2) : '--';
-        semesterCards.push(`<div class="semester-score ${val === '--' ? 'is-pending' : ''}"><span>Semester ${i}</span><strong>${val}</strong></div>`);
+    for (const card of progress.cards) {
+        semesterCards.push(`<div class="semester-score is-${card.state}"><span>Semester ${card.semester}</span><strong>${card.display}</strong>${card.detail ? `<small>${card.detail}</small>` : ''}</div>`);
     }
     semGrid.innerHTML = semesterCards.join('');
 
@@ -370,7 +523,8 @@ function renderDashboard(data) {
     for (let i = 1; i <= 8; i++) {
         const semInput = document.getElementById(`sem${i}`);
         if (semInput) {
-            semInput.value = Number(sems[`sem${i}`]) > 0 ? sems[`sem${i}`] : '';
+            const card = progress.cards[i - 1];
+            semInput.value = card.state === 'scored' ? card.display : '';
         }
     }
     document.getElementById('lateralEntry').checked = Boolean(student.lateral_entry || diploma);
@@ -567,7 +721,7 @@ function renderInternships(list) {
     if (!list || list.length === 0) {
         container.innerHTML = `
             <div class="glass-card" style="padding: 2rem; text-align: center; color: var(--text-muted);">
-                No internships added yet. Select "Add New Internship" to record work experience.
+                No internships added yet. Select "Add internship" to record work experience.
             </div>
         `;
         return;
@@ -598,7 +752,7 @@ function renderCertificates(list) {
     if (!list || list.length === 0) {
         container.innerHTML = `
             <div class="glass-card" style="padding: 2rem; text-align: center; color: var(--text-muted);">
-                No certificates added yet. Select "Add New Certificate" to display your credentials.
+                No certificates added yet. Select "Add certificate" to display your credentials.
             </div>
         `;
         return;
@@ -1253,7 +1407,7 @@ function escapeHtml(str) {
 
 async function loadJobBoard() {
     const grid = document.getElementById('jobBoardGrid');
-    grid.innerHTML = '<div style="color:var(--text-muted);">Loading drives...</div>';
+    grid.innerHTML = '<div class="panel-empty" role="status">Loading placement drives…</div>';
     
     try {
         const res = await fetch('/api/student/drives');
@@ -1261,7 +1415,7 @@ async function loadJobBoard() {
         if (!res.ok || !json.success) throw new Error(json.error?.message || 'Failed to load drives');
         
         if (json.data.length === 0) {
-            grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;">No active placement drives right now.</div>';
+            grid.innerHTML = '<div class="panel-empty"><strong>No active placement drives</strong><p>Keep your profile ready. New drives will appear here when published.</p><button class="btn btn-secondary" onclick="loadJobBoard()">Refresh drives</button></div>';
             return;
         }
         
@@ -1271,10 +1425,8 @@ async function loadJobBoard() {
                     <h3 style="margin:0; font-size:1.25rem;">${escapeHtml(drive.company)}</h3>
                     <div style="color:var(--text-muted); font-size:0.9rem;">${escapeHtml(drive.role)}</div>
                 </div>
-                <div style="font-size:0.85rem; color:var(--text-body); flex: 1;">
-                    ${escapeHtml(drive.jd_text).substring(0, 150)}${drive.jd_text.length > 150 ? '...' : ''}
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <details><summary>Read full job description</summary><p class="job-description">${escapeHtml(drive.jd_text || 'No description supplied.')}</p></details>
+                <div class="record-actions">
                     <span style="font-size:0.8rem; color:var(--text-muted);">Deadline: ${drive.application_deadline ? escapeHtml(drive.application_deadline) : 'N/A'}</span>
                     ${drive.applied ? 
                         `<span class="badge badge-success">Applied</span>` : 
@@ -1284,7 +1436,7 @@ async function loadJobBoard() {
             </div>
         `).join('');
     } catch (err) {
-        grid.innerHTML = `<div style="color:var(--danger);">${escapeHtml(err.message)}</div>`;
+        grid.innerHTML = `<div class="panel-empty" role="alert"><strong>Could not load drives</strong><p>${escapeHtml(err.message)}</p><button class="btn btn-secondary" onclick="loadJobBoard()">Try again</button></div>`;
     }
 }
 
@@ -1307,7 +1459,7 @@ async function applyForDrive(driveId) {
 
 async function loadAlumniNetwork() {
     const grid = document.getElementById('alumniGrid');
-    grid.innerHTML = '<div style="color:var(--text-muted);">Loading alumni...</div>';
+    grid.innerHTML = '<div class="panel-empty" role="status">Loading alumni directory…</div>';
     
     try {
         const res = await fetch('/api/student/alumni');
@@ -1315,7 +1467,7 @@ async function loadAlumniNetwork() {
         if (!res.ok || !json.success) throw new Error(json.error?.message || 'Failed to load alumni');
         
         if (json.data.length === 0) {
-            grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;">No alumni records found.</div>';
+            grid.innerHTML = '<div class="panel-empty"><strong>No alumni listed yet</strong><p>Placed seniors will appear here when the placement team adds their records.</p><button class="btn btn-secondary" onclick="loadAlumniNetwork()">Refresh directory</button></div>';
             return;
         }
         
@@ -1334,7 +1486,7 @@ async function loadAlumniNetwork() {
             </div>
         `).join('');
     } catch (err) {
-        grid.innerHTML = `<div style="color:var(--danger);">${escapeHtml(err.message)}</div>`;
+        grid.innerHTML = `<div class="panel-empty" role="alert"><strong>Could not load alumni</strong><p>${escapeHtml(err.message)}</p><button class="btn btn-secondary" onclick="loadAlumniNetwork()">Try again</button></div>`;
     }
 }
 

@@ -19,8 +19,9 @@ function renderTurnstile(role) {
     target.replaceChildren();
     state.widgetId = window.turnstile.render(target, {
         sitekey: TURNSTILE_SITEKEY,
+        theme: 'dark',
         action: role === 'correction' ? 'dob_correction' : `${role}_login`,
-        size: 'flexible',
+        size: target.getBoundingClientRect().width < 300 ? 'compact' : 'flexible',
         appearance: 'always',
         retry: 'auto',
         'retry-interval': 3000,
@@ -113,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function selectRole(role) {
+    document.body.dataset.activeRole = role;
     Object.entries(roleConfig).forEach(([key, config]) => {
         if (key !== role) document.getElementById(config.form).reset();
     });

@@ -5,9 +5,11 @@ const { authenticateObserver } = require('../middleware/auth');
 const { validate } = require('../middleware/security');
 const { BRANCHES, branchName } = require('../config/branches');
 const { normalizeStudentDob } = require('../utils/dateHelper');
+const { createStudentNotification } = require('../services/incompleteProfilePush');
 
 const router = express.Router();
 router.use(authenticateObserver);
+router.post('/register-student', require('../services/studentRegistration').registerStudent);
 
 async function buildStudentDirectory(query = {}, paging = null) {
     let students;
@@ -138,7 +140,7 @@ router.post('/students/:id/corrections', validate(correctionSchema), async (req,
         created_by: req.observer.observerId, created_at: new Date().toISOString()
     })));
     if (created.length) {
-        await db.insert('notifications', { student_id: student.id, audience: 'student', branches: [], title: 'Profile correction requested', message: `${fields.join(', ')}: ${req.body.message}`, priority: 'important', action_url: '/dashboard?tab=opportunities', created_at: new Date().toISOString() });
+        await createStudentNotification({ student_id: student.id, audience: 'student', branches: [], title: 'Profile correction requested', message: `${fields.join(', ')}: ${req.body.message}`, priority: 'important', action_url: '/dashboard?tab=opportunities' });
         await db.logAudit('observer_correction_request', 'students', student.id, { observer_id: req.observer.observerId, fields, skipped: req.body.fields.length - fields.length });
     }
     return res.status(created.length ? 201 : 200).json({ success: true, data: created, created: created.length, skipped: req.body.fields.length - fields.length });

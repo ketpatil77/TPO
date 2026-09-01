@@ -6,8 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Workspace - AIT Placement Portal</title>
     <script src="/js/theme.js?v=20260812-advanced1"></script>
-    <link rel="stylesheet" href="/css/styles.css?v=20260818-uifinal1">
+    <link rel="stylesheet" href="/css/styles.css?v=20260901-motion1">
     <link rel="stylesheet" href="/css/portal-layout-20260814.css?v=20260818-uifinal1">
+    <link rel="stylesheet" href="/css/portal-responsive.css?v=20260901-student-gold1">
+    <script src="/js/portal-responsive.js?v=20260901-mobile-nav1" defer></script>
+    <script src="/js/portal-sections.js?v=20260831" defer></script>
 </head>
 <body class="student-dashboard-page">
     <a class="skip-link" href="#studentDashboard">Skip to dashboard</a>
@@ -29,7 +32,22 @@
         </div>
     </nav>
 
+    <div id="mandatoryNotificationGate" class="mandatory-notification-gate" role="dialog" aria-modal="true" aria-labelledby="mandatoryNotificationTitle" hidden>
+        <section class="glass-card mandatory-notification-card">
+            <span class="eyebrow">Required access</span>
+            <h2 id="mandatoryNotificationTitle">Turn on notifications to use Student Workspace</h2>
+            <p id="mandatoryNotificationMessage">Placement drives, deadlines, interviews, events, results, and profile alerts require browser notifications.</p>
+            <button id="enableMandatoryNotifications" class="btn btn-primary" type="button">Turn on notifications</button>
+            <button id="notificationGateSignOut" class="btn btn-secondary" type="button">Sign out</button>
+            <p class="section-note">Notifications are mandatory. If blocked, allow notifications for this site in Chrome settings, then return here.</p>
+        </section>
+    </div>
+
     <main id="studentDashboard" class="container dashboard-wrapper" aria-busy="true">
+        <div id="notificationSetupStatus" class="glass-card" role="status" hidden style="padding:12px; margin-bottom:12px">
+            <p id="notificationSetupMessage"></p>
+            <button id="retryNotificationSetup" class="btn btn-secondary" type="button">Retry notification setup</button>
+        </div>
         <div id="dashboardSkeleton" class="dashboard-skeleton" role="status" aria-label="Loading student workspace">
             <div class="skeleton-block skeleton-hero"></div>
             <div class="skeleton-block skeleton-tabs"></div>
@@ -263,7 +281,6 @@
 
                     <div class="profile-form-section-title"><span>03</span><div><strong>Placement readiness</strong><small>Backlogs, resume, skills, and achievements</small></div></div>
                     <div class="form-group profile-readiness-block">
-                        <label class="form-label" for="resumeFile">Private Resume PDF (maximum 2 MB)</label>
                         <div class="form-group" style="margin: 0 0 1rem;">
                             <label class="form-label">Current uncleared backlogs by semester</label>
                             <div class="form-hint">Enter pending subjects only. Change to 0 after clearing.</div>
@@ -271,6 +288,7 @@
                                 <div><label class="form-hint">Sem 1</label><input type="number" min="0" max="20" id="backlogSem1" class="form-input" value="0"></div><div><label class="form-hint">Sem 2</label><input type="number" min="0" max="20" id="backlogSem2" class="form-input" value="0"></div><div><label class="form-hint">Sem 3</label><input type="number" min="0" max="20" id="backlogSem3" class="form-input" value="0"></div><div><label class="form-hint">Sem 4</label><input type="number" min="0" max="20" id="backlogSem4" class="form-input" value="0"></div><div><label class="form-hint">Sem 5</label><input type="number" min="0" max="20" id="backlogSem5" class="form-input" value="0"></div><div><label class="form-hint">Sem 6</label><input type="number" min="0" max="20" id="backlogSem6" class="form-input" value="0"></div><div><label class="form-hint">Sem 7</label><input type="number" min="0" max="20" id="backlogSem7" class="form-input" value="0"></div><div><label class="form-hint">Sem 8</label><input type="number" min="0" max="20" id="backlogSem8" class="form-input" value="0"></div>
                             </div>
                         </div>
+                        <label class="form-label" for="resumeFile">Private Resume PDF (maximum 2 MB)</label>
                         <div id="currentResumeCard" class="current-resume-card" hidden>
                             <div><strong>Current resume uploaded</strong><span>Stored privately. Choose another PDF only to replace it.</span></div>
                             <button type="button" class="btn btn-secondary btn-sm" onclick="openResume()">View current resume</button>
@@ -284,7 +302,7 @@
                                 <span class="badge badge-primary" id="atsScoreBadge" style="display:none; padding: 0.2rem 0.5rem; font-size: 0.8rem;"></span>
                             </div>
                             <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                <select id="atsTargetProfile" class="form-input" style="flex: 1;">
+                                <select id="atsTargetProfile" class="form-input" style="flex: 1;" aria-label="Target role for resume analysis">
                                     <option value="software">Software Engineer</option>
                                     <option value="data">Data Scientist / Analyst</option>
                                     <option value="electronics">Electronics / Core E&TC</option>
@@ -395,7 +413,6 @@
                     </div>
                 </form>
             </div>
-            </div>
         </div>
 
         <!-- TAB 9: JOB BOARD -->
@@ -403,7 +420,7 @@
             <div class="overview-panel-heading" style="margin-bottom:1.5rem;">
                 <div><span class="eyebrow">Placements</span><h2>Active Job Drives</h2><p>Apply for open placement opportunities.</p></div>
             </div>
-            <div id="jobBoardGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            <div id="jobBoardGrid" class="collection-grid" aria-live="polite">
                 <div style="color:var(--text-muted);">Loading drives...</div>
             </div>
         </div>
@@ -413,11 +430,12 @@
             <div class="overview-panel-heading" style="margin-bottom:1.5rem;">
                 <div><span class="eyebrow">Network</span><h2>Alumni Directory</h2><p>Connect with placed seniors.</p></div>
             </div>
-            <div id="alumniGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+            <div id="alumniGrid" class="collection-grid" aria-live="polite">
                 <div style="color:var(--text-muted);">Loading alumni...</div>
             </div>
         </div>
 
+        </div><!-- dashboardContent: all student sections share the same loading boundary -->
     </main>
 
     <div id="notificationCenterModal" class="modal-backdrop notification-center-modal" role="dialog" aria-modal="true" aria-labelledby="notificationCenterTitle">
@@ -532,6 +550,7 @@
 
     <script src="/js/security.js?v=20260812-intelligence1"></script>
     <script src="/js/student-skill-catalog.js?v=20260825-release1"></script>
-    <script src="/js/dashboard.js?v=20260825-release1"></script>
+    <script src="/js/push-gate-utils.js?v=20260829-pushgate1"></script>
+    <script src="/js/dashboard.js?v=20260901-lateral-progress2"></script>
 </body>
 </html>

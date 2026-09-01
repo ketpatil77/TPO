@@ -104,9 +104,60 @@ window.openObserverStudent = function (index) {
     if (!student) return;
     observerState.selectedStudent = student;
     setText('observerModalTitle', student.name);
+
+    const sems = student.cgpa_semesterwise || {};
+
     document.getElementById('observerModalBody').innerHTML = `
+        <div class="candidate-modal-header">
+            <div>
+                <h2 class="candidate-modal-title">${escapeHtml(student.name || 'Candidate Profile')}</h2>
+                <div class="candidate-meta-badges">
+                    <span class="readonly-pill">PRN: ${escapeHtml(student.prn)}</span>
+                    <span class="branch-chip">${escapeHtml(student.branch)}</span>
+                    <span class="badge badge-info">${escapeHtml(student.class || '—')} • ${escapeHtml(student.year || '—')}</span>
+                </div>
+            </div>
+            <div>
+                ${student.resume_url ? `<a class="btn btn-secondary btn-sm" href="/api/observer/students/${encodeURIComponent(student.id)}/resume/open" target="_blank" rel="noopener">📄 Open Resume</a>` : '<span class="status-pending">No Resume</span>'}
+            </div>
+        </div>
+
+        <div class="candidate-stats-grid">
+            <div class="candidate-stat-card">
+                <span class="label">Overall CGPA</span>
+                <span class="value stat-emerald">${student.cgpa_overall ? Number(student.cgpa_overall).toFixed(2) : '0.00'}</span>
+            </div>
+            <div class="candidate-stat-card">
+                <span class="label">Active Backlogs</span>
+                <span class="value ${student.active_backlogs > 0 ? 'stat-rose' : 'stat-emerald'}">${student.active_backlogs || 0}</span>
+            </div>
+            <div class="candidate-stat-card">
+                <span class="label">SSC Marks</span>
+                <span class="value stat-amber">${student.ssc_marks !== null && student.ssc_marks !== undefined ? Number(student.ssc_marks).toFixed(1) + '%' : '—'}</span>
+            </div>
+            <div class="candidate-stat-card">
+                <span class="label">HSC / Diploma</span>
+                <span class="value stat-amber">${student.hsc_marks !== null && student.hsc_marks !== undefined ? Number(student.hsc_marks).toFixed(1) + '%' : (student.diploma ? student.diploma.percentage_or_cgpa : '—')}</span>
+            </div>
+        </div>
+
+        <h4 style="margin-bottom: 0.65rem; color: var(--text-heading);">Semester SGPA Progression</h4>
+        <div class="semester-progress-grid">
+            ${Array.from({ length: 8 }, (_, idx) => {
+                const i = idx + 1;
+                const val = sems[`sem${i}`] ? parseFloat(sems[`sem${i}`]).toFixed(2) : null;
+                const isComp = val !== null;
+                return `
+                    <div class="sem-box ${isComp ? 'completed' : 'pending'}">
+                        <span class="sem-label">Sem ${i}</span>
+                        <div class="sem-score">${isComp ? val : '--'}</div>
+                        <span class="sem-status-tag">${isComp ? 'Passed' : 'Pending'}</span>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+
         <section class="record-section"><h4>Contact student</h4><div class="student-contact-actions">${student.email?`<a class="student-contact-link" href="${gmailComposeUrl(student.email)}" target="_blank" rel="noopener"><span>Email</span><strong>${escapeHtml(student.email)}</strong></a>`:''}${student.phone?`<a class="student-contact-link" href="tel:${escapeHtml(student.phone)}"><span>Mobile</span><strong>${escapeHtml(student.phone)}</strong></a>`:''}${!student.email&&!student.phone?'<span class="status-pending">Contact details pending</span>':''}</div></section>
-        <div class="profile-summary-grid"><div><span>PRN</span><strong>${escapeHtml(student.prn)}</strong></div><div><span>Branch</span><strong>${escapeHtml(student.branch)}</strong></div><div><span>Class</span><strong>${escapeHtml(student.class || '—')}</strong></div><div><span>CGPA</span><strong>${Number(student.cgpa_overall || 0).toFixed(2)}</strong></div><div><span>SSC %</span><strong>${student.ssc_marks !== null && student.ssc_marks !== undefined ? Number(student.ssc_marks).toFixed(2) + '%' : '—'}</strong></div><div><span>HSC/Dip %</span><strong>${student.hsc_marks !== null && student.hsc_marks !== undefined ? Number(student.hsc_marks).toFixed(2) + '%' : (student.diploma ? student.diploma.percentage_or_cgpa : '—')}</strong></div></div>
         <section class="record-section"><h4>Skills</h4><div class="chip-list">${student.skills.length ? student.skills.map(skill => `<span>${escapeHtml(skill)}</span>`).join('') : '<em>No skills added.</em>'}</div></section>
         <section class="record-section"><h4>Internships</h4>${student.internships.length ? student.internships.map(item => `<div class="record-line"><strong>${escapeHtml(item.company)}</strong><span>${escapeHtml(item.role)} · ${escapeHtml(item.mode || '—')}</span></div>`).join('') : '<p>No internships added.</p>'}</section>
         <section class="record-section"><h4>Certificates</h4>${student.certificates.length ? student.certificates.map(item => `<div class="record-line"><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.issuer || '—')}</span></div>`).join('') : '<p>No certificates added.</p>'}</section>

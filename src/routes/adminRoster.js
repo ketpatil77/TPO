@@ -14,6 +14,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 const MAX_IMPORT_ROWS = 10000;
 
 router.use(authenticateAdmin);
+router.post('/register', require('../services/studentRegistration').registerStudent);
 
 // GET /api/admin/roster — returns roster count for dashboard stat card
 router.get('/', async (_req, res) => {
@@ -26,7 +27,9 @@ router.get('/', async (_req, res) => {
 });
 
 router.post('/preview', upload.single('file'), async (req, res) => {
-    const dataRows = await parseUploadedRows(req);
+    let dataRows;
+    try { dataRows = await parseUploadedRows(req); }
+    catch (error) { return res.status(error.status || 400).json({ success: false, error: error.status ? error.message : 'Unable to read roster file.' }); }
     if (!dataRows.length) return res.status(400).json({ success: false, error: 'No roster rows provided.' });
     const existing = new Set((await db.select('roster')).map(row => row.prn));
     if (dataRows.length > MAX_IMPORT_ROWS) return res.status(413).json({ success: false, error: `Maximum ${MAX_IMPORT_ROWS.toLocaleString()} rows per import.` });
@@ -232,9 +235,16 @@ async function parseUploadedRows(req) {
         const sheet = workbook.worksheets[0];
         if (!sheet) return [];
         const rows = [];
-        sheet.eachRow({ includeEmpty: false }, row => rows.push(Array.from({ length: 6 }, (_, index) => cellText(row.getCell(index + 1)).trim())));
+        sheet.eachRow({ includeEmpty: false }, row => {
+            const prnValue = row.getCell(1).value;
+            if (typeof prnValue === 'number' && Math.abs(prnValue) >= 1e15) {
+                throw Object.assign(new Error(`Row ${row.number}: Excel may have rounded this PRN. Format the PRN cell as Text and re-enter the original digits before uploading.`), { status: 400 });
+            }
+            rows.push(Array.from({ length: 6 }, (_, index) => cellText(row.getCell(index + 1)).trim()));
+        });
         return /prn|name/i.test(rows[0]?.join(',') || '') ? rows.slice(1) : rows;
-    } catch {
+    } catch (error) {
+        if (error.status) throw error;
         return parseNamespacedXlsx(req.file.buffer);
     }
 }
@@ -263,6 +273,7 @@ async function parseNamespacedXlsx(buffer) {
             const type = cellMatch[1].match(/\bt="([^"]+)"/i)?.[1];
             const raw = cellMatch[2].match(/<(?:\w+:)?v\b[^>]*>([\s\S]*?)<\/(?:\w+:)?v>/i)?.[1]
                 ?? cellMatch[2].match(/<(?:\w+:)?t\b[^>]*>([\s\S]*?)<\/(?:\w+:)?t>/i)?.[1] ?? '';
+            if (column === 0 && (!type || type === 'n') && Math.abs(Number(raw)) >= 1e15) throw Object.assign(new Error('Excel may have rounded a PRN. Format PRN cells as Text and re-enter the original digits.'), { status: 400 });
             values[column] = type === 's' ? String(shared[Number(raw)] ?? '') : decodeXml(raw);
         }
         if (values.some(Boolean)) rows.push(values.map(value => value.trim()));

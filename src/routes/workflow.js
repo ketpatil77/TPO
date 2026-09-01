@@ -6,6 +6,7 @@ const { authenticateAdmin, authenticateStudent } = require('../middleware/auth')
 const { validate } = require('../middleware/security');
 const { scoreCandidate } = require('../utils/matching');
 const { BRANCHES } = require('../config/branches');
+const { createStudentNotification } = require('../services/incompleteProfilePush');
 
 const admin = express.Router();
 const student = express.Router();
@@ -45,7 +46,7 @@ admin.get('/readiness', async (_req, res) => {
 const correctionSchema = z.object({ student_id: z.uuid(), field_name: z.string().trim().min(1).max(80), message: z.string().trim().min(3).max(1000) }).strict();
 admin.post('/corrections', validate(correctionSchema), async (req, res) => {
     const row = await db.insert('correction_requests', { ...req.body, status: 'open', created_by: req.admin.adminId, created_at: new Date().toISOString() });
-    await db.insert('notifications', { student_id: req.body.student_id, audience: 'student', title: `Correction needed: ${req.body.field_name}`, message: req.body.message, priority: 'important', created_at: new Date().toISOString() });
+    await createStudentNotification({ student_id: req.body.student_id, audience: 'student', title: `Correction needed: ${req.body.field_name}`, message: req.body.message, priority: 'important', action_url: '/dashboard?tab=opportunities' });
     res.status(201).json({ success: true, data: row });
 });
 admin.get('/corrections', async (_req, res) => res.json({ success: true, data: await db.select('correction_requests') }));
@@ -54,7 +55,7 @@ const statusSchema = z.object({ status: z.enum(['applied','eligible','test','int
 admin.put('/applications/:id/status', validate(statusSchema), async (req, res) => {
     const application = await db.update('drive_applications', { id: req.params.id }, { status: req.body.status, updated_at: new Date().toISOString() });
     if (!application) return res.status(404).json({ success: false, error: 'Application not found.' });
-    await db.insert('notifications', { student_id: application.student_id, audience: 'student', title: 'Application status updated', message: `New status: ${req.body.status}.`, priority: 'important', created_at: new Date().toISOString() });
+    await createStudentNotification({ student_id: application.student_id, audience: 'student', title: 'Application status updated', message: `New status: ${req.body.status}.`, priority: 'important', action_url: '/dashboard?tab=opportunities' });
     res.json({ success: true, data: application });
 });
 admin.get('/applications', async (_req, res) => {
@@ -75,7 +76,7 @@ const noticeSchema = z.object({
     }
 });
 admin.post('/notifications', validate(noticeSchema), async (req, res) => {
-    const row = await db.insert('notifications', { ...req.body, action_url: req.body.action_url || null, student_id: null, audience: req.body.branches.length ? 'branches' : 'all', created_at: new Date().toISOString() });
+    const { notification: row } = await createStudentNotification({ ...req.body, action_url: req.body.action_url || null, student_id: null, audience: req.body.branches.length ? 'branches' : 'all' });
     res.status(201).json({ success: true, data: row });
 });
 admin.get('/notifications', async (_req, res) => {

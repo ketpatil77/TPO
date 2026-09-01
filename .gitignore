@@ -15,3 +15,6 @@ cj.txt
 testlogin.json
 tmp/
 output/
+.scratch/
+scratch/
+.agents/

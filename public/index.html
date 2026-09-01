@@ -6,11 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Placement Portal AIT</title>
     <script src="/js/theme.js?v=20260812-qa1"></script>
-    <link rel="stylesheet" href="/css/styles.css?v=20260814-uiaudit2">
-    <script src="/js/portal.js?v=20260825-student-login1" defer></script>
+    <link rel="stylesheet" href="/css/styles.css?v=20260901-motion1">
+    <script src="/js/portal.js?v=20260901-role-contrast1" defer></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initTurnstile&render=explicit" defer></script>
+    <link rel="stylesheet" href="/css/portal-responsive.css?v=20260901-mobile-nav1">
+    <script src="/js/portal-responsive.js?v=20260901-mobile-nav1" defer></script>
 </head>
-<body class="unified-auth-shell">
+<body class="unified-auth-shell" data-active-role="student">
     <a class="skip-link" href="#mainContent">Skip to sign in</a>
     <main id="mainContent" class="unified-auth-layout">
         <section class="portal-story">
@@ -46,7 +48,7 @@
                 </div>
                 <div id="studentTurnstileStatus" class="turnstile-recovery" role="status" aria-live="polite" hidden><span></span><button type="button" class="btn btn-secondary btn-sm" data-turnstile-retry="student">Retry verification</button></div>
                 <button class="btn btn-primary unified-submit" type="submit">Open student workspace</button>
-                <a href="#" id="dobCorrectionLink" style="font-size:0.8rem; display:block; margin-top:0.75rem; text-align:center; color:#3b82f6; text-decoration:none;">Can't log in? / DOB correction request</a>
+                <a href="#" id="dobCorrectionLink" style="font-size:0.8rem; display:block; margin-top:0.75rem; text-align:center; color:var(--text-secondary); text-decoration:none;">Can't log in? / DOB correction request</a>
             </form>
 
             <form id="adminUnifiedForm" class="unified-role-form" data-form-role="admin" role="tabpanel" aria-labelledby="role-admin" autocomplete="off">

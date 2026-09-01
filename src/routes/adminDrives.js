@@ -6,9 +6,24 @@ const { authenticateAdmin } = require('../middleware/auth');
 const { validate } = require('../middleware/security');
 const { normalizeTerms, scoreCandidate } = require('../utils/matching');
 const { BRANCHES } = require('../config/branches');
+const { createStudentNotification } = require('../services/incompleteProfilePush');
 
 const router = express.Router();
 router.use(authenticateAdmin);
+
+async function notifyDriveOpen(drive) {
+    const criteria = await db.selectOne('drive_criteria', { drive_id: drive.id });
+    const branches = criteria?.branches || [];
+    await createStudentNotification({
+        student_id: null,
+        audience: branches.length ? 'branches' : 'all',
+        branches,
+        title: `Placement drive open: ${drive.company}`,
+        message: `${drive.role} applications are now open${drive.application_deadline ? ` until ${drive.application_deadline}` : ''}.`,
+        priority: 'important',
+        action_url: '/dashboard?tab=opportunities'
+    });
+}
 
 const driveSchema = z.object({
     company: z.string().trim().min(1).max(150),
@@ -36,6 +51,7 @@ router.get('/', async (req, res) => {
 router.post('/', validate(driveSchema), async (req, res) => {
     const drive = await db.insert('placement_drives', { ...req.body, created_by: req.admin.adminId, created_at: new Date().toISOString(), updated_at: new Date().toISOString() });
     await db.logAudit('drive_create', 'placement_drives', drive.id, { company: drive.company, role: drive.role });
+    if (drive.status === 'open') await notifyDriveOpen(drive);
     res.status(201).json({ success: true, data: drive });
 });
 
@@ -44,6 +60,7 @@ router.put('/:id', validate(driveSchema), async (req, res) => {
     if (!existing) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Drive not found.' } });
     const drive = await db.update('placement_drives', { id: req.params.id }, { ...req.body, updated_at: new Date().toISOString() });
     await db.logAudit('drive_update', 'placement_drives', drive.id);
+    if (existing.status !== 'open' && drive.status === 'open') await notifyDriveOpen(drive);
     res.json({ success: true, data: drive });
 });
 
@@ -68,6 +85,7 @@ router.post('/:id/approve', async (req, res) => {
     if (!drive || drive.status !== 'review_pending') return res.status(409).json({ success:false, error:'Drive is not awaiting review.' });
     const updated = await db.update('placement_drives', { id:drive.id }, { status:'open', approved_by:req.admin.adminId, approved_at:new Date().toISOString(), updated_at:new Date().toISOString() });
     await db.logAudit('drive_approved','placement_drives',drive.id,{});
+    await notifyDriveOpen(updated);
     res.json({success:true,data:updated});
 });
 

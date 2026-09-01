@@ -48,7 +48,7 @@ export default {
                 }
                 const rolePatch = assetPath === '/admin-dashboard.html' ? '<link rel="stylesheet" href="/css/admin-alignment-20260814.css">' : '';
                 const profileRequirements = assetPath === '/dashboard.html' ? '<link rel="stylesheet" href="/css/profile-requirements-20260814.css">' : '';
-                const patched = html.replace('</head>', `<link rel="stylesheet" href="/css/portal-layout-20260814.css?v=20260817-responsive1"><link rel="stylesheet" href="/css/portal-identifiers-20260814.css?v=20260817-responsive1"><script src="/js/responsive-tables.js?v=20260817-responsive1" defer></script>${profileRequirements}${rolePatch}</head>`);
+                const patched = html.replace('</head>', `<link rel="stylesheet" href="/css/portal-layout-20260814.css?v=20260817-responsive1"><link rel="stylesheet" href="/css/portal-identifiers-20260814.css?v=20260817-responsive1"><script src="/js/responsive-tables.js?v=20260817-responsive1" defer></script>${profileRequirements}${rolePatch}<link rel="stylesheet" href="/css/portal-responsive.css?v=20260831"></head>`);
                 return noStore(new Response(patched, { status: response.status, headers: response.headers }), true, env);
             }
             return noStore(response, true, env);
@@ -66,12 +66,18 @@ export default {
             const { default: db } = await import('../src/config/database.js');
             db.init();
             if (!db.isLocal()) {
-                const { data, error } = await db.supabaseClient().from('roster').select('id').limit(1);
+                const { error } = await db.supabaseClient().from('roster').select('id').limit(1);
                 if (error) throw error;
                 console.log('Supabase keep-alive ping successful.');
             }
+            if (event.cron === (env.PUSH_REMINDER_CRON || '0 4 */3 * *')) {
+                const { default: pushService } = await import('../src/services/incompleteProfilePush.js');
+                const result = await pushService.runIncompleteProfilePushJob({ env });
+                console.log('Incomplete-profile push job complete:', JSON.stringify(result));
+            }
         } catch (e) {
-            console.error('Supabase keep-alive ping failed:', e);
+            console.error('Scheduled Worker job failed:', e);
+            throw e;
         }
     }
 };

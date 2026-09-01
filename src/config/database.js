@@ -38,6 +38,7 @@ let localData = {
     ,import_batches: []
     ,launch_backups: []
     ,dob_corrections: []
+    ,student_push_subscriptions: []
 };
 
 const dataDir = path.join(process.cwd(), 'data');
@@ -72,7 +73,7 @@ function init() {
         }
 
         // Ensure all tables exist
-        ['roster', 'students', 'internships', 'certificates', 'student_projects', 'research_papers', 'diploma', 'audit_log', 'profiles', 'login_attempts', 'student_skills', 'placement_drives', 'drive_criteria', 'drive_matches', 'shortlists', 'correction_requests', 'drive_applications', 'notifications', 'saved_filters', 'assessments', 'interviews', 'offers', 'calendar_events', 'notification_reads', 'import_batches', 'launch_backups'].forEach(table => {
+        ['roster', 'students', 'internships', 'certificates', 'student_projects', 'research_papers', 'diploma', 'audit_log', 'profiles', 'login_attempts', 'student_skills', 'placement_drives', 'drive_criteria', 'drive_matches', 'shortlists', 'correction_requests', 'drive_applications', 'notifications', 'saved_filters', 'assessments', 'interviews', 'offers', 'calendar_events', 'notification_reads', 'import_batches', 'launch_backups', 'student_push_subscriptions'].forEach(table => {
             if (!localData[table]) localData[table] = [];
         });
 
@@ -266,6 +267,7 @@ const db = {
                 localData.student_projects = (localData.student_projects || []).filter(project => project.student_id !== filter.id);
                 localData.research_papers = (localData.research_papers || []).filter(paper => paper.student_id !== filter.id);
                 localData.diploma = (localData.diploma || []).filter(d => d.student_id !== filter.id);
+                localData.student_push_subscriptions = (localData.student_push_subscriptions || []).filter(s => s.student_id !== filter.id);
             }
 
             if (table === 'placement_drives' && filter.id) {

@@ -3,6 +3,7 @@ const { z } = require('zod');
 const db = require('../config/database');
 const { authenticateAdmin, authenticateStudent } = require('../middleware/auth');
 const { validate } = require('../middleware/security');
+const { createStudentNotification } = require('../services/incompleteProfilePush');
 
 const admin = express.Router(); const student = express.Router();
 admin.use(authenticateAdmin); student.use(authenticateStudent);
@@ -104,7 +105,12 @@ for(const [name,schema] of Object.entries(schemas)){
   admin.post(`/${name}`,validate(schema),async(req,res)=>{
     const record={...req.body,created_at:now()};
     if(name==='calendar_events') record.created_by=req.admin.adminId;
-    res.status(201).json({success:true,data:await db.insert(name,record)});
+    const saved = await db.insert(name,record);
+    if(name==='calendar_events') await createStudentNotification({student_id:null,audience:'all',branches:[],title:`Upcoming ${saved.event_type}: ${saved.title}`,message:`Starts ${new Date(saved.starts_at).toLocaleString('en-IN')}${saved.location?` at ${saved.location}`:''}. ${saved.description||''}`.trim(),priority:'important',action_url:'/dashboard?tab=opportunities'});
+    if(name==='interviews' && saved.student_id) await createStudentNotification({student_id:saved.student_id,audience:'student',branches:[],title:'Interview scheduled',message:`Interview starts ${new Date(saved.starts_at).toLocaleString('en-IN')}${saved.venue?` at ${saved.venue}`:''}.`,priority:'important',action_url:'/dashboard?tab=opportunities'});
+    if(name==='offers') await createStudentNotification({student_id:saved.student_id,audience:'student',branches:[],title:`Placement offer: ${saved.company}`,message:`${saved.role} offer status: ${saved.status}.`,priority:'important',action_url:'/dashboard?tab=opportunities'});
+    if(name==='assessments') await createStudentNotification({student_id:saved.student_id,audience:'student',branches:[],title:`Assessment update: ${saved.title}`,message:`${saved.type.replaceAll('_',' ')} result added${saved.score!==null?`: ${saved.score}${saved.max_score!==null?`/${saved.max_score}`:''}`:''}.`,priority:'normal',action_url:'/dashboard?tab=opportunities'});
+    res.status(201).json({success:true,data:saved});
   });
 }
 admin.get('/resume-review/:studentId',async(req,res)=>{const [s]=await joinedStudents(req.params.studentId);if(!s)return res.status(404).json({success:false,error:'Student not found.'});res.json({success:true,data:resumeReview(s)})});

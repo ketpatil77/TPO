@@ -8,6 +8,7 @@ const { normalizeTerm } = require('../utils/matching');
 const { BRANCHES } = require('../config/branches');
 const { acceptAvatar, uploadAvatar, getAvatar, deleteAvatar } = require('../utils/avatar');
 const { extractSkillsFromPdf, scoreResumeAts } = require('../utils/pdfSkillExtractor');
+const { configuredThreshold } = require('../services/incompleteProfilePush');
 
 const router = express.Router();
 
@@ -23,6 +24,27 @@ router.use((req, res, next) => {
     next();
 });
 const MAX_RESUME_BYTES = 2 * 1024 * 1024;
+const pushSubscriptionSchema = z.object({
+    endpoint: z.string().url().max(2048).refine(value => value.startsWith('https://'), 'Push endpoint must use HTTPS.'),
+    expirationTime: z.number().nullable().optional(),
+    keys: z.object({ p256dh: z.string().min(1).max(512), auth: z.string().min(1).max(256) }).strict()
+}).strict();
+
+router.get('/push/config', async (req, res) => {
+    const subscriptions = await db.select('student_push_subscriptions', { student_id: req.student.studentId });
+    res.json({ success: true, data: { publicKey: process.env.VAPID_PUBLIC_KEY || '', threshold: configuredThreshold(), subscribed: subscriptions.length > 0 } });
+});
+
+router.post('/push/subscriptions', validate(pushSubscriptionSchema), async (req, res) => {
+    const existing = await db.selectOne('student_push_subscriptions', { endpoint: req.body.endpoint });
+    if (existing && existing.student_id !== req.student.studentId) return res.status(409).json({ success: false, error: { code: 'SUBSCRIPTION_CONFLICT', message: 'Push subscription belongs to another session.' } });
+    const now = new Date().toISOString();
+    const saved = existing
+        ? await db.update('student_push_subscriptions', { id: existing.id }, { subscription: req.body, updated_at: now, last_error: null })
+        : await db.insert('student_push_subscriptions', { student_id: req.student.studentId, endpoint: req.body.endpoint, subscription: req.body, created_at: now, updated_at: now });
+    res.status(existing ? 200 : 201).json({ success: true, data: { id: saved.id, subscribed: true } });
+});
+
 const resumeUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_RESUME_BYTES, files: 1 } });
 function acceptResume(req, res, next) {
     resumeUpload.single('resume')(req, res, err => {

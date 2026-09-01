@@ -1,0 +1,8 @@
+.student-registration-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; margin-top:24px; }
+.student-registration-form > div { min-width:0; }
+.student-registration-form .form-label { display:block; margin-bottom:8px; }
+.student-registration-form input,.student-registration-form select { width:100%; box-sizing:border-box; }
+.student-registration-form small { display:block; color:var(--text-muted); margin-top:8px; }
+.student-registration-form .registration-footer { grid-column:1 / -1; }
+#registrationStatus { overflow-wrap:anywhere; margin-top:12px; }
+@media(max-width:640px) { .student-registration-form { grid-template-columns:1fr; } }

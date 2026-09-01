@@ -6,10 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TPC Workspace - AIT Placement Portal</title>
     <script src="/js/theme.js?v=20260812-qa1"></script>
-    <link rel="stylesheet" href="/css/styles.css?v=20260818-uifinal1">
+    <link rel="stylesheet" href="/css/styles.css?v=20260901-motion1">
     <link rel="stylesheet" href="/css/portal-layout-20260814.css?v=20260818-uifinal1">
     <link rel="stylesheet" href="/css/portal-identifiers-20260814.css?v=20260818-uifinal1">
     <script src="/js/responsive-tables.js?v=20260817-responsive1" defer></script>
+    <link rel="stylesheet" href="/css/portal-responsive.css?v=20260901-staff-accents1">
+    <script src="/js/portal-responsive.js?v=20260901-mobile-nav1" defer></script>
+    <script src="/js/portal-sections.js?v=20260831" defer></script>
 </head>
 <body class="observer-shell">
     <a class="skip-link" href="#observerDashboard">Skip to dashboard</a>
@@ -21,10 +24,12 @@
     </nav>
     <main id="observerDashboard" class="container dashboard-wrapper">
         <section class="observer-hero">
-            <div><span class="eyebrow">College placement overview</span><h1>Department readiness at a glance.</h1><p>Review placement readiness across every branch. Observer access is read-only.</p></div>
-            <div class="hero-signal"><span class="signal-dot"></span><div><strong>Read-only controls active</strong><small>AIML · CT · EE · ME · CE · E&amp;C</small></div></div>
+            <div><span class="eyebrow">TPC workspace</span><h1>Student readiness and department tools</h1><p>Review college records. Register students and handle DOB requests within your department.</p></div>
+            <div class="hero-signal"><span class="signal-dot"></span><div><strong>Department-scoped changes</strong><small>College-wide read access</small></div></div>
         </section>
 
+        <details class="task-disclosure observer-overview-disclosure">
+        <summary><strong>College overview and branch readiness</strong><span>Expand metrics and department summaries. Student tools are below.</span></summary>
         <section class="metric-grid" aria-label="College overview">
             <article class="metric-card"><span>Uploaded roster</span><strong id="metricRoster">—</strong><small>College records</small></article>
             <article class="metric-card"><span>Active profiles</span><strong id="metricProfiles">—</strong><small id="metricPending">— pending</small></article>
@@ -41,6 +46,7 @@
             <div id="branchCards" class="branch-grid"></div>
         </section>
 
+        </details>
         <div class="tabs-nav observer-tabs" role="tablist" aria-label="TPC workspace sections">
             <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="observerTab-students" data-tab="students">Student profiles</button>
             <button class="tab-btn" role="tab" aria-selected="false" aria-controls="observerTab-roster" data-tab="roster">Uploaded roster</button>
@@ -100,5 +106,7 @@
     <script src="/js/security.js?v=20260812-qa1"></script>
     <script src="/js/avatar-control.js?v=20260821-avatarfix1"></script>
     <script src="/js/observer-dashboard.js?v=20260814-research1"></script>
+    <link rel="stylesheet" href="/css/student-registration.css?v=20260831">
+    <script src="/js/student-registration.js?v=20260831"></script>
 </body>
 </html>

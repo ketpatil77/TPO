@@ -179,7 +179,7 @@ async function loadDrives() {
         container.innerHTML = json.data.length ? json.data.map(drive => `
             <article class="item-card drive-admin-card">
                 <div class="drive-admin-summary"><div class="workflow-card-head"><strong>${escapeHtml(drive.company)}</strong><span class="branch-chip">${escapeHtml(drive.status)}</span></div><p>${escapeHtml(drive.role)}</p><small>Branches: ${escapeHtml((drive.criteria?.branches || []).join(', ') || 'All')} · Minimum CGPA: ${drive.criteria?.min_cgpa ?? 0}${drive.application_deadline ? ` · Deadline: ${escapeHtml(drive.application_deadline)}` : ''}</small></div>
-                <div class="workflow-actions"><button class="btn btn-secondary btn-sm" onclick="viewMatches('${drive.id}')">Results</button>${drive.status==='review_pending'?`<button class="btn btn-primary btn-sm" onclick="approveDrive('${drive.id}')">Approve & publish</button>`:drive.status==='open'?`<button class="btn btn-secondary btn-sm" onclick="changeDriveStatus('${drive.id}','closed')">Close</button>`:`<button class="btn btn-primary btn-sm" onclick="submitDriveReview('${drive.id}')">Submit review</button>`}<button class="btn btn-danger btn-sm" onclick="deleteDrive('${drive.id}')">Delete</button></div>
+                <div class="workflow-actions"><button class="btn btn-secondary btn-sm" onclick="viewMatches('${drive.id}')">Results</button>${drive.status==='review_pending'?`<button class="btn btn-primary btn-sm" onclick="approveDrive('${drive.id}')">Approve & publish</button>`:drive.status==='open'?`<button class="btn btn-secondary btn-sm" onclick="changeDriveStatus('${drive.id}','closed')">Close</button>`:`<button class="btn btn-primary btn-sm" onclick="submitDriveReview('${drive.id}')">Submit review</button>`}<button class="btn btn-danger btn-sm" onclick="deleteDrive('${drive.id}')">Delete</button><details class="record-reference"><summary>Drive reference</summary><code>${escapeHtml(drive.id)}</code></details></div>
             </article>`).join('') : '<p>No placement drives yet.</p>';
     } catch (error) { container.textContent = error.message; }
 }
@@ -443,46 +443,94 @@ function openStudentModal(studentId) {
         : '<p style="color: var(--text-muted);">No diploma record.</p>';
 
     content.innerHTML = `
-        <div style="margin-bottom: 1.25rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="candidate-modal-header">
             <div>
-                <p><strong>PRN:</strong> ${escapeHtml(student.prn)}</p>
-                <p><strong>Branch:</strong> ${escapeHtml(student.branch)}</p>
-                <p><strong>Class & Year:</strong> ${escapeHtml(student.class)} • ${escapeHtml(student.year)}</p>
+                <h2 class="candidate-modal-title">${escapeHtml(student.name || 'Candidate Profile')}</h2>
+                <div class="candidate-meta-badges">
+                    <span class="readonly-pill">PRN: ${escapeHtml(student.prn)}</span>
+                    <span class="branch-chip">${escapeHtml(student.branch)}</span>
+                    <span class="badge badge-info">${escapeHtml(student.class || '—')} • ${escapeHtml(student.year || '—')}</span>
+                </div>
             </div>
             <div>
-                <p><strong>Overall CGPA:</strong> <span style="font-size: 1.2rem; font-weight: 700; color: var(--accent);">${student.cgpa_overall || '0.00'}</span></p>
-                <p><strong>SSC Marks:</strong> <strong style="color: var(--accent);">${student.ssc_marks !== null && student.ssc_marks !== undefined ? student.ssc_marks + '%' : '--'}</strong></p>
-                <p><strong>HSC/Diploma Marks:</strong> <strong style="color: var(--accent);">${student.hsc_marks !== null && student.hsc_marks !== undefined ? student.hsc_marks + '%' : (student.diploma ? student.diploma.percentage_or_cgpa : '--')}</strong></p>
-                <p><strong>Resume:</strong> ${student.resume_url ? `<a class="btn btn-secondary btn-sm resume-open-link" href="/api/admin/students/${encodeURIComponent(student.id)}/resume/open" target="_blank" rel="noopener">Open resume</a>` : 'None'}</p>
-                <div class="student-contact-actions">${student.email?`<a class="student-contact-link" href="${gmailComposeUrl(student.email)}" target="_blank" rel="noopener"><span>Email</span><strong>${escapeHtml(student.email)}</strong></a>`:''}${student.phone?`<a class="student-contact-link" href="tel:${escapeHtml(student.phone)}"><span>Mobile</span><strong>${escapeHtml(student.phone)}</strong></a>`:''}${!student.email&&!student.phone?'<span class="status-pending">Contact details pending</span>':''}</div>
+                ${student.resume_url ? `<a class="btn btn-primary btn-sm resume-open-link" href="/api/admin/students/${encodeURIComponent(student.id)}/resume/open" target="_blank" rel="noopener">📄 Open Resume</a>` : '<span class="status-pending">No Resume</span>'}
             </div>
         </div>
 
-        <h4 style="margin-bottom: 0.5rem;">Semester CGPA Breakdown</h4>
-        <div class="grid-semesters" style="margin-bottom: 1.25rem;">${semHtml}</div>
-
-        <h4 style="margin-bottom: 0.5rem;">Current Backlogs (${student.active_backlogs || 0})</h4>
-        <p style="margin-bottom: 1.25rem;">${Object.entries(backlogs).filter(([, value]) => Number(value) > 0).map(([key, value]) => `${key.replace('sem', 'Semester ')}: ${value}`).join(' · ') || 'No current backlogs reported.'}</p>
-
-        <h4 style="margin-bottom: 0.5rem;">Activities & Achievements</h4>
-        <div style="background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1.25rem;">
-            ${escapeHtml(student.activities || 'None specified')}
+        <!-- Decision-Making Stat Cards -->
+        <div class="candidate-stats-grid">
+            <div class="candidate-stat-card">
+                <span class="label">Overall CGPA</span>
+                <span class="value stat-emerald">${student.cgpa_overall ? Number(student.cgpa_overall).toFixed(2) : '0.00'}</span>
+            </div>
+            <div class="candidate-stat-card">
+                <span class="label">Active Backlogs</span>
+                <span class="value ${student.active_backlogs > 0 ? 'stat-rose' : 'stat-emerald'}">${student.active_backlogs || 0}</span>
+            </div>
+            <div class="candidate-stat-card">
+                <span class="label">SSC Marks</span>
+                <span class="value stat-amber">${student.ssc_marks !== null && student.ssc_marks !== undefined ? Number(student.ssc_marks).toFixed(1) + '%' : '—'}</span>
+            </div>
+            <div class="candidate-stat-card">
+                <span class="label">HSC / Diploma</span>
+                <span class="value stat-amber">${student.hsc_marks !== null && student.hsc_marks !== undefined ? Number(student.hsc_marks).toFixed(1) + '%' : (student.diploma ? student.diploma.percentage_or_cgpa : '—')}</span>
+            </div>
         </div>
 
-        <h4 style="margin-bottom: 0.5rem;">Internships (${student.internships.length})</h4>
-        <ul style="padding-left: 1.25rem; margin-bottom: 1.25rem;">${intHtml}</ul>
+        <!-- Semester SGPA Progress Breakdown Grid -->
+        <h4 style="margin-bottom: 0.65rem; color: var(--text-heading);">Semester SGPA Progression</h4>
+        <div class="semester-progress-grid">
+            ${Array.from({ length: 8 }, (_, idx) => {
+                const i = idx + 1;
+                const val = sems[`sem${i}`] ? parseFloat(sems[`sem${i}`]).toFixed(2) : null;
+                const isComp = val !== null;
+                return `
+                    <div class="sem-box ${isComp ? 'completed' : 'pending'}">
+                        <span class="sem-label">Sem ${i}</span>
+                        <div class="sem-score">${isComp ? val : '--'}</div>
+                        <span class="sem-status-tag">${isComp ? 'Passed' : 'Pending'}</span>
+                    </div>
+                `;
+            }).join('')}
+        </div>
 
-        <h4 style="margin-bottom: 0.5rem;">Certificates (${student.certificates.length})</h4>
-        <ul style="padding-left: 1.25rem; margin-bottom: 1.25rem;">${certHtml}</ul>
+        <!-- Contact Actions -->
+        <h4 style="margin-bottom: 0.5rem; color: var(--text-heading);">Contact & Verification</h4>
+        <div class="student-contact-actions" style="margin-bottom: 1.5rem;">
+            ${student.email ? `<a class="student-contact-link" href="${gmailComposeUrl(student.email)}" target="_blank" rel="noopener"><span>Email Address</span><strong>${escapeHtml(student.email)}</strong></a>` : ''}
+            ${student.phone ? `<a class="student-contact-link" href="tel:${escapeHtml(student.phone)}"><span>Mobile Phone</span><strong>${escapeHtml(student.phone)}</strong></a>` : ''}
+            ${!student.email && !student.phone ? '<span class="status-pending">Contact details pending</span>' : ''}
+        </div>
 
-        <h4 style="margin-bottom: 0.5rem;">Projects (${student.projects?.length || 0})</h4>
-        <ul style="padding-left: 1.25rem; margin-bottom: 1.25rem;">${projectHtml}</ul>
+        <!-- Backlogs & Activities -->
+        <h4 style="margin-bottom: 0.5rem; color: var(--text-heading);">Backlog Breakdown & Activities</h4>
+        <div style="background: var(--surface-muted); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color); font-size: 0.9rem; margin-bottom: 1.5rem;">
+            <p style="margin-bottom: 0.5rem;"><strong>Backlogs by Semester:</strong> ${Object.entries(backlogs).filter(([, value]) => Number(value) > 0).map(([key, value]) => `${key.replace('sem', 'Semester ')}: ${value}`).join(' · ') || 'None (Clean Academic Record)'}</p>
+            <p><strong>Activities & Achievements:</strong> ${escapeHtml(student.activities || 'None specified')}</p>
+        </div>
 
-        <h4 style="margin-bottom: 0.5rem;">Research Papers (${student.research_papers?.length || 0})</h4>
-        <ul style="padding-left: 1.25rem; margin-bottom: 1.25rem;">${researchHtml}</ul>
+        <!-- Internships, Projects, Certs -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="background: var(--surface-muted); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                <h4 style="margin-bottom: 0.5rem; color: var(--text-heading);">Internships (${student.internships?.length || 0})</h4>
+                <ul style="padding-left: 1.2rem; font-size: 0.88rem;">${intHtml}</ul>
+            </div>
+            <div style="background: var(--surface-muted); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                <h4 style="margin-bottom: 0.5rem; color: var(--text-heading);">Certificates (${student.certificates?.length || 0})</h4>
+                <ul style="padding-left: 1.2rem; font-size: 0.88rem;">${certHtml}</ul>
+            </div>
+        </div>
 
-        <h4 style="margin-bottom: 0.5rem;">Diploma Details</h4>
-        <div style="background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 8px; font-size: 0.9rem;">${dipHtml}</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="background: var(--surface-muted); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                <h4 style="margin-bottom: 0.5rem; color: var(--text-heading);">Projects (${student.projects?.length || 0})</h4>
+                <ul style="padding-left: 1.2rem; font-size: 0.88rem;">${projectHtml}</ul>
+            </div>
+            <div style="background: var(--surface-muted); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                <h4 style="margin-bottom: 0.5rem; color: var(--text-heading);">Research Papers (${student.research_papers?.length || 0})</h4>
+                <ul style="padding-left: 1.2rem; font-size: 0.88rem;">${researchHtml}</ul>
+            </div>
+        </div>
     `;
 
     document.getElementById('studentDetailModal').classList.add('active');
@@ -717,7 +765,7 @@ async function loadAuditLogs() {
                         <td><span class="badge badge-info">${escapeHtml(l.action)}</span></td>
                         <td><code>${escapeHtml(l.target_table)}</code></td>
                         <td>${escapeHtml(l.target_id || '-')}</td>
-                        <td style="font-family: monospace; font-size: 0.8rem;">${escapeHtml(detailsStr)}</td>
+                        <td style="font-family: var(--font-default); font-size: 0.8rem;">${escapeHtml(detailsStr)}</td>
                     </tr>
                 `;
             }).join('');
@@ -815,6 +863,28 @@ function escapeHtml(str) {
 
 let analyticsCharts = {};
 
+function refreshAnalyticsTheme() {
+    const style = getComputedStyle(document.documentElement);
+    const text = style.getPropertyValue('--text-muted').trim() || '#64748b';
+    const heading = style.getPropertyValue('--text-heading').trim() || text;
+    const border = style.getPropertyValue('--border-color').trim() || '#64748b';
+    for (const chart of Object.values(analyticsCharts)) {
+        chart.options.maintainAspectRatio = false;
+        chart.options.color = text;
+        chart.options.plugins.title.color = heading;
+        chart.options.plugins.legend.labels.color = text;
+        for (const axis of Object.values(chart.options.scales || {})) {
+            axis.ticks.color = text;
+            axis.grid.color = border;
+        }
+        if (chart === analyticsCharts.placement) chart.data.datasets[1].backgroundColor = '#64748b';
+        if (chart === analyticsCharts.completion) chart.data.datasets[0].backgroundColor[1] = '#64748b';
+        chart.resize();
+        chart.update('none');
+    }
+}
+new MutationObserver(refreshAnalyticsTheme).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+
 async function loadAdminAnalytics() {
     try {
         const token = localStorage.getItem('tpo_admin_token');
@@ -851,7 +921,7 @@ async function loadAdminAnalytics() {
             type: 'line',
             data: {
                 labels: branches,
-                datasets: [{ label: 'Avg CGPA', data: cgpaData, borderColor: '#3b82f6', tension: 0.1, fill: false }]
+                datasets: [{ label: 'Avg CGPA', data: cgpaData, borderColor: '#94a3b8', tension: 0.1, fill: false }]
             },
             options: { responsive: true, plugins: { title: { display: true, text: 'Average CGPA by Branch', color: '#f8fafc' } }, color: '#cbd5e1' }
         });
@@ -862,7 +932,7 @@ async function loadAdminAnalytics() {
             type: 'doughnut',
             data: {
                 labels: ['Completed', 'Incomplete'],
-                datasets: [{ data: [data.profileCompletion, 100 - data.profileCompletion], backgroundColor: ['#8b5cf6', 'rgba(255,255,255,0.1)'] }]
+                datasets: [{ data: [data.profileCompletion, 100 - data.profileCompletion], backgroundColor: ['#64748b', 'rgba(255,255,255,0.1)'] }]
             },
             options: { responsive: true, plugins: { title: { display: true, text: 'Average Profile Completion (%)', color: '#f8fafc' } }, color: '#cbd5e1' }
         });
@@ -873,7 +943,7 @@ async function loadAdminAnalytics() {
             type: 'pie',
             data: {
                 labels: Object.keys(data.packageDistribution),
-                datasets: [{ data: Object.values(data.packageDistribution), backgroundColor: ['#f43f5e', '#3b82f6', '#10b981'] }]
+                datasets: [{ data: Object.values(data.packageDistribution), backgroundColor: ['#f43f5e', '#64748b', '#10b981'] }]
             },
             options: { responsive: true, plugins: { title: { display: true, text: 'Package Distribution', color: '#f8fafc' } }, color: '#cbd5e1' }
         });
@@ -888,6 +958,8 @@ async function loadAdminAnalytics() {
             },
             options: { responsive: true, plugins: { title: { display: true, text: 'Top 5 Recruiters', color: '#f8fafc' } }, color: '#cbd5e1', scales: { y: { beginAtZero: true } } }
         });
+
+        refreshAnalyticsTheme();
 
     } catch (err) {
         showToast(err.message, 'error');
@@ -926,7 +998,7 @@ async function renderCalendar() {
                     title: `${drive.company} - ${drive.role}`,
                     start: drive.application_deadline,
                     allDay: true,
-                    backgroundColor: drive.status === 'open' ? '#10b981' : (drive.status === 'closed' ? '#f43f5e' : '#3b82f6'),
+                    backgroundColor: drive.status === 'open' ? '#10b981' : (drive.status === 'closed' ? '#f43f5e' : '#64748b'),
                     borderColor: 'transparent'
                 })).filter(e => e.start);
 

@@ -2,6 +2,8 @@ const express = require('express');
 const crypto = require('crypto');
 const db = require('../config/database');
 const { authenticateAdmin, authenticateSuperAdmin } = require('../middleware/auth');
+const { createStudentNotification } = require('../services/incompleteProfilePush');
+const { runProfileCompletionBroadcast } = require('../services/incompleteProfilePush');
 
 const router = express.Router();
 router.use(authenticateAdmin);
@@ -24,11 +26,17 @@ router.post('/deadline-reminders', async (req, res) => {
     const today = Date.now(); const limit = today + 48 * 60 * 60 * 1000;
     const drives = (await db.select('placement_drives')).filter(row => row.status === 'open' && row.application_deadline && !row.reminder_sent_at && new Date(`${row.application_deadline}T23:59:59`).getTime() >= today && new Date(`${row.application_deadline}T23:59:59`).getTime() <= limit);
     for (const drive of drives) {
-        await db.insert('notifications',{student_id:null,audience:'all',title:`Deadline reminder: ${drive.company}`,message:`Applications for ${drive.role} close on ${drive.application_deadline}.`,priority:'important',expires_at:new Date(`${drive.application_deadline}T23:59:59`).toISOString(),action_url:'/dashboard?tab=opportunities',created_at:new Date().toISOString()});
+        await createStudentNotification({student_id:null,audience:'all',title:`Deadline reminder: ${drive.company}`,message:`Applications for ${drive.role} close on ${drive.application_deadline}.`,priority:'important',expires_at:new Date(`${drive.application_deadline}T23:59:59`).toISOString(),action_url:'/dashboard?tab=opportunities'});
         await db.update('placement_drives',{id:drive.id},{reminder_sent_at:new Date().toISOString()});
     }
     if (drives.length) await db.logAudit('deadline_reminders_sent','notifications',null,{count:drives.length});
     res.json({success:true,sent:drives.length});
+});
+
+router.post('/profile-completion-reminders', authenticateSuperAdmin, async (_req, res) => {
+    const result = await runProfileCompletionBroadcast();
+    await db.logAudit('profile_completion_push_broadcast', 'student_push_subscriptions', null, result);
+    res.json({ success: true, data: result });
 });
 
 router.get('/security-alerts', async (_req,res) => {
