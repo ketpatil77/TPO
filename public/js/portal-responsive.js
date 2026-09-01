@@ -10,5 +10,13 @@
             });
         }
         document.getElementById('notificationGateSignOut')?.addEventListener('click', () => document.getElementById('logoutBtn')?.click());
+
+        if (document.body.classList.contains('student-dashboard-page') && !document.querySelector('script[data-competitions-module]')) {
+            const script = document.createElement('script');
+            script.src = '/js/competitions.js?v=20260901-1';
+            script.defer = true;
+            script.dataset.competitionsModule = 'true';
+            document.body.appendChild(script);
+        }
     });
 })();
