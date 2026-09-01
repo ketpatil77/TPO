@@ -5,7 +5,7 @@
     let role = null;
 
     const KIND_LABELS = {
-        all: 'All evidence', academics: 'Academics / CGPA', internships: 'Internships', certificates: 'Certificates',
+        all: 'All evidence', internships: 'Internships', certificates: 'Certificates',
         projects: 'Projects', research: 'Research papers', skills: 'Skills'
     };
 
@@ -75,7 +75,7 @@
     function shell(showBranch) {
         const kinds = Object.entries(KIND_LABELS).map(([value, label]) => `<option value="${value}">${label}</option>`).join('');
         return `<div class="review-hero glass-card evidence-review-hero">
-            <div><span class="eyebrow">Profile Points integrity</span><h2>Profile Evidence Verification</h2><p>${showBranch ? 'TPO verifies academic and profile evidence across the college.' : 'TPC verifies evidence only for students in your department.'} Verification changes eligibility for points, never the point value itself.</p></div>
+            <div><span class="eyebrow">Profile Points integrity</span><h2>Profile Evidence Verification</h2><p>${showBranch ? 'TPO verifies student-submitted profile evidence across the college.' : 'TPC verifies student-submitted evidence only for students in your department.'} CGPA is supplied by the college and is already authoritative. Verification changes eligibility for profile evidence points, never the point value itself.</p></div>
             <div id="evidenceReviewCount" class="review-count"><strong>0</strong><span>records</span></div>
         </div>
         <div class="review-toolbar glass-card evidence-review-toolbar">
@@ -84,7 +84,7 @@
             ${showBranch ? '<div><label class="form-label" for="evidenceReviewBranch">Branch</label><select id="evidenceReviewBranch" class="form-select"><option value="all">All branches</option><option>AIML</option><option>CT</option><option>EE</option><option>ME</option><option>CE</option><option>E&amp;C</option></select></div>' : ''}
             <button id="evidenceReviewRefresh" class="btn btn-secondary" type="button">Refresh</button>
         </div>
-        <div class="evidence-integrity-note glass-card"><strong>Fairness rule</strong><span>Staff can verify or reject evidence. Profile Points are assigned automatically by the published scoring formula. There is no manual score or rank field.</span></div>
+        <div class="evidence-integrity-note glass-card"><strong>Fairness rule</strong><span>College CGPA is trusted directly. For student-added evidence, staff can verify or reject records while Profile Points are assigned automatically by the published formula. There is no manual score or rank field.</span></div>
         <div id="evidenceReviewList" class="competition-review-list evidence-review-list" aria-live="polite"><div class="panel-empty">Open this tab to load records.</div></div>`;
     }
 
@@ -148,7 +148,7 @@
         const payload = status === 'rejected' ? { status, note: note.trim() } : { status };
         try {
             const response = await fetch(`/api/${role === 'admin' ? 'admin' : 'observer'}/rankings/evidence/${encodeURIComponent(kind)}/${encodeURIComponent(id)}/verification`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                method: 'PUT', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(payload)
             });
             const json = await response.json();
             if (!response.ok || !json.success) throw new Error(json.error?.message || json.error || 'Unable to update verification.');
