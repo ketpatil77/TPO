@@ -55,9 +55,9 @@
   function install() {
     configureStudentCredentials();
     isolateRole(document.body.dataset.activeRole || 'student');
-    document.querySelectorAll('.role-toggle-btn').forEach(button => button.addEventListener('click', () => {
-      window.setTimeout(() => isolateRole(button.dataset.role), 0);
-    }));
+    document.querySelectorAll('.role-toggle-btn').forEach(button => {
+      button.addEventListener('click', () => isolateRole(button.dataset.role), true);
+    });
     new MutationObserver(() => isolateRole(document.body.dataset.activeRole || 'student'))
       .observe(document.body, { attributes: true, attributeFilter: ['data-active-role'] });
   }
