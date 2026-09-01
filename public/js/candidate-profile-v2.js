@@ -1,5 +1,5 @@
 (() => {
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[ch]));
   const safeUrl = value => { try { const url = new URL(String(value || '')); return url.protocol === 'https:' ? url.href : ''; } catch (_) { return ''; } };
   const statusBadge = item => {
     const status = item?.verification_status;
@@ -76,8 +76,8 @@
   }
 
   function correctionSection() {
-    const fields = ['Personal details','Contact details','Academic / CGPA','Backlogs','Resume','Skills','Internships','Certificates','Projects','Research papers','Activities'];
-    return `<section class="candidate-section candidate-correction-panel"><div class="candidate-section-head"><h3>Request profile correction</h3><span>TPC action</span></div><p style="color:var(--text-muted);font-size:.78rem;margin:0 0 .75rem">Select the incorrect sections and tell the student exactly what must be corrected.</p><form id="observerCorrectionForm"><div class="correction-check-grid">${fields.map(field=>`<label><input type="checkbox" name="correctionField" value="${esc(field)}"> ${esc(field)}</label>`).join('')}</div><label class="form-label" for="observerCorrectionMessage">Correction description</label><textarea id="observerCorrectionMessage" class="form-textarea" rows="3" minlength="5" maxlength="1000" placeholder="Explain exact issue and expected correction." required></textarea><div id="observerCorrectionError" class="form-error" role="alert"></div><button id="observerCorrectionSubmit" class="btn btn-primary" type="submit">Send correction request</button></form></section>`;
+    const fields = ['Personal details','Contact details','Backlogs','Resume','Skills','Internships','Certificates','Projects','Research papers','Activities'];
+    return `<section class="candidate-section candidate-correction-panel"><div class="candidate-section-head"><h3>Request profile correction</h3><span>TPC action</span></div><p style="color:var(--text-muted);font-size:.78rem;margin:0 0 .75rem">Select the incorrect student-managed sections and explain what must be corrected. College academic values are handled by staff, not by the student.</p><form id="observerCorrectionForm"><div class="correction-check-grid">${fields.map(field=>`<label><input type="checkbox" name="correctionField" value="${esc(field)}"> ${esc(field)}</label>`).join('')}</div><label class="form-label" for="observerCorrectionMessage">Correction description</label><textarea id="observerCorrectionMessage" class="form-textarea" rows="3" minlength="5" maxlength="1000" placeholder="Explain exact issue and expected correction." required></textarea><div id="observerCorrectionError" class="form-error" role="alert"></div><button id="observerCorrectionSubmit" class="btn btn-primary" type="submit">Send correction request</button></form></section>`;
   }
 
   function installAdminOverride() {
@@ -86,7 +86,7 @@
       const student = typeof allStudentsData !== 'undefined' ? allStudentsData.find(item => item.id === studentId) : null;
       if (!student) return;
       const title = document.getElementById('modalStudentName');
-      if (title) title.textContent = `${student.name || 'Student'} · ${student.prn || ''}`;
+      if (title) title.textContent = 'Student profile';
       const content = document.getElementById('modalContent');
       if (content) content.innerHTML = renderProfile(student, 'admin');
       document.getElementById('studentDetailModal')?.classList.add('active');
@@ -100,7 +100,7 @@
       if (!student) return;
       observerState.selectedStudent = student;
       const title = document.getElementById('observerModalTitle');
-      if (title) title.textContent = `${student.name || 'Student'} · ${student.prn || ''}`;
+      if (title) title.textContent = 'Student profile';
       const body = document.getElementById('observerModalBody');
       if (body) body.innerHTML = renderProfile(student, 'observer');
       const form = document.getElementById('observerCorrectionForm');
