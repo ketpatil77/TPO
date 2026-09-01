@@ -6,4 +6,17 @@ function protectCollegeAcademics(req, _res, next) {
     next();
 }
 
-module.exports = { protectCollegeAcademics };
+function blockAcademicVerification(req, res, next) {
+    if (req.method === 'PUT' && /^\/evidence\/academics\//.test(req.path)) {
+        return res.status(409).json({
+            success: false,
+            error: {
+                code: 'COLLEGE_ACADEMICS_AUTHORITATIVE',
+                message: 'CGPA and semester academic records are supplied by the college and do not require profile-evidence verification.'
+            }
+        });
+    }
+    next();
+}
+
+module.exports = { protectCollegeAcademics, blockAcademicVerification };
