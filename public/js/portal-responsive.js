@@ -89,7 +89,7 @@
         }
 
         if (document.body.classList.contains('unified-auth-shell')) {
-            loadScript('/js/login-autofill.js?v=20260901-1', 'login-autofill');
+            loadScript('/js/login-autofill.js?v=20260901-2', 'login-autofill');
         }
 
         document.getElementById('notificationGateSignOut')?.addEventListener('click', () => document.getElementById('logoutBtn')?.click());
@@ -100,13 +100,10 @@
             const researchList = document.getElementById('researchList');
             if (researchList) new MutationObserver(compactResearchCards).observe(researchList, { childList:true });
 
-            loadScript('/js/competitions.js?v=20260901-4', 'competitions-module', () => {
-                loadCompactRecordStyles();
-                loadScript('/js/profile-ranking.js?v=20260901-3', 'profile-ranking-module');
-                loadScript('/js/evidence-status-ui.js?v=20260901-2', 'evidence-status-ui', () => {
-                    loadScript('/js/college-academics-ui.js?v=20260901-1', 'college-academics-ui');
-                });
-            });
+            loadScript('/js/competitions.js?v=20260901-4', 'competitions-module');
+            loadScript('/js/profile-ranking.js?v=20260901-3', 'profile-ranking-module');
+            loadScript('/js/evidence-status-ui.js?v=20260901-2', 'evidence-status-ui');
+            loadScript('/js/college-academics-ui.js?v=20260901-1', 'college-academics-ui');
         }
 
         if (document.body.classList.contains('admin-dashboard-page')) {
@@ -118,10 +115,9 @@
         }
 
         if (document.body.classList.contains('admin-dashboard-page') || document.body.classList.contains('observer-shell')) {
-            loadScript('/js/candidate-profile-v2.js?v=20260901-1', 'candidate-profile-v2-js');
-            loadScript('/js/competition-review.js?v=20260901-1', 'competition-review-module', () => {
-                loadScript('/js/evidence-review.js?v=20260901-2', 'evidence-review-module');
-            });
+            loadScript('/js/candidate-profile-v2.js?v=20260901-2', 'candidate-profile-v2-js');
+            loadScript('/js/competition-review.js?v=20260901-1', 'competition-review-module');
+            loadScript('/js/evidence-review.js?v=20260901-3', 'evidence-review-module');
         }
     });
 })();
