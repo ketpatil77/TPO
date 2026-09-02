@@ -1,0 +1,359 @@
+/* Student Leaderboard v3 - hard mobile cleanup for hero, avatars, rows and pager. */
+
+/* The large next-rank card duplicates the compact target and makes the hero enormous. */
+#tab-ranking #rankingMySummary .rank-next-card {
+  display: none !important;
+}
+
+/* One avatar contract everywhere in the leaderboard. */
+#tab-ranking .leaderboard-avatar {
+  position: relative !important;
+  display: block !important;
+  overflow: hidden !important;
+  border-radius: 50% !important;
+  aspect-ratio: 1 / 1 !important;
+  flex: 0 0 auto !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+}
+
+#tab-ranking .leaderboard-avatar-fallback {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: inherit !important;
+}
+
+#tab-ranking .leaderboard-avatar img {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: inherit !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+}
+
+/* Keep the hero genuinely compact even if an older cached enhancement injects markup. */
+#tab-ranking .leaderboard-hero,
+#tab-ranking .leaderboard-my-mini {
+  min-height: 0 !important;
+}
+
+@media (max-width: 760px) {
+  #tab-ranking .leaderboard-shell {
+    gap: 10px !important;
+  }
+
+  #tab-ranking .leaderboard-hero {
+    grid-template-columns: minmax(0, 1fr) 94px !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    border-top-width: 2px !important;
+  }
+
+  #tab-ranking .leaderboard-hero-copy {
+    min-width: 0 !important;
+  }
+
+  #tab-ranking .leaderboard-titleline {
+    gap: 7px !important;
+    align-items: center !important;
+  }
+
+  #tab-ranking .leaderboard-title-icon {
+    width: 31px !important;
+    height: 31px !important;
+    min-width: 31px !important;
+    border-radius: 10px !important;
+    font-size: 14px !important;
+  }
+
+  #tab-ranking .leaderboard-hero .eyebrow {
+    font-size: 9px !important;
+    line-height: 1.1 !important;
+    letter-spacing: .04em !important;
+  }
+
+  #tab-ranking .leaderboard-hero h2 {
+    margin: 2px 0 0 !important;
+    font-size: 17px !important;
+    line-height: 1.05 !important;
+  }
+
+  #tab-ranking .leaderboard-hero p,
+  #tab-ranking .leaderboard-motto {
+    display: none !important;
+  }
+
+  #tab-ranking .leaderboard-my-mini {
+    width: 94px !important;
+    min-width: 94px !important;
+    padding: 7px 6px !important;
+    border-radius: 11px !important;
+    text-align: center !important;
+  }
+
+  #tab-ranking .leaderboard-my-mini span,
+  #tab-ranking .leaderboard-my-mini small {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+  }
+
+  #tab-ranking .leaderboard-my-mini strong {
+    margin: 1px 0 !important;
+    font-size: 20px !important;
+    line-height: 1 !important;
+  }
+
+  #tab-ranking .leaderboard-mini-target {
+    margin-top: 4px !important;
+    padding-top: 4px !important;
+    font-size: 8px !important;
+  }
+
+  /* Filters should breathe without turning into a giant block. */
+  #tab-ranking .leaderboard-toolbar {
+    grid-template-columns: 1fr 1fr !important;
+    min-height: 0 !important;
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+
+  #tab-ranking .leaderboard-toolbar .leaderboard-scopes,
+  #tab-ranking .leaderboard-toolbar #rankingRefresh {
+    grid-column: 1 / -1 !important;
+  }
+
+  #tab-ranking .leaderboard-scopes {
+    gap: 6px !important;
+  }
+
+  #tab-ranking .leaderboard-scope {
+    padding: 9px 7px !important;
+    font-size: 12px !important;
+  }
+
+  #tab-ranking .leaderboard-toolbar .form-label {
+    margin-bottom: 4px !important;
+    font-size: 11px !important;
+  }
+
+  #tab-ranking .leaderboard-toolbar .form-select {
+    min-height: 42px !important;
+    padding: 8px 10px !important;
+    font-size: 14px !important;
+  }
+
+  #tab-ranking .leaderboard-toolbar #rankingRefresh {
+    min-height: 42px !important;
+  }
+
+  /* Podium: preserve the three-card layout but keep photos fully inside circles. */
+  #tab-ranking .leaderboard-podium {
+    gap: 7px !important;
+    align-items: end !important;
+  }
+
+  #tab-ranking .leaderboard-podium-card {
+    min-width: 0 !important;
+    min-height: 148px !important;
+    padding: 12px 5px 9px !important;
+    border-radius: 15px !important;
+  }
+
+  #tab-ranking .leaderboard-podium-card.first {
+    min-height: 160px !important;
+  }
+
+  #tab-ranking .leaderboard-podium-card .leaderboard-avatar {
+    width: 52px !important;
+    height: 52px !important;
+    flex-basis: 52px !important;
+    margin: 12px auto 7px !important;
+  }
+
+  #tab-ranking .leaderboard-podium-card.first .leaderboard-avatar {
+    width: 58px !important;
+    height: 58px !important;
+    flex-basis: 58px !important;
+  }
+
+  #tab-ranking .leaderboard-podium-card h3 {
+    width: 100% !important;
+    margin: 3px 0 !important;
+    padding: 0 2px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 12px !important;
+    line-height: 1.15 !important;
+  }
+
+  #tab-ranking .leaderboard-podium-card p {
+    margin: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 10px !important;
+  }
+
+  #tab-ranking .leaderboard-podium-card .leaderboard-podium-points {
+    margin-top: 5px !important;
+    font-size: 13px !important;
+  }
+
+  /* Compact list row: rank | avatar+student | points. */
+  #tab-ranking .leaderboard-entry-main {
+    grid-template-columns: 32px minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-height: 70px !important;
+    padding: 11px 11px 7px !important;
+  }
+
+  #tab-ranking .leaderboard-entry-main > .leaderboard-cell.branch,
+  #tab-ranking .leaderboard-entry-main > .leaderboard-cell.year {
+    display: none !important;
+  }
+
+  #tab-ranking .leaderboard-rankno {
+    align-self: center !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
+  }
+
+  #tab-ranking .leaderboard-student {
+    display: grid !important;
+    grid-template-columns: 46px minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+  }
+
+  #tab-ranking .leaderboard-student .leaderboard-avatar {
+    width: 46px !important;
+    height: 46px !important;
+    flex-basis: 46px !important;
+    margin: 0 !important;
+  }
+
+  #tab-ranking .leaderboard-student-copy {
+    min-width: 0 !important;
+  }
+
+  #tab-ranking .leaderboard-student-copy strong {
+    display: block !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+  }
+
+  #tab-ranking .leaderboard-student-copy small {
+    display: block !important;
+    margin-top: 3px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+  }
+
+  #tab-ranking .leaderboard-points-cell {
+    align-self: center !important;
+    padding-left: 4px !important;
+    white-space: nowrap !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
+  }
+
+  /* Put the explanation under the name, never across the avatar. */
+  #tab-ranking .leaderboard-entry-details {
+    padding: 0 11px 11px 109px !important;
+    margin-top: -2px !important;
+  }
+
+  #tab-ranking .leaderboard-entry-details > summary {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    min-height: 28px !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Pager gets its own clear footer instead of fighting the last row for space. */
+  #tab-ranking .leaderboard-pager {
+    position: relative !important;
+    z-index: 1 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+    justify-items: stretch !important;
+    padding: 12px 14px 14px !important;
+    border-top: 1px solid var(--border-color) !important;
+  }
+
+  #tab-ranking .leaderboard-pager[hidden] {
+    display: none !important;
+  }
+
+  #tab-ranking .leaderboard-pager small {
+    order: -1 !important;
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+  }
+
+  #tab-ranking .leaderboard-pager .btn {
+    width: 100% !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 10px 14px !important;
+    border-radius: 12px !important;
+    font-size: 13px !important;
+  }
+
+  #tab-ranking .leaderboard-pager .btn[hidden] {
+    display: none !important;
+  }
+
+  #tab-ranking .leaderboard-personal-bar {
+    margin-top: 10px !important;
+    padding: 11px !important;
+    gap: 9px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  #tab-ranking .leaderboard-hero {
+    grid-template-columns: minmax(0, 1fr) 88px !important;
+  }
+
+  #tab-ranking .leaderboard-my-mini {
+    width: 88px !important;
+    min-width: 88px !important;
+  }
+
+  #tab-ranking .leaderboard-entry-details {
+    padding-left: 100px !important;
+  }
+}
