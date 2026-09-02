@@ -30,7 +30,7 @@ test('responsive rules prevent clipped tabs, narrow semester fields and sticky f
     assert.match(read('public/css/styles.css'),/\.admin-dashboard-page[^}]+--workspace-accent:#0f766e/s);
     assert.match(read('public/css/styles.css'),/\.observer-shell[^}]+--workspace-accent:#1d5fa7/s);
     assert.match(read('public/css/styles.css'),/\.admin-dashboard-page \.tabs-nav \.tab-btn\.active/);
-    assert.match(read('public/css/styles.css'),/\.observer-shell \.observer-tabs \.tab-btn\.active/);
+    assert.match(read('public/css/styles.css'),/\.observer-shell \.tabs-nav \.tab-btn\.active/);
 });
 test('notification gate has an escape route and small Turnstile slots use compact size', () => {
     assert.match(read('public/dashboard.html'),/id="notificationGateSignOut"/);
