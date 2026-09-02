@@ -16,24 +16,21 @@ function bucket() {
 }
 
 function detectImageMime(buffer) {
-    if (!buffer || buffer.length < 12) return null;
+    if (!buffer || buffer.length < 8) return null;
     if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return 'image/jpeg';
     if (
         buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47 &&
         buffer[4] === 0x0d && buffer[5] === 0x0a && buffer[6] === 0x1a && buffer[7] === 0x0a
     ) return 'image/png';
-    if (buffer.subarray(0, 4).toString('ascii') === 'RIFF' && buffer.subarray(8, 12).toString('ascii') === 'WEBP') return 'image/webp';
     return null;
 }
 
 function extensionForMime(mime) {
-    if (mime === 'image/png') return 'png';
-    if (mime === 'image/jpeg') return 'jpg';
-    return 'webp';
+    return mime === 'image/png' ? 'png' : 'jpg';
 }
 
 function acceptEvidence(req, res, next) {
-    upload.single('certificate')(req, res, error => {
+    upload.single('evidence')(req, res, error => {
         if (error?.code === 'LIMIT_FILE_SIZE') {
             return res.status(413).json({ success: false, error: { code: 'CERTIFICATE_TOO_LARGE', message: 'Optimized certificate image must be 400 KB or smaller.' } });
         }
@@ -55,22 +52,27 @@ async function ownedCertificate(studentId, certificateId) {
     return db.selectOne('certificates', { id: certificateId, student_id: studentId });
 }
 
+async function studentCertificates(studentId) {
+    return db.select('certificates', { student_id: studentId });
+}
+
 async function studentUsage(studentId, excludeCertificateId = null) {
-    const rows = await db.select('certificates', { student_id: studentId });
+    const rows = await studentCertificates(studentId);
     return (rows || []).reduce((sum, item) => {
         if (excludeCertificateId && item.id === excludeCertificateId) return sum;
-        return sum + Number(item.evidence_size_bytes || 0);
+        return sum + Number(item.evidence_bytes || 0);
     }, 0);
 }
 
 router.get('/certificate-evidence/status', async (req, res) => {
     try {
-        const rows = await db.select('certificates', { student_id: req.student.studentId });
-        const used = (rows || []).reduce((sum, item) => sum + Number(item.evidence_size_bytes || 0), 0);
+        const rows = await studentCertificates(req.student.studentId);
+        const used = (rows || []).reduce((sum, item) => sum + Number(item.evidence_bytes || 0), 0);
         res.json({
             success: true,
             data: {
                 configured: Boolean(bucket()),
+                storage_ready: Boolean(bucket()),
                 max_file_bytes: MAX_CERTIFICATE_BYTES,
                 quota_bytes: STUDENT_CERTIFICATE_QUOTA_BYTES,
                 used_bytes: used,
@@ -83,7 +85,7 @@ router.get('/certificate-evidence/status', async (req, res) => {
     }
 });
 
-router.post('/certificates/:id/evidence', acceptEvidence, async (req, res) => {
+router.post('/certificate-evidence/:id', acceptEvidence, async (req, res) => {
     const evidenceBucket = bucket();
     if (!evidenceBucket) return res.status(503).json({ success: false, error: { code: 'VAULT_NOT_CONFIGURED', message: 'Certificate Vault R2 storage is not configured yet.' } });
 
@@ -94,7 +96,12 @@ router.post('/certificates/:id/evidence', acceptEvidence, async (req, res) => {
         if (!req.file?.buffer?.length) return res.status(400).json({ success: false, error: { code: 'IMAGE_REQUIRED', message: 'Choose a JPG, JPEG or PNG certificate image.' } });
 
         const mime = detectImageMime(req.file.buffer);
-        if (!mime) return res.status(400).json({ success: false, error: { code: 'INVALID_IMAGE', message: 'Only valid JPG, JPEG or PNG source images are supported. PDFs are not accepted.' } });
+        if (!mime) {
+            return res.status(400).json({
+                success: false,
+                error: { code: 'INVALID_IMAGE', message: 'Only real JPG, JPEG or PNG images are accepted. PDF files are not supported.' }
+            });
+        }
 
         const usedWithoutCurrent = await studentUsage(studentId, certificate.id);
         if (usedWithoutCurrent + req.file.size > STUDENT_CERTIFICATE_QUOTA_BYTES) {
@@ -106,8 +113,8 @@ router.post('/certificates/:id/evidence', acceptEvidence, async (req, res) => {
             return res.json({ success: true, message: 'This proof is already uploaded.', data: { certificate } });
         }
 
-        const duplicateRows = await db.select('certificates', { student_id: studentId });
-        const duplicate = (duplicateRows || []).find(item => item.id !== certificate.id && item.evidence_sha256 === sha256);
+        const rows = await studentCertificates(studentId);
+        const duplicate = (rows || []).find(item => item.id !== certificate.id && item.evidence_sha256 === sha256);
         if (duplicate) {
             return res.status(409).json({ success: false, error: { code: 'DUPLICATE_CERTIFICATE_PROOF', message: 'The same certificate image is already attached to another certificate record.' } });
         }
@@ -122,8 +129,8 @@ router.post('/certificates/:id/evidence', acceptEvidence, async (req, res) => {
         try {
             updated = await db.update('certificates', { id: certificate.id, student_id: studentId }, {
                 evidence_path: objectPath,
-                evidence_mime_type: mime,
-                evidence_size_bytes: req.file.size,
+                evidence_mime: mime,
+                evidence_bytes: req.file.size,
                 evidence_sha256: sha256,
                 evidence_uploaded_at: new Date().toISOString()
             });
@@ -143,7 +150,7 @@ router.post('/certificates/:id/evidence', acceptEvidence, async (req, res) => {
     }
 });
 
-router.get('/certificates/:id/evidence', async (req, res) => {
+router.get('/certificate-evidence/:id', async (req, res) => {
     const evidenceBucket = bucket();
     if (!evidenceBucket) return res.status(503).json({ success: false, error: { code: 'VAULT_NOT_CONFIGURED', message: 'Certificate Vault R2 storage is not configured yet.' } });
 
@@ -154,7 +161,7 @@ router.get('/certificates/:id/evidence', async (req, res) => {
         if (!object) return res.status(404).json({ success: false, error: { code: 'EVIDENCE_MISSING', message: 'Certificate proof file is unavailable.' } });
 
         const bytes = await object.arrayBuffer();
-        res.setHeader('Content-Type', certificate.evidence_mime_type || object.httpMetadata?.contentType || 'image/jpeg');
+        res.setHeader('Content-Type', certificate.evidence_mime || object.httpMetadata?.contentType || 'image/jpeg');
         res.setHeader('Content-Length', String(bytes.byteLength));
         res.setHeader('Cache-Control', 'private, no-store, max-age=0');
         res.setHeader('Pragma', 'no-cache');
@@ -167,7 +174,7 @@ router.get('/certificates/:id/evidence', async (req, res) => {
     }
 });
 
-router.delete('/certificates/:id/evidence', async (req, res) => {
+router.delete('/certificate-evidence/:id', async (req, res) => {
     try {
         const studentId = req.student.studentId;
         const certificate = await ownedCertificate(studentId, req.params.id);
@@ -175,8 +182,8 @@ router.delete('/certificates/:id/evidence', async (req, res) => {
         const oldPath = certificate.evidence_path;
         await db.update('certificates', { id: certificate.id, student_id: studentId }, {
             evidence_path: null,
-            evidence_mime_type: null,
-            evidence_size_bytes: null,
+            evidence_mime: null,
+            evidence_bytes: null,
             evidence_sha256: null,
             evidence_uploaded_at: null
         });
