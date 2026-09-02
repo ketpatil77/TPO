@@ -1,7 +1,7 @@
 (() => {
   if (!document.body.classList.contains('admin-dashboard-page')) return;
 
-  const state = { page: 1, pageSize: 50, loading: false, timer: null, latestId: null, initialized: false };
+  const state = { page: 1, pageSize: 50, loading: false, timer: null, latestId: null, initialized: false, retries: 0 };
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const token = () => localStorage.getItem('tpo_admin_token');
 
@@ -9,23 +9,34 @@
     if (state.initialized) return;
     const tabs = document.querySelector('.admin-tabs');
     const dashboard = document.getElementById('adminDashboard');
-    if (!tabs || !dashboard || typeof window.switchAdminTab !== 'function') return;
+    if (!tabs || !dashboard || typeof window.switchAdminTab !== 'function') {
+      if (state.retries++ < 60) setTimeout(install, 100);
+      return;
+    }
     state.initialized = true;
 
-    const button = document.createElement('button');
-    button.className = 'tab-btn';
-    button.type = 'button';
-    button.setAttribute('role', 'tab');
-    button.setAttribute('aria-selected', 'false');
-    button.setAttribute('aria-controls', 'tab-student-activity');
-    button.textContent = 'Live activity';
-    const auditButton = tabs.querySelector('[aria-controls="tab-audit-logs"]');
-    (auditButton || tabs.lastElementChild)?.after(button);
+    let button = tabs.querySelector('[aria-controls="tab-student-activity"]');
+    if (!button) {
+      button = document.createElement('button');
+      button.className = 'tab-btn';
+      button.type = 'button';
+      button.setAttribute('role', 'tab');
+      button.setAttribute('aria-selected', 'false');
+      button.setAttribute('aria-controls', 'tab-student-activity');
+      button.textContent = 'Live activity';
+      const auditButton = tabs.querySelector('[aria-controls="tab-audit-logs"]');
+      (auditButton || tabs.lastElementChild)?.after(button);
+    }
 
-    const panel = document.createElement('div');
-    panel.id = 'tab-student-activity';
-    panel.className = 'tab-content';
-    panel.setAttribute('role', 'tabpanel');
+    let panel = document.getElementById('tab-student-activity');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'tab-student-activity';
+      panel.className = 'tab-content';
+      panel.setAttribute('role', 'tabpanel');
+      dashboard.appendChild(panel);
+    }
+
     panel.innerHTML = `
       <div class="activity-feed-shell">
         <section class="glass-card activity-feed-hero">
@@ -50,19 +61,18 @@
         <div id="activityFeed" class="activity-feed-list" aria-live="polite"><div class="glass-card activity-empty">Loading today's activity…</div></div>
         <div class="activity-feed-footer"><button id="activityMore" class="btn btn-secondary btn-sm" type="button" hidden>Load more</button></div>
       </div>`;
-    dashboard.appendChild(panel);
 
-    button.addEventListener('click', () => {
+    button.onclick = () => {
       window.switchAdminTab('student-activity', button);
       state.page = 1;
       load(false);
       startPolling();
-    });
-    document.getElementById('activityApply').addEventListener('click', () => { state.page = 1; load(false); });
-    document.getElementById('activityReset').addEventListener('click', resetFilters);
-    document.getElementById('activityMore').addEventListener('click', () => { state.page += 1; load(true); });
-    ['activityRange','activityBranch','activityYear','activityCategory'].forEach(id => document.getElementById(id).addEventListener('change', () => { state.page = 1; load(false); }));
-    document.getElementById('activityStudent').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); state.page = 1; load(false); } });
+    };
+    document.getElementById('activityApply').onclick = () => { state.page = 1; load(false); };
+    document.getElementById('activityReset').onclick = resetFilters;
+    document.getElementById('activityMore').onclick = () => { state.page += 1; load(true); };
+    ['activityRange','activityBranch','activityYear','activityCategory'].forEach(id => document.getElementById(id).onchange = () => { state.page = 1; load(false); });
+    document.getElementById('activityStudent').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); state.page = 1; load(false); } };
     document.addEventListener('visibilitychange', () => document.hidden ? stopPolling() : (panel.classList.contains('active') && startPolling()));
   }
 
