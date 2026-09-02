@@ -112,6 +112,7 @@
             loadScript('/js/leaderboard-target-inline.js?v=20260902-1', 'leaderboard-target-inline-js');
             loadScript('/js/college-academics-ui.js?v=20260901-2', 'college-academics-ui');
             loadStylesheet('/css/student-engagement-v1.css?v=20260902-2', 'student-engagement-v1');
+            loadStylesheet('/css/student-leaderboard-v3.css?v=20260902-1', 'student-leaderboard-v3');
             loadScript('/js/student-engagement-v3.js?v=20260902-1', 'student-engagement-v3-js');
             loadStylesheet('/css/profile-declarations.css?v=20260902-1', 'profile-declarations');
             loadScript('/js/profile-declarations-ui.js?v=20260902-2', 'profile-declarations-ui');
