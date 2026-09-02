@@ -1,0 +1,35 @@
+name: Certificate Vault Branch Check
+
+on:
+  push:
+    branches:
+      - feature/certificate-vault-r2
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Certificate Vault syntax checks
+        run: |
+          node --check worker/index.mjs
+          node --check src/server.js
+          node --check src/routes/certificateEvidence.js
+          node --check public/js/certificate-vault-ui.js
+          node --check public/js/portal-responsive.js
+
+      - name: Existing test suite
+        run: npm test
