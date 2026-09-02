@@ -19,7 +19,6 @@ const freeLearningRoutes = require('./routes/freeLearning');
 const competitionReviewRoutes = require('./routes/competitionReview');
 const profileRankingViewRoutes = require('./routes/profileRankingView');
 const rosterRoutes = require('./routes/roster');
-const internalRankPushRoutes = require('./routes/internalRankPush');
 
 // Admin Routes (Part 2)
 const adminAuthRoutes = require('./routes/adminAuth');
@@ -115,7 +114,6 @@ app.use('/api/observer/auth', observerAuthRoutes);
 app.use('/api/observer/profile-completion', profileCompletionRoutes.observer);
 app.use('/api/observer/competitions', competitionReviewRoutes.observer);
 app.use('/api/observer', observerRoutes);
-app.use('/api/internal/rank-push', internalRankPushRoutes);
 
 // View Routing - Student
 if (!isCloudflareWorker) app.get('/', (req, res) => {
