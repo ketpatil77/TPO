@@ -49,9 +49,11 @@ test('professional links endpoint is student-only and UI is loaded globally on s
     await request(app).get('/api/student/profile-links').expect(401);
     const loader = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'portal-responsive.js'), 'utf8');
     const ui = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'profile-links.js'), 'utf8');
-    assert.match(loader, /profile-links\.js\?v=20260902-1/);
+    assert.match(loader, /profile-links\.js\?v=20260902-2/);
     assert.match(ui, /Professional links/);
     assert.match(ui, /editGithubUrl/);
     assert.match(ui, /editPortfolioUrl/);
     assert.match(ui, /overviewProfileLinks/);
+    assert.match(ui, /function overviewNeedsSync/);
+    assert.doesNotMatch(ui, /querySelectorAll\('\[data-professional-link\]'\)\.forEach\(node => node\.remove\(\)\)/);
 });
