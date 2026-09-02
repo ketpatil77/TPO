@@ -1,6 +1,7 @@
 (() => {
     if (!document.body.classList.contains('observer-shell')) return;
 
+    const STUDENT_PAGE_SIZE = 20;
     const sections = () => [
         document.getElementById('observerTab-students'),
         document.getElementById('observerTab-roster')
@@ -17,10 +18,10 @@
         if (!section?.classList.contains('active')) return;
 
         const desktop = window.innerWidth >= 900;
-        if (!desktop) {
+        if (!desktop || section.id === 'observerTab-students') {
             section.style.removeProperty('--tpc-active-section-height');
             section.style.removeProperty('height');
-            section.dataset.tpcViewportFit = 'mobile-natural';
+            section.dataset.tpcViewportFit = section.id === 'observerTab-students' ? 'twenty-row-natural' : 'mobile-natural';
             return;
         }
 
@@ -42,6 +43,11 @@
     function scheduleFit() {
         cancelAnimationFrame(frame);
         frame = requestAnimationFrame(fitActive);
+    }
+
+    function updateDirectoryFocus() {
+        const active = document.getElementById('observerTab-students')?.classList.contains('active');
+        document.body.classList.toggle('tpc-directory-focus', Boolean(active));
     }
 
     function observeLayoutChanges() {
@@ -106,7 +112,14 @@
         </tr>`;
     }
 
-    async function enhancedLoadStudents() {
+    function scrollDirectoryToTop() {
+        const table = document.querySelector('#observerTab-students .table-shell');
+        if (!table) return;
+        const top = table.getBoundingClientRect().top + window.scrollY - 8;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }
+
+    async function enhancedLoadStudents({ returnToTop = false } = {}) {
         if (typeof observerState === 'undefined' || typeof requestJson !== 'function') return;
         const branch = document.getElementById('observerBranch');
         const year = document.getElementById('observerYear');
@@ -116,7 +129,7 @@
 
         const params = new URLSearchParams({
             page: observerState.studentPage,
-            pageSize: 25,
+            pageSize: STUDENT_PAGE_SIZE,
             branch: branch.value,
             year: year.value,
             search: search.value.trim()
@@ -132,9 +145,10 @@
             body.dataset.tpcEnhanced = 'true';
             renderPagination('studentPagination', data.page, data.totalPages, page => {
                 observerState.studentPage = page;
-                enhancedLoadStudents();
+                enhancedLoadStudents({ returnToTop: true });
             });
             scheduleFit();
+            if (returnToTop) requestAnimationFrame(scrollDirectoryToTop);
         } catch (error) {
             body.innerHTML = `<tr><td colspan="6" class="empty-cell">${escapeHtml(error.message || 'Unable to load student profiles.')}</td></tr>`;
         } finally {
@@ -179,11 +193,15 @@
 
     function boot() {
         scheduleFit();
+        updateDirectoryFocus();
         observeLayoutChanges();
         installDirectoryExperience();
 
         document.querySelector('.observer-tabs')?.addEventListener('click', event => {
-            if (event.target.closest('.tab-btn')) setTimeout(scheduleFit, 0);
+            if (event.target.closest('.tab-btn')) setTimeout(() => {
+                updateDirectoryFocus();
+                scheduleFit();
+            }, 0);
         });
 
         window.addEventListener('resize', scheduleFit, { passive: true });
