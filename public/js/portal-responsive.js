@@ -114,6 +114,7 @@
             loadScript('/js/profile-ranking.js?v=20260901-6', 'profile-ranking-module');
             loadScript('/js/college-academics-ui.js?v=20260901-2', 'college-academics-ui');
             loadStylesheet('/css/student-engagement-v1.css?v=20260902-2', 'student-engagement-v1');
+            loadScript('/js/rank-target-guard.js?v=20260902-1', 'rank-target-guard-js');
             loadScript('/js/student-engagement-v2.js?v=20260902-2', 'student-engagement-v2-js');
             loadStylesheet('/css/profile-declarations.css?v=20260902-1', 'profile-declarations');
             loadScript('/js/profile-declarations-ui.js?v=20260902-1', 'profile-declarations-ui');
