@@ -30,6 +30,7 @@ jobs:
           node --check src/server.js
           node --check src/routes/profileRankingView.js
           node --check src/routes/profileDeclarations.js
+          node --check src/utils/profileCompletionModel.js
           node --check public/js/profile-ranking.js
           node --check public/js/portal-responsive.js
           node --check public/js/portal-back-guard.js
