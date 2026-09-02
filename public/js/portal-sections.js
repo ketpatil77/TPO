@@ -13,6 +13,35 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        if (document.body.classList.contains('admin-dashboard-page')) {
+            const tabs = document.querySelector('.admin-tabs');
+            if (tabs && !tabs.querySelector('[aria-controls="tab-student-activity"]')) {
+                const button = document.createElement('button');
+                button.className = 'tab-btn';
+                button.type = 'button';
+                button.setAttribute('role', 'tab');
+                button.setAttribute('aria-selected', 'false');
+                button.setAttribute('aria-controls', 'tab-student-activity');
+                button.textContent = 'Live activity';
+                const auditButton = tabs.querySelector('[aria-controls="tab-audit-logs"]');
+                (auditButton || tabs.lastElementChild)?.after(button);
+            }
+            if (!document.querySelector('link[data-student-activity-feed]')) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = '/css/student-activity-feed.css?v=20260902-live2';
+                link.dataset.studentActivityFeed = 'true';
+                document.head.appendChild(link);
+            }
+            if (!document.querySelector('script[data-student-activity-feed]')) {
+                const script = document.createElement('script');
+                script.src = '/js/student-activity-feed.js?v=20260902-live2';
+                script.defer = true;
+                script.dataset.studentActivityFeed = 'true';
+                document.body.appendChild(script);
+            }
+        }
+
         const scopeBadge = document.querySelector('.observer-identity .readonly-pill');
         if (scopeBadge) scopeBadge.textContent = 'Department access';
         for (const [id, name] of [['adminAvatarFile','Administrator profile picture'],['observerAvatarFile','TPC profile picture'],['csvFileInput','Excel or CSV roster file']]) {
