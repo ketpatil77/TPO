@@ -35,6 +35,7 @@ jobs:
           node --check public/js/portal-back-guard.js
           node --check public/js/student-engagement-v2.js
           node --check public/js/profile-declarations-ui.js
+          node --check public/js/tpc-layout-v2.js
           node --check public/js/dob-view-controls.js
       - name: Cloudflare dry run
         run: npm run deploy:dry-run
