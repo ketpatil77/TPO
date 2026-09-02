@@ -1,0 +1,70 @@
+/* Student Leaderboard v2 - compact, stable, photo-aware */
+#tab-ranking [hidden]{display:none!important;}
+#tab-ranking .leaderboard-shell{gap:.8rem;}
+#tab-ranking .leaderboard-shell.is-filtering .leaderboard-podium,
+#tab-ranking .leaderboard-shell.is-filtering .leaderboard-table-card{opacity:.78;transform:translateY(1px);}
+#tab-ranking .leaderboard-podium,#tab-ranking .leaderboard-table-card{transition:opacity .14s ease,transform .14s ease;}
+
+/* Hero: deliberately compact. */
+#tab-ranking .leaderboard-hero{grid-template-columns:minmax(0,1fr) 168px;min-height:0;padding:.72rem .9rem;gap:.75rem;border-top-width:2px;}
+#tab-ranking .leaderboard-titleline{gap:.5rem;}
+#tab-ranking .leaderboard-title-icon{width:34px;height:34px;border-radius:10px;font-size:.95rem;}
+#tab-ranking .leaderboard-hero h2{font-size:1.28rem;line-height:1.15;}
+#tab-ranking .leaderboard-hero .eyebrow{font-size:.62rem;}
+#tab-ranking .leaderboard-hero p{margin:.18rem 0 0;font-size:.76rem;line-height:1.35;max-width:680px;}
+#tab-ranking .leaderboard-motto{margin-top:.3rem;font-size:.68rem;}
+#tab-ranking .leaderboard-my-mini{min-width:0;width:168px;padding:.48rem .58rem;border-radius:11px;}
+#tab-ranking .leaderboard-my-mini span,#tab-ranking .leaderboard-my-mini small{font-size:.57rem;line-height:1.25;}
+#tab-ranking .leaderboard-my-mini strong{font-size:1.35rem;margin:.02rem 0;}
+#tab-ranking .leaderboard-mini-target{display:block;margin-top:.18rem;padding-top:.18rem;border-top:1px solid color-mix(in srgb,var(--border-color) 65%,transparent);color:var(--lb-gold);font-size:.55rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#tab-ranking .leaderboard-hero:after{font-size:5.5rem;bottom:-2.1rem;}
+
+/* Real profile photos with initials fallback. */
+#tab-ranking .leaderboard-avatar{position:relative;overflow:hidden;isolation:isolate;}
+#tab-ranking .leaderboard-avatar-fallback{position:absolute;inset:0;display:grid;place-items:center;z-index:0;}
+#tab-ranking .leaderboard-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:var(--surface-muted);}
+
+/* Filter toolbar remains the same height while switching. */
+#tab-ranking .leaderboard-toolbar{min-height:68px;padding:.62rem .8rem;gap:.5rem;}
+#tab-ranking .leaderboard-toolbar .form-select{min-height:38px;}
+
+/* 15-at-a-time pager. No infinite scroll. */
+#tab-ranking .leaderboard-pager{display:flex;align-items:center;justify-content:center;gap:.75rem;padding:.72rem;border-top:1px solid var(--border-color);background:color-mix(in srgb,var(--surface-muted) 55%,transparent);}
+#tab-ranking .leaderboard-pager .btn{padding:.48rem .8rem;font-size:.72rem;}
+#tab-ranking .leaderboard-pager small{color:var(--text-muted);font-size:.65rem;}
+
+@media(max-width:760px){
+ #tab-ranking .leaderboard-shell{gap:.6rem;}
+ #tab-ranking .leaderboard-hero{grid-template-columns:minmax(0,1fr) 102px;padding:.58rem .62rem;gap:.45rem;align-items:center;}
+ #tab-ranking .leaderboard-titleline{align-items:center;gap:.4rem;}
+ #tab-ranking .leaderboard-title-icon{width:29px;height:29px;border-radius:9px;font-size:.78rem;}
+ #tab-ranking .leaderboard-hero .eyebrow{font-size:.48rem;letter-spacing:.03em;}
+ #tab-ranking .leaderboard-hero h2{font-size:.92rem;line-height:1.05;}
+ #tab-ranking .leaderboard-hero p{display:none;}
+ #tab-ranking .leaderboard-motto{display:none;}
+ #tab-ranking .leaderboard-my-mini{width:102px;min-width:102px;padding:.38rem .35rem;}
+ #tab-ranking .leaderboard-my-mini span,#tab-ranking .leaderboard-my-mini small{font-size:.47rem;}
+ #tab-ranking .leaderboard-my-mini strong{font-size:1.08rem;}
+ #tab-ranking .leaderboard-mini-target{font-size:.46rem;margin-top:.12rem;padding-top:.12rem;}
+ #tab-ranking .leaderboard-toolbar{min-height:0;padding:.55rem;gap:.42rem;}
+ #tab-ranking .leaderboard-toolbar .form-label{font-size:.58rem;margin-bottom:.1rem;}
+ #tab-ranking .leaderboard-toolbar .form-select{min-height:36px;padding:.5rem .55rem;font-size:.7rem;}
+ #tab-ranking .leaderboard-podium-card{min-height:136px;padding:.65rem .25rem .48rem;}
+ #tab-ranking .leaderboard-podium-card.first{min-height:148px;}
+ #tab-ranking .leaderboard-podium-card .leaderboard-avatar{width:44px;height:44px;margin:.35rem auto .3rem;}
+ #tab-ranking .leaderboard-podium-card.first .leaderboard-avatar{width:50px;height:50px;}
+ #tab-ranking .leaderboard-podium-card h3{font-size:.66rem;}
+ #tab-ranking .leaderboard-podium-card .leaderboard-podium-points{font-size:.72rem;}
+ #tab-ranking .leaderboard-entry-main{min-height:54px;padding:.5rem .58rem;}
+ #tab-ranking .leaderboard-pager{position:relative;z-index:1;padding:.58rem;flex-direction:column;gap:.28rem;}
+ #tab-ranking .leaderboard-pager .btn{width:100%;min-height:38px;}
+ #tab-ranking .leaderboard-personal-bar{position:relative;bottom:auto;}
+}
+
+/* Never stack the hero vertically on narrow phones. */
+@media(max-width:390px){
+ #tab-ranking .leaderboard-hero{grid-template-columns:minmax(0,1fr) 94px;}
+ #tab-ranking .leaderboard-my-mini{display:block;width:94px;min-width:94px;text-align:center;}
+ #tab-ranking .leaderboard-toolbar{grid-template-columns:1fr 1fr;}
+ #tab-ranking .leaderboard-toolbar .leaderboard-scopes,#tab-ranking .leaderboard-toolbar #rankingRefresh{grid-column:1/-1;}
+}
