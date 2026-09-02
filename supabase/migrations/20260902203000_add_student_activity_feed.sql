@@ -76,7 +76,8 @@ BEGIN
            COALESCE(s.branch,row_new->>'branch',row_old->>'branch'),
            COALESCE(s.class,row_new->>'class',row_old->>'class'),
            COALESCE(s.year,row_new->>'year',row_old->>'year'),
-           lower(TG_OP),cat,TG_TABLE_NAME,COALESCE(row_new->>'id',row_old->>'id'),fields,safe_old,safe_new,
+           CASE TG_OP WHEN 'INSERT' THEN 'created' WHEN 'UPDATE' THEN 'updated' ELSE 'deleted' END,
+           cat,TG_TABLE_NAME,COALESCE(row_new->>'id',row_old->>'id'),fields,safe_old,safe_new,
            CASE WHEN TG_OP='UPDATE' THEN cat||' updated: '||array_to_string(fields,', ') WHEN TG_OP='INSERT' THEN cat||' added'||CASE WHEN label IS NOT NULL THEN ': '||label ELSE '' END ELSE cat||' removed'||CASE WHEN label IS NOT NULL THEN ': '||label ELSE '' END END,
            NOW());
     RETURN COALESCE(NEW,OLD);
