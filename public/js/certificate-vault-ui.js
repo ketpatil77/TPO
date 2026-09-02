@@ -13,13 +13,14 @@
         ? escapeHtml(value)
         : String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
 
-    function kb(bytes) { return `${Math.max(1, Math.round(Number(bytes || 0) / 1024))} KB`; }
+    const kb = bytes => `${Math.max(1, Math.round(Number(bytes || 0) / 1024))} KB`;
+    const mb = bytes => `${(Number(bytes || 0) / (1024 * 1024)).toFixed(1)} MB`;
 
     function loadStyles() {
         if (document.querySelector('link[data-certificate-vault-css]')) return;
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = '/css/certificate-vault.css?v=20260902-1';
+        link.href = '/css/certificate-vault.css?v=20260902-2';
         link.dataset.certificateVaultCss = 'true';
         document.head.appendChild(link);
     }
@@ -38,8 +39,9 @@
         block.innerHTML = `
             <label class="form-label" for="certEvidenceFile">Certificate image</label>
             <input id="certEvidenceFile" class="form-input" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png">
-            <div class="form-hint">JPG, JPEG or PNG only. Your browser optimizes it before upload; PDFs are not accepted.</div>
+            <div class="form-hint">JPG, JPEG or PNG only. No PDFs. The image is compressed on your phone before upload.</div>
             <div id="certEvidenceStatus" class="certificate-evidence-status">Choose a clear certificate image.</div>
+            <div id="certEvidenceQuota" class="certificate-evidence-quota"></div>
             <div id="certEvidencePreview" class="certificate-evidence-preview" hidden>
                 <img id="certEvidencePreviewImage" alt="Optimized certificate preview">
                 <div><strong id="certEvidencePreviewSize"></strong><small>Optimized locally before upload</small></div>
@@ -98,9 +100,7 @@
         });
     }
 
-    function canvasBlob(canvas, type, quality) {
-        return new Promise(resolve => canvas.toBlob(resolve, type, quality));
-    }
+    const canvasBlob = (canvas, quality) => new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
 
     async function compressCertificate(file) {
         if (!sourceAllowed(file)) throw new Error('Only JPG, JPEG or PNG certificate images are allowed.');
@@ -108,10 +108,11 @@
 
         const image = await loadImage(file);
         const originalLong = Math.max(image.naturalWidth, image.naturalHeight);
+        if (!originalLong) throw new Error('Could not read certificate image dimensions.');
         const dimensions = [1800, 1600, 1400].filter(size => size <= originalLong);
         if (!dimensions.length) dimensions.push(originalLong);
-        const qualities = [0.82, 0.76, 0.70, 0.64, 0.58, 0.52];
-        let fallback = null;
+        const qualities = [0.84, 0.78, 0.72, 0.66, 0.60, 0.54];
+        let bestUnderHardLimit = null;
 
         for (const maxSide of dimensions) {
             const scale = Math.min(1, maxSide / originalLong);
@@ -128,16 +129,15 @@
             context.drawImage(image, 0, 0, width, height);
 
             for (const quality of qualities) {
-                let blob = await canvasBlob(canvas, 'image/webp', quality);
-                if (!blob || blob.type !== 'image/webp') blob = await canvasBlob(canvas, 'image/jpeg', quality);
+                const blob = await canvasBlob(canvas, quality);
                 if (!blob) continue;
-                if (blob.size <= HARD_LIMIT_BYTES && (!fallback || blob.size > fallback.size)) fallback = blob;
+                if (blob.size <= HARD_LIMIT_BYTES && !bestUnderHardLimit) bestUnderHardLimit = blob;
                 if (blob.size <= TARGET_BYTES) return blob;
             }
         }
 
-        if (fallback && fallback.size <= HARD_LIMIT_BYTES) return fallback;
-        throw new Error('This image cannot be optimized below 400 KB without hurting readability. Crop unnecessary borders and try again.');
+        if (bestUnderHardLimit) return bestUnderHardLimit;
+        throw new Error('This image cannot be kept under 400 KB without reducing readability too far. Crop unnecessary borders and try again.');
     }
 
     async function handleFileChoice(event) {
@@ -151,11 +151,32 @@
             document.getElementById('certEvidencePreviewImage').src = previewUrl;
             document.getElementById('certEvidencePreviewSize').textContent = `${kb(file.size)} → ${kb(preparedBlob.size)}`;
             document.getElementById('certEvidencePreview').hidden = false;
-            setStatus(`Ready to upload · ${kb(preparedBlob.size)} optimized image`, 'success');
+            setStatus(`Ready to upload · ${kb(preparedBlob.size)} optimized JPEG`, 'success');
         } catch (error) {
             event.target.value = '';
             setStatus(error.message, 'error');
             if (typeof showToast === 'function') showToast(error.message, 'error');
+        }
+    }
+
+    async function loadQuotaStatus() {
+        const target = document.getElementById('certEvidenceQuota');
+        if (!target) return;
+        target.textContent = '';
+        try {
+            const response = await fetch('/api/student/certificate-evidence/status', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('tpo_token')}` }
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) return;
+            const data = result.data || {};
+            if (!data.storage_ready) {
+                target.textContent = 'Certificate Vault storage is not connected on this environment yet.';
+                return;
+            }
+            target.textContent = `Certificate storage: ${mb(data.used_bytes)} of ${mb(data.quota_bytes)} used.`;
+        } catch (_) {
+            // Storage usage is informational and must never block the form.
         }
     }
 
@@ -170,7 +191,8 @@
 
         if (!id && !preparedBlob) {
             setStatus('Certificate image is required for a new certificate.', 'error');
-            return typeof showToast === 'function' && showToast('Add a JPG, JPEG or PNG certificate image.', 'error');
+            if (typeof showToast === 'function') showToast('Add a JPG, JPEG or PNG certificate image.', 'error');
+            return;
         }
 
         const payload = {
@@ -180,8 +202,9 @@
             mode: document.getElementById('certMode').value
         };
         const url = id ? `/api/student/certificates/${id}` : '/api/student/certificates';
+        const hadPreparedImage = Boolean(preparedBlob);
 
-        if (typeof setButtonLoading === 'function') setButtonLoading(button, true, preparedBlob ? 'Saving & uploading' : 'Saving certificate');
+        if (typeof setButtonLoading === 'function') setButtonLoading(button, true, hadPreparedImage ? 'Saving & uploading' : 'Saving certificate');
         try {
             const response = await fetch(url, {
                 method: id ? 'PUT' : 'POST',
@@ -191,12 +214,12 @@
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(typeof apiError === 'function' ? apiError(result) : (result.error?.message || result.error || 'Could not save certificate.'));
             const certificateId = id || result.certificate?.id;
-            if (!certificateId) throw new Error('Certificate saved but its ID was not returned. Refresh and try adding proof.');
+            if (!certificateId) throw new Error('Certificate saved but its ID was not returned. Refresh and add proof from Edit.');
 
-            if (preparedBlob) {
+            if (hadPreparedImage) {
                 const uploadForm = new FormData();
-                uploadForm.append('certificate', preparedBlob, preparedBlob.type === 'image/jpeg' ? 'certificate.jpg' : 'certificate.webp');
-                const evidenceResponse = await fetch(`/api/student/certificates/${certificateId}/evidence`, {
+                uploadForm.append('evidence', preparedBlob, 'certificate.jpg');
+                const evidenceResponse = await fetch(`/api/student/certificate-evidence/${certificateId}`, {
                     method: 'POST',
                     headers: { Authorization: `Bearer ${token}` },
                     body: uploadForm
@@ -211,7 +234,9 @@
             clearPrepared();
             document.getElementById('certEvidenceFile').value = '';
             if (typeof closeCertificateModal === 'function') closeCertificateModal();
-            if (typeof showToast === 'function') showToast(preparedBlob ? 'Certificate and proof saved.' : (existing?.evidence_path ? 'Certificate updated. Existing proof kept.' : 'Certificate saved.'), 'success');
+            if (typeof showToast === 'function') {
+                showToast(hadPreparedImage ? 'Certificate and proof saved.' : (existing?.evidence_path ? 'Certificate updated. Existing proof kept.' : 'Certificate saved.'), 'success');
+            }
             await loadDashboardData();
         } catch (error) {
             setStatus(error.message || 'Could not save certificate proof.', 'error');
@@ -235,7 +260,7 @@
                     <div class="certificate-vault-title"><h4>${esc(item.name)}</h4><span class="badge badge-${item.mode === 'offline' ? 'offline' : 'online'}">${esc(item.mode || 'online')}</span></div>
                     <p><strong>Issued by:</strong> ${esc(item.issuer)}</p>
                     <p class="certificate-vault-date">📅 ${esc(item.date)}</p>
-                    <span class="certificate-proof-state ${hasProof ? 'has-proof' : 'no-proof'}">${hasProof ? `✓ Proof saved${item.evidence_size_bytes ? ` · ${kb(item.evidence_size_bytes)}` : ''}` : 'Proof not uploaded yet'}</span>
+                    <span class="certificate-proof-state ${hasProof ? 'has-proof' : 'no-proof'}">${hasProof ? `✓ Proof saved${item.evidence_bytes ? ` · ${kb(item.evidence_bytes)}` : ''}` : 'Proof not uploaded yet'}</span>
                 </div>
                 <div class="item-actions certificate-vault-actions">
                     ${hasProof ? `<button class="btn btn-primary btn-sm" type="button" onclick="openCertificateEvidence('${item.id}')">View proof</button>` : `<button class="btn btn-primary btn-sm" type="button" onclick="editCertificate('${item.id}')">Add proof</button>`}
@@ -260,7 +285,9 @@
         status.textContent = 'Loading private certificate proof…';
         modal.classList.add('active');
         try {
-            const response = await fetch(`/api/student/certificates/${id}/evidence`, { headers: { Authorization: `Bearer ${localStorage.getItem('tpo_token')}` } });
+            const response = await fetch(`/api/student/certificate-evidence/${id}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('tpo_token')}` }
+            });
             if (!response.ok) {
                 let result = null;
                 try { result = await response.json(); } catch (_) {}
@@ -277,8 +304,7 @@
     }
 
     function closeCertificateEvidence() {
-        const modal = document.getElementById('certificateEvidenceViewer');
-        modal?.classList.remove('active');
+        document.getElementById('certificateEvidenceViewer')?.classList.remove('active');
         if (viewerUrl) URL.revokeObjectURL(viewerUrl);
         viewerUrl = '';
     }
@@ -293,8 +319,9 @@
             const input = document.getElementById('certEvidenceFile');
             if (input) input.value = '';
             const item = id ? currentCertificate(id) : null;
-            if (item?.evidence_path) setStatus(`Existing proof saved${item.evidence_size_bytes ? ` · ${kb(item.evidence_size_bytes)}` : ''}. Choose another image only to replace it.`, 'success');
+            if (item?.evidence_path) setStatus(`Existing proof saved${item.evidence_bytes ? ` · ${kb(item.evidence_bytes)}` : ''}. Choose another image only to replace it.`, 'success');
             else setStatus(id ? 'No proof uploaded yet. Add a clear JPG, JPEG or PNG image.' : 'Certificate image is required for a new certificate.');
+            loadQuotaStatus();
         };
         wrapped.__certificateVaultWrapped = true;
         window.openCertificateModal = wrapped;
@@ -315,9 +342,7 @@
         window.closeCertificateEvidence = closeCertificateEvidence;
         window.renderCertificates = vaultRenderCertificates;
         try { renderCertificates = vaultRenderCertificates; } catch (_) {}
-        try {
-            if (currentStudentData?.certificates) vaultRenderCertificates(currentStudentData.certificates);
-        } catch (_) {}
+        try { if (currentStudentData?.certificates) vaultRenderCertificates(currentStudentData.certificates); } catch (_) {}
     }
 
     install();
