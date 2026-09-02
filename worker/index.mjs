@@ -43,12 +43,13 @@ export default {
                     html = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260902-ranking-compact1');
                 }
                 if (assetPath === '/admin-dashboard.html') {
-                    html = html.replace(/\/js\/admin-dashboard\.js\?v=[^"']+/g, '/js/admin-dashboard.js?v=20260819-ssc-hsc');
+                    html = html.replace(/\/js\/admin-dashboard\.js\?v=[^"']+/g, '/js/admin-dashboard.js?v=20260902-student-activity1');
                 }
                 if (assetPath === '/observer-dashboard.html') {
                     html = html.replace(/\/js\/observer-dashboard\.js\?v=[^"']+/g, '/js/observer-dashboard.js?v=20260819-ssc-hsc');
                 }
                 const rolePatch = assetPath === '/admin-dashboard.html' ? '<link rel="stylesheet" href="/css/admin-alignment-20260814.css">' : '';
+                const adminActivityPatch = assetPath === '/admin-dashboard.html' ? '<link rel="stylesheet" href="/css/student-activity-feed.css?v=20260902-live1"><script src="/js/student-activity-feed.js?v=20260902-live1" defer></script>' : '';
                 const profileRequirements = assetPath === '/dashboard.html' ? '<link rel="stylesheet" href="/css/profile-requirements-20260814.css">' : '';
                 const rankingV3Patch = assetPath === '/dashboard.html' ? `<style>
 #tab-ranking .leaderboard-entry-details{margin:0!important;padding:0 12px 12px!important;text-align:center!important}
@@ -121,7 +122,7 @@ window.addEventListener('load', function () {
   compactScoreDetails(document);
 });
 </script>` : '';
-                let patched = html.replace('</head>', `<link rel="stylesheet" href="/css/portal-layout-20260814.css?v=20260817-responsive1"><link rel="stylesheet" href="/css/portal-identifiers-20260814.css?v=20260817-responsive1"><script src="/js/responsive-tables.js?v=20260817-responsive1" defer></script>${profileRequirements}${rolePatch}<link rel="stylesheet" href="/css/portal-responsive.css?v=20260902-ranking-compact1"></head>`);
+                let patched = html.replace('</head>', `<link rel="stylesheet" href="/css/portal-layout-20260814.css?v=20260817-responsive1"><link rel="stylesheet" href="/css/portal-identifiers-20260814.css?v=20260817-responsive1"><script src="/js/responsive-tables.js?v=20260817-responsive1" defer></script>${profileRequirements}${rolePatch}${adminActivityPatch}<link rel="stylesheet" href="/css/portal-responsive.css?v=20260902-ranking-compact1"></head>`);
                 if (rankingV3Patch) patched = patched.replace('</body>', `${rankingV3Patch}</body>`);
                 return noStore(new Response(patched, { status: response.status, headers: response.headers }), true, env);
             }
