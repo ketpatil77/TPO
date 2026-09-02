@@ -113,7 +113,7 @@
             loadScript('/js/student-engagement-v3.js?v=20260902-1', 'student-engagement-v3-js');
             loadStylesheet('/css/profile-declarations.css?v=20260902-1', 'profile-declarations');
             loadScript('/js/profile-declarations-ui.js?v=20260902-2', 'profile-declarations-ui');
-            loadScript('/js/profile-links.js?v=20260902-1', 'profile-links-js');
+            loadScript('/js/profile-links.js?v=20260902-2', 'profile-links-js');
             loadStylesheet('/css/free-learning.css?v=20260902-3', 'free-learning-css');
             loadScript('/js/free-learning.js?v=20260902-3', 'free-learning-js');
         }
