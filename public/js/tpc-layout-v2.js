@@ -1,7 +1,7 @@
 (() => {
     if (!document.body.classList.contains('observer-shell')) return;
 
-    const STUDENT_PAGE_SIZE = 20;
+    const STUDENT_PAGE_SIZE = 12;
     const sections = () => [
         document.getElementById('observerTab-students'),
         document.getElementById('observerTab-roster')
@@ -21,7 +21,7 @@
         if (!desktop || section.id === 'observerTab-students') {
             section.style.removeProperty('--tpc-active-section-height');
             section.style.removeProperty('height');
-            section.dataset.tpcViewportFit = section.id === 'observerTab-students' ? 'twenty-row-natural' : 'mobile-natural';
+            section.dataset.tpcViewportFit = section.id === 'observerTab-students' ? 'twelve-row-natural' : 'mobile-natural';
             return;
         }
 
