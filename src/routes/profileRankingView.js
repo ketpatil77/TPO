@@ -223,6 +223,25 @@ function scoreStudent(profile, related) {
   };
 }
 
+async function signedAvatarMap(cohort) {
+  if (db.isLocal()) return new Map();
+  const withAvatar = cohort.filter(item => item.avatar_path);
+  if (!withAvatar.length) return new Map();
+  try {
+    const paths = withAvatar.map(item => item.avatar_path);
+    const { data, error } = await db.supabaseClient().storage.from('avatars').createSignedUrls(paths, 3600);
+    if (error) throw error;
+    const map = new Map();
+    (data || []).forEach((item, index) => {
+      if (item?.signedUrl) map.set(withAvatar[index].id, item.signedUrl);
+    });
+    return map;
+  } catch (error) {
+    console.warn('Leaderboard avatar signing failed:', error.message);
+    return new Map();
+  }
+}
+
 async function buildLeaderboard(currentStudentId, branchQuery, yearQuery) {
   const [students, internships, certificates, projects, research, competitions, skills] = await Promise.all([
     db.select('students'), db.select('internships'), db.select('certificates'), db.select('student_projects'),
@@ -241,6 +260,7 @@ async function buildLeaderboard(currentStudentId, branchQuery, yearQuery) {
   let cohort = students.filter(item => item.status !== 'inactive');
   if (branch !== 'all') cohort = cohort.filter(item => String(item.branch || '').toUpperCase() === String(branch).toUpperCase());
   if (year !== 'all') cohort = cohort.filter(item => String(item.year || '').toLowerCase() === String(year).toLowerCase());
+  const avatars = await signedAvatarMap(cohort);
 
   const rows = cohort.map(profile => ({
     student_id: profile.id,
@@ -248,6 +268,7 @@ async function buildLeaderboard(currentStudentId, branchQuery, yearQuery) {
     prn: profile.prn,
     branch: profile.branch,
     year: profile.year,
+    avatar_url: avatars.get(profile.id) || null,
     is_me: profile.id === currentStudentId,
     ...scoreStudent(profile, related)
   })).sort((a, b) => b.points - a.points || b.potential_points - a.potential_points || String(a.name).localeCompare(String(b.name)));
