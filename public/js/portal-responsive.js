@@ -100,6 +100,7 @@
 
         if (document.body.classList.contains('student-dashboard-page')) {
             loadStylesheet('/css/student-mobile-density.css?v=20260902-1', 'student-mobile-density');
+            loadStylesheet('/css/student-desktop-width.css?v=20260902-1', 'student-desktop-width');
             loadCompactRecordStyles();
             compactResearchCards();
             const researchList = document.getElementById('researchList');
