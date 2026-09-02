@@ -108,8 +108,7 @@
             loadScript('/js/competitions.js?v=20260901-4', 'competitions-module');
             loadStylesheet('/css/student-leaderboard-v1.css?v=20260902-1', 'student-leaderboard-v1');
             loadStylesheet('/css/student-leaderboard-v2.css?v=20260902-1', 'student-leaderboard-v2');
-            loadScript('/js/profile-ranking.js?v=20260902-2', 'profile-ranking-module');
-            loadScript('/js/leaderboard-target-inline.js?v=20260902-1', 'leaderboard-target-inline-js');
+            loadScript('/js/student-ranking-lazy.js?v=20260902-1', 'student-ranking-lazy-js');
             loadScript('/js/college-academics-ui.js?v=20260901-2', 'college-academics-ui');
             loadStylesheet('/css/student-engagement-v1.css?v=20260902-2', 'student-engagement-v1');
             loadStylesheet('/css/student-leaderboard-v3.css?v=20260902-1', 'student-leaderboard-v3');
