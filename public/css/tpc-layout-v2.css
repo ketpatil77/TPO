@@ -1,0 +1,192 @@
+/* TPC workspace final layout authority. Loaded after shared responsive layers. */
+.observer-shell {
+  --tpc-edge-gap: 12px;
+  --tpc-table-fill-height: clamp(400px, 70dvh, 900px);
+}
+
+.observer-shell .dashboard-wrapper {
+  padding-bottom: var(--tpc-edge-gap) !important;
+}
+
+.observer-shell .observer-tabs {
+  width: 100%;
+  margin-bottom: 14px;
+  align-items: stretch;
+}
+
+.observer-shell .observer-tabs .tab-btn {
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  padding-inline: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.25;
+}
+
+/* The TPC workspace has six tools. Keep all six in one desktop row. */
+@media (min-width: 900px) {
+  .observer-shell .dashboard-wrapper .observer-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 8px;
+  }
+}
+
+/* Student and roster tables should consume the remaining viewport instead of
+   being capped at 66vh/680px by the old shared TPC rule. */
+.observer-shell #observerTab-students.active,
+.observer-shell #observerTab-roster.active {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  width: 100%;
+  min-height: 0;
+}
+
+.observer-shell #observerTab-students .observer-toolbar,
+.observer-shell #observerTab-roster .observer-toolbar {
+  margin: 0;
+}
+
+.observer-shell #observerTab-students .table-shell,
+.observer-shell #observerTab-roster .table-shell {
+  width: 100%;
+  height: var(--tpc-table-fill-height) !important;
+  min-height: 360px;
+  max-height: none !important;
+  margin: 0;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.observer-shell .observer-table {
+  width: 100%;
+  margin: 0;
+}
+
+.observer-shell .observer-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: var(--bg-card);
+  box-shadow: 0 1px 0 var(--border-color);
+}
+
+.observer-shell .observer-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.observer-shell .pagination-bar {
+  min-height: 48px;
+  margin: 0 !important;
+  padding: 2px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.observer-shell .pagination-bar .btn {
+  min-width: 54px;
+}
+
+/* Compact, predictable TPC filters on desktop. */
+@media (min-width: 1100px) {
+  .observer-shell .observer-toolbar:has(#observerSearch) {
+    display: grid;
+    grid-template-columns: 150px 150px minmax(260px, 1fr) auto auto !important;
+    align-items: end;
+    gap: 12px !important;
+    padding: 14px 16px;
+  }
+
+  .observer-shell .observer-toolbar:has(#rosterSearch) {
+    display: grid;
+    grid-template-columns: 170px minmax(280px, 1fr) auto !important;
+    align-items: end;
+    gap: 12px !important;
+    padding: 14px 16px;
+  }
+
+  .observer-shell .observer-toolbar > .btn {
+    height: 46px;
+    min-height: 46px;
+    white-space: nowrap;
+  }
+}
+
+/* Keep the remaining TPC tools visually consistent with the full-width shell. */
+.observer-shell #observerTab-drives.active,
+.observer-shell #observerTab-dob.active,
+.observer-shell #observerTab-registration.active,
+.observer-shell #observerTab-competitions.active {
+  width: 100%;
+  min-width: 0;
+}
+
+.observer-shell #observerTab-dob .table-shell {
+  width: 100%;
+  max-height: calc(100dvh - 260px);
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+
+.observer-shell .review-toolbar {
+  align-items: end;
+}
+
+.observer-shell .competition-review-list {
+  width: 100%;
+  min-width: 0;
+}
+
+.observer-shell .observer-modal {
+  max-height: calc(100dvh - 24px) !important;
+}
+
+@media (max-width: 899px) and (min-width: 761px) {
+  .observer-shell .dashboard-wrapper .observer-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .observer-shell {
+    --tpc-edge-gap: 8px;
+    --tpc-table-fill-height: min(62dvh, 560px);
+  }
+
+  .observer-shell .dashboard-wrapper .observer-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px;
+  }
+
+  .observer-shell .observer-tabs .tab-btn {
+    min-height: 48px;
+    font-size: .82rem;
+    padding: 9px 7px;
+  }
+
+  .observer-shell #observerTab-students .table-shell,
+  .observer-shell #observerTab-roster .table-shell {
+    min-height: 320px;
+  }
+
+  .observer-shell .pagination-bar {
+    justify-content: center;
+    padding-bottom: 4px;
+  }
+}
+
+@media (max-width: 420px) {
+  .observer-shell .dashboard-wrapper .observer-tabs {
+    grid-template-columns: 1fr !important;
+  }
+}
