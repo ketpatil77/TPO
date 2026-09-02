@@ -1,0 +1,35 @@
+/* Student desktop width pass: use the available workspace width without changing mobile. */
+@media (min-width: 761px) {
+  .student-dashboard-page #tab-edit-profile {
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
+  }
+
+  .student-dashboard-page #tab-edit-profile > .student-profile-editor {
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
+  }
+
+  .student-dashboard-page #tab-edit-profile .profile-editor-form,
+  .student-dashboard-page #tab-edit-profile .profile-avatar-editor,
+  .student-dashboard-page #tab-edit-profile .profile-save-bar,
+  .student-dashboard-page #tab-edit-profile .current-resume-card {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  /* Keep two-column fields readable while making proper use of wide screens. */
+  .student-dashboard-page #tab-edit-profile .grid-2,
+  .student-dashboard-page #tab-edit-profile .profile-contact-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* The dashboard shell already supports up to 1600px; keep the profile tab aligned with it. */
+  .student-dashboard-page .dashboard-wrapper > #dashboardContent,
+  .student-dashboard-page #dashboardContent > .tab-content {
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
