@@ -6,127 +6,123 @@
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-#tab-ranking .leaderboard-entry-details > summary,
-#tab-ranking .ranking-exact-details > summary {
-  list-style: none;
-  cursor: pointer;
+#tab-ranking .leaderboard-entry-details {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 12px 10px !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
 }
-#tab-ranking .leaderboard-entry-details > summary::-webkit-details-marker,
-#tab-ranking .ranking-exact-details > summary::-webkit-details-marker { display: none; }
-#tab-ranking .leaderboard-entry-details > summary::after,
-#tab-ranking .ranking-exact-details > summary::after {
+#tab-ranking .leaderboard-entry-details > summary {
+  width: 100% !important;
+  min-height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  list-style: none !important;
+  cursor: pointer !important;
+  color: var(--text-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent) !important;
+}
+#tab-ranking .leaderboard-entry-details > summary::-webkit-details-marker { display: none !important; }
+#tab-ranking .leaderboard-entry-details > summary::after {
   content: '⌄';
   display: inline-block;
-  margin-left: 6px;
+  margin-left: 3px;
   font-size: .9em;
   transition: transform .16s ease;
 }
-#tab-ranking .leaderboard-entry-details[open] > summary::after,
-#tab-ranking .ranking-exact-details[open] > summary::after { transform: rotate(180deg); }
-#tab-ranking .ranking-exact-details {
-  margin-top: 10px;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+#tab-ranking .leaderboard-entry-details[open] > summary::after { transform: rotate(180deg); }
+#tab-ranking .leaderboard-entry-details[open] > summary { color: var(--text-heading) !important; }
+
+#tab-ranking .ranking-score-explainer {
+  width: min(100%, 520px) !important;
+  min-height: 0 !important;
+  margin: 8px auto !important;
+  padding: 8px 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  gap: 6px 10px !important;
+  border-radius: 10px !important;
+  text-align: center !important;
 }
-#tab-ranking .ranking-exact-details > summary {
-  min-height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  font-size: .78rem;
-  font-weight: 700;
+#tab-ranking .ranking-score-explainer > strong {
+  margin: 0 !important;
+  font-size: 14px !important;
+  line-height: 1.1 !important;
 }
-#tab-ranking .ranking-exact-details[open] > summary {
-  color: var(--text-heading);
+#tab-ranking .ranking-score-explainer > strong.potential {
+  font-size: 11px !important;
 }
+
+#tab-ranking .ranking-breakdown-grid-v3 {
+  width: min(100%, 520px) !important;
+  margin: 0 auto !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+#tab-ranking .ranking-category-score {
+  min-width: 0 !important;
+  min-height: 42px !important;
+  padding: 7px 8px !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 2px !important;
+  border-radius: 9px !important;
+  text-align: center !important;
+}
+#tab-ranking .ranking-category-score small {
+  width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 9px !important;
+  line-height: 1.1 !important;
+  text-transform: capitalize !important;
+}
+#tab-ranking .ranking-category-score strong {
+  font-size: 14px !important;
+  line-height: 1 !important;
+}
+#tab-ranking .ranking-category-score em {
+  margin: 0 !important;
+  font-size: 8px !important;
+  line-height: 1.05 !important;
+}
+
+/* Exact evidence rows were useful for debugging, not for a leaderboard. */
+#tab-ranking .ranking-exact-details,
+#tab-ranking .ranking-explanation-list {
+  display: none !important;
+}
+
 @media (max-width: 760px) {
   #tab-ranking .leaderboard-entry-details {
-    margin: 0 !important;
-    padding: 0 11px 11px !important;
+    padding: 0 10px 9px !important;
   }
   #tab-ranking .leaderboard-entry-details > summary {
-    width: 100% !important;
-    min-height: 34px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 4px !important;
-    border-top: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent) !important;
-    color: var(--text-muted) !important;
-    font-size: 11px !important;
-    line-height: 1 !important;
-    text-align: center !important;
-  }
-  #tab-ranking .leaderboard-entry-details[open] > summary {
-    color: var(--text-heading) !important;
+    min-height: 30px !important;
   }
   #tab-ranking .ranking-score-explainer {
-    min-height: 0 !important;
-    margin: 8px 0 !important;
-    padding: 9px 11px !important;
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 6px 10px !important;
-    border-radius: 12px !important;
-  }
-  #tab-ranking .ranking-score-explainer > strong {
-    margin: 0 !important;
-    font-size: 15px !important;
-    line-height: 1.1 !important;
-  }
-  #tab-ranking .ranking-score-explainer > strong.potential {
-    font-size: 11px !important;
+    margin: 6px auto !important;
+    padding: 7px 9px !important;
   }
   #tab-ranking .ranking-breakdown-grid-v3 {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 6px !important;
-    margin: 0 !important;
+    gap: 5px !important;
   }
   #tab-ranking .ranking-category-score {
-    min-height: 46px !important;
-    padding: 8px 10px !important;
-    border-radius: 10px !important;
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto !important;
-    grid-template-rows: auto auto !important;
-    align-items: center !important;
-    gap: 1px 8px !important;
-  }
-  #tab-ranking .ranking-category-score small {
-    min-width: 0 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    font-size: 10px !important;
-    line-height: 1.15 !important;
-    text-transform: capitalize !important;
-  }
-  #tab-ranking .ranking-category-score strong {
-    grid-row: 1 / 3 !important;
-    grid-column: 2 !important;
-    font-size: 15px !important;
-    line-height: 1 !important;
-  }
-  #tab-ranking .ranking-category-score em {
-    margin: 0 !important;
-    font-size: 8px !important;
-    line-height: 1.1 !important;
-  }
-  #tab-ranking .ranking-exact-details {
-    margin-top: 8px !important;
-  }
-  #tab-ranking .ranking-exact-details > summary {
-    min-height: 36px !important;
-    font-size: 11px !important;
-  }
-  #tab-ranking .ranking-explanation-list {
-    margin-top: 7px !important;
-  }
-  #tab-ranking .ranking-reason-group {
-    margin-bottom: 7px !important;
+    min-height: 38px !important;
+    padding: 6px 8px !important;
   }
 }
 `;
@@ -138,14 +134,14 @@
     details.dataset.compactScoreReady = 'true';
 
     const summary = details.querySelector(':scope > summary');
-    if (summary) summary.textContent = 'Score details';
+    if (summary) summary.textContent = 'Score breakdown';
 
     const explainer = details.querySelector(':scope > .ranking-score-explainer');
     if (explainer) {
       const total = [...explainer.children].find(node => node.tagName === 'STRONG' && !node.classList.contains('potential'));
       const potential = explainer.querySelector('strong.potential');
       explainer.querySelectorAll(':scope > span').forEach(node => node.remove());
-      if (total) total.textContent = total.textContent.replace(/\s*points?\s*$/i, ' pts total');
+      if (total) total.textContent = total.textContent.replace(/\s*points?\s*$/i, ' pts');
       if (potential) potential.textContent = potential.textContent.replace(/competition\s+pending/i, 'pending');
     }
 
@@ -163,16 +159,9 @@
       });
     }
 
-    const list = details.querySelector(':scope > .ranking-explanation-list');
-    if (list) {
-      const exact = document.createElement('details');
-      exact.className = 'ranking-exact-details';
-      const exactSummary = document.createElement('summary');
-      exactSummary.textContent = 'Exact scoring items';
-      exact.appendChild(exactSummary);
-      list.before(exact);
-      exact.appendChild(list);
-    }
+    /* Keep only useful category totals. The old item-by-item audit caused multi-screen scrolling. */
+    details.querySelector(':scope > .ranking-explanation-list')?.remove();
+    details.querySelector(':scope > .ranking-exact-details')?.remove();
   }
 
   function scan(root = document) {
