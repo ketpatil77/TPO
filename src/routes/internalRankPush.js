@@ -7,6 +7,8 @@ const router = express.Router();
 const MARKER = '/dashboard?tab=ranking&source=rank-broadcast-20260902-1550';
 const ACTION = 'rank_notification_push_20260902_1550';
 const EXPECTED_HASH = '43b6bcb1e932f0eeae762c088cacc01ec0cf6304bd7290ad60fdf3099305cd01';
+const STARTED_AT = new Date('2026-09-02T10:30:00Z');
+const BATCH_SIZE = 12;
 
 function authorized(value) {
   const hash = crypto.createHash('sha256').update(String(value || '')).digest('hex');
@@ -26,31 +28,50 @@ router.get('/deliver', async (req, res) => {
       db.select('student_push_subscriptions')
     ]);
     const notificationByStudent = new Map(notifications.filter(n => n.student_id).map(n => [n.student_id, n]));
-    const jobs = subscriptions
+    const pending = subscriptions
       .filter(record => notificationByStudent.has(record.student_id))
+      .filter(record => !record.last_notified_at || new Date(record.last_notified_at) < STARTED_AT)
       .map(record => ({ record, notification: notificationByStudent.get(record.student_id) }));
 
-    const summary = { notifications: notifications.length, subscriptions: subscriptions.length, eligible_subscriptions: jobs.length, sent: 0, deleted: 0, failed: 0 };
-    for (let offset = 0; offset < jobs.length; offset += 20) {
-      const batch = jobs.slice(offset, offset + 20);
-      const results = await Promise.all(batch.map(({ record, notification }) =>
-        deliverPushRecords([record], buildPortalNotificationPayload(notification))
-      ));
-      results.forEach(result => {
-        summary.sent += result.sent;
-        summary.deleted += result.deleted;
-        summary.failed += result.failed;
+    if (!pending.length) {
+      const finalSummary = {
+        notifications: notifications.length,
+        subscriptions: subscriptions.length,
+        delivered_or_resolved: subscriptions.filter(record => notificationByStudent.has(record.student_id)).length,
+        remaining: 0
+      };
+      await db.insert('audit_log', {
+        action: ACTION,
+        target_table: 'notifications',
+        target_id: 'rank-broadcast-20260902-1550',
+        details: finalSummary,
+        created_at: new Date().toISOString()
       });
+      return res.json({ success: true, data: { complete: true, ...finalSummary } });
     }
 
-    await db.insert('audit_log', {
-      action: ACTION,
-      target_table: 'notifications',
-      target_id: 'rank-broadcast-20260902-1550',
-      details: summary,
-      created_at: new Date().toISOString()
+    const batch = pending.slice(0, BATCH_SIZE);
+    const results = await Promise.all(batch.map(({ record, notification }) =>
+      deliverPushRecords([record], buildPortalNotificationPayload(notification))
+    ));
+    const batchSummary = { processed: batch.length, sent: 0, deleted: 0, failed: 0 };
+    results.forEach(result => {
+      batchSummary.sent += result.sent;
+      batchSummary.deleted += result.deleted;
+      batchSummary.failed += result.failed;
     });
-    return res.json({ success: true, data: summary });
+
+    return res.json({
+      success: true,
+      data: {
+        complete: false,
+        notifications: notifications.length,
+        subscriptions: subscriptions.length,
+        remaining_before_batch: pending.length,
+        remaining_after_batch: Math.max(0, pending.length - batch.length),
+        ...batchSummary
+      }
+    });
   } catch (error) {
     console.error('Rank push delivery failed:', error.message);
     return res.status(500).json({ success: false, error: 'Delivery failed' });
