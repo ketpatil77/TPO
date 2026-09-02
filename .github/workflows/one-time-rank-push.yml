@@ -1,0 +1,22 @@
+name: One-time rank push broadcast
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/one-time-rank-push.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  deliver:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for production deployment
+        run: sleep 75
+      - name: Deliver personalized ranking pushes
+        run: |
+          set -euo pipefail
+          curl --fail --show-error --silent --max-time 180 \
+            'https://ait.ait-placement-portal.workers.dev/api/internal/rank-push/deliver?key=HnibuXe8GoDmUrVHOgJmy2S8qTuGEjx6'
