@@ -5,6 +5,7 @@ const { authenticateObserver } = require('../middleware/auth');
 const { validate } = require('../middleware/security');
 const { BRANCHES, branchName } = require('../config/branches');
 const { normalizeStudentDob } = require('../utils/dateHelper');
+const { calculateProfileCompletion } = require('../utils/profileCompletionModel');
 const { createStudentNotification } = require('../services/incompleteProfilePush');
 
 const router = express.Router();
@@ -33,16 +34,18 @@ async function buildStudentDirectory(query = {}, paging = null) {
         if (paging) students = students.slice(paging.start, paging.end + 1);
     }
     const studentIds = students.map(student => student.id);
+    const studentIdSet = new Set(studentIds);
     const related = async table => {
         if (!studentIds.length) return [];
-        if (db.isLocal()) return db.select(table);
+        if (db.isLocal()) return (await db.select(table)).filter(row => studentIdSet.has(row.student_id));
         const { data, error } = await db.supabaseClient().from(table).select('*').in('student_id', studentIds);
         if (error) throw error;
         return data || [];
     };
-    const [internships, certificates, projects, researchPapers, diploma, skills] = await Promise.all([
+    const [internships, certificates, projects, researchPapers, diploma, skills, declarations, competitions] = await Promise.all([
         related('internships'), related('certificates'), related('student_projects'),
-        related('research_papers'), related('diploma'), related('student_skills')
+        related('research_papers'), related('diploma'), related('student_skills'),
+        related('student_profile_declarations'), related('student_competitions')
     ]);
     const groupByStudent = rows => rows.reduce((map, row) => {
         const list = map.get(row.student_id) || [];
@@ -55,16 +58,40 @@ async function buildStudentDirectory(query = {}, paging = null) {
     const projectMap = groupByStudent(projects);
     const researchMap = groupByStudent(researchPapers);
     const skillMap = groupByStudent(skills);
+    const competitionMap = groupByStudent(competitions);
     const diplomaMap = new Map(diploma.map(item => [item.student_id, item]));
-    const rows = students.map(student => ({
-        ...student,
-        internships: internshipMap.get(student.id) || [],
-        certificates: certificateMap.get(student.id) || [],
-        projects: projectMap.get(student.id) || [],
-        research_papers: researchMap.get(student.id) || [],
-        diploma: diplomaMap.get(student.id) || null,
-        skills: (skillMap.get(student.id) || []).map(item => item.skill)
-    }));
+    const declarationMap = new Map(declarations.map(item => [item.student_id, item]));
+    const rows = students.map(student => {
+        const studentInternships = internshipMap.get(student.id) || [];
+        const studentCertificates = certificateMap.get(student.id) || [];
+        const studentProjects = projectMap.get(student.id) || [];
+        const studentResearch = researchMap.get(student.id) || [];
+        const studentCompetitions = competitionMap.get(student.id) || [];
+        const studentSkills = (skillMap.get(student.id) || []).map(item => item.skill);
+        const studentDiploma = diplomaMap.get(student.id) || null;
+        const profileCompletion = calculateProfileCompletion({
+            student,
+            diploma: studentDiploma,
+            skills: studentSkills,
+            internships: studentInternships,
+            certificates: studentCertificates,
+            projects: studentProjects,
+            research_papers: studentResearch,
+            competitions: studentCompetitions,
+            declarations: declarationMap.get(student.id) || {}
+        });
+        return {
+            ...student,
+            internships: studentInternships,
+            certificates: studentCertificates,
+            projects: studentProjects,
+            research_papers: studentResearch,
+            competitions: studentCompetitions,
+            diploma: studentDiploma,
+            skills: studentSkills,
+            profile_completion: profileCompletion
+        };
+    });
     return { rows, count };
 }
 
