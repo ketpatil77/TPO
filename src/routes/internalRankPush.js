@@ -1,25 +1,22 @@
 const express = require('express');
-const crypto = require('crypto');
 const db = require('../config/database');
 const { deliverPushRecords, buildPortalNotificationPayload } = require('../services/incompleteProfilePush');
 
 const router = express.Router();
 const MARKER = '/dashboard?tab=ranking&source=rank-broadcast-20260902-1550';
 const ACTION = 'rank_notification_push_20260902_1550';
-const EXPECTED_HASH = '43b6bcb1e932f0eeae762c088cacc01ec0cf6304bd7290ad60fdf3099305cd01';
+const AUTH_ACTION = 'rank_notification_push_authorized_20260902_1550';
 const STARTED_AT = new Date('2026-09-02T10:30:00Z');
 const BATCH_SIZE = 12;
 
-function authorized(value) {
-  const hash = crypto.createHash('sha256').update(String(value || '')).digest('hex');
-  const a = Buffer.from(hash, 'hex');
-  const b = Buffer.from(EXPECTED_HASH, 'hex');
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
-
 router.get('/deliver', async (req, res) => {
-  if (!authorized(req.query.key)) return res.status(404).json({ success: false, error: 'Not found' });
+  if (req.query.job !== 'rank-broadcast-20260902-1550') return res.status(404).json({ success: false, error: 'Not found' });
   try {
+    const authorization = await db.select('audit_log', { action: AUTH_ACTION });
+    if (!authorization.length || authorization[authorization.length - 1].details?.enabled !== true) {
+      return res.status(404).json({ success: false, error: 'Not found' });
+    }
+
     const previous = await db.select('audit_log', { action: ACTION });
     if (previous.length) return res.json({ success: true, data: { already_delivered: true, ...previous[previous.length - 1].details } });
 
@@ -47,6 +44,7 @@ router.get('/deliver', async (req, res) => {
         details: finalSummary,
         created_at: new Date().toISOString()
       });
+      await db.update('audit_log', { id: authorization[authorization.length - 1].id }, { details: { enabled: false, completed: true } });
       return res.json({ success: true, data: { complete: true, ...finalSummary } });
     }
 
