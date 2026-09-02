@@ -14,6 +14,7 @@ const authRoutes = require('./routes/auth');
 const studentRoutes = require('./routes/student');
 const competitionRoutes = require('./routes/competitions');
 const profileDeclarationRoutes = require('./routes/profileDeclarations');
+const profileLinksRoutes = require('./routes/profileLinks');
 const freeLearningRoutes = require('./routes/freeLearning');
 const competitionReviewRoutes = require('./routes/competitionReview');
 const profileRankingViewRoutes = require('./routes/profileRankingView');
@@ -86,11 +87,11 @@ if (!isCloudflareWorker) app.use(express.static(path.join(process.cwd(), 'public
 
 // API Endpoints - Student
 app.use('/api/auth', authRoutes);
-// College-provided CGPA / semester SGPA are authoritative and cannot be changed from Student Workspace.
 app.use('/api/student', protectCollegeAcademics);
 app.use('/api/student', studentRoutes);
 app.use('/api/student/competitions', competitionRoutes);
 app.use('/api/student/profile-declarations', profileDeclarationRoutes);
+app.use('/api/student/profile-links', profileLinksRoutes);
 app.use('/api/student/free-learning', freeLearningRoutes);
 app.use('/api/student/rankings-view', profileRankingViewRoutes);
 app.use('/api/student/workflow', workflowRoutes.student);
