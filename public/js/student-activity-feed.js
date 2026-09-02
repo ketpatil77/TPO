@@ -1,7 +1,8 @@
 (() => {
   if (!document.body.classList.contains('admin-dashboard-page')) return;
 
-  const state = { page: 1, pageSize: 50, loading: false, timer: null, latestId: null, initialized: false, retries: 0 };
+  const GROUP_WINDOW_MS = 5 * 60 * 1000;
+  const state = { page: 1, pageSize: 50, loading: false, timer: null, latestId: null, initialized: false, retries: 0, logs: [] };
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const token = () => localStorage.getItem('tpo_admin_token');
 
@@ -40,7 +41,7 @@
     panel.innerHTML = `
       <div class="activity-feed-shell">
         <section class="glass-card activity-feed-hero">
-          <div><span class="eyebrow">Student updates</span><h2>Live Activity</h2><p>See what students changed, when they changed it, and narrow the feed by branch, class or individual student.</p></div>
+          <div><span class="eyebrow">Student updates</span><h2>Live Activity</h2><p>Meaningful student changes are grouped into short activity bursts so the feed stays readable.</p></div>
           <div class="activity-live-pill"><span class="activity-live-dot"></span><span id="activityLiveLabel">Live · refreshes every 10s</span></div>
         </section>
         <div class="activity-summary-grid">
@@ -62,12 +63,7 @@
         <div class="activity-feed-footer"><button id="activityMore" class="btn btn-secondary btn-sm" type="button" hidden>Load more</button></div>
       </div>`;
 
-    button.onclick = () => {
-      window.switchAdminTab('student-activity', button);
-      state.page = 1;
-      load(false);
-      startPolling();
-    };
+    button.onclick = () => { window.switchAdminTab('student-activity', button); state.page = 1; load(false); startPolling(); };
     document.getElementById('activityApply').onclick = () => { state.page = 1; load(false); };
     document.getElementById('activityReset').onclick = resetFilters;
     document.getElementById('activityMore').onclick = () => { state.page += 1; load(true); };
@@ -112,9 +108,7 @@
       render(json.data, append, silent);
     } catch (error) {
       if (!silent) feed.innerHTML = `<div class="glass-card activity-empty">${esc(error.message)}</div>`;
-    } finally {
-      state.loading = false;
-    }
+    } finally { state.loading = false; }
   }
 
   function fillSelect(id, values, label) {
@@ -130,35 +124,74 @@
     fillSelect('activityCategory', data.options?.categories, 'All activity');
     document.getElementById('activityStudents').innerHTML = (data.options?.students || []).map(s => `<option value="${esc(s.prn || s.name)}">${esc(s.name)}${s.prn ? ` · ${esc(s.prn)}` : ''}</option>`).join('');
 
-    const logs = data.logs || [];
-    const feed = document.getElementById('activityFeed');
+    const incoming = data.logs || [];
     const previousLatest = state.latestId;
-    if (!append) {
-      if (!logs.length) feed.innerHTML = '<div class="glass-card activity-empty"><strong>No matching activity</strong><div>Nothing has been recorded for these filters yet.</div></div>';
-      else feed.innerHTML = logs.map((log, index) => itemHtml(log, silent && previousLatest && index === 0 && log.id !== previousLatest)).join('');
-    } else if (logs.length) {
-      feed.insertAdjacentHTML('beforeend', logs.map(log => itemHtml(log, false)).join(''));
+    if (!append) state.logs = incoming;
+    else {
+      const seen = new Set(state.logs.map(log => log.id));
+      state.logs = state.logs.concat(incoming.filter(log => !seen.has(log.id)));
     }
-    if (logs[0]) state.latestId = logs[0].id;
+
+    const feed = document.getElementById('activityFeed');
+    if (!state.logs.length) {
+      feed.innerHTML = '<div class="glass-card activity-empty"><strong>No matching activity</strong><div>Nothing has been recorded for these filters yet.</div></div>';
+    } else {
+      const groups = groupLogs(state.logs);
+      feed.innerHTML = groups.map((group, index) => groupHtml(group, silent && previousLatest && index === 0 && group.logs[0]?.id !== previousLatest)).join('');
+    }
+    if (state.logs[0]) state.latestId = state.logs[0].id;
 
     document.getElementById('activityCount').textContent = Number(data.count || 0).toLocaleString();
-    const visibleLogs = [...feed.querySelectorAll('[data-student-id]')];
-    document.getElementById('activityStudentCount').textContent = new Set(visibleLogs.map(el => el.dataset.studentId)).size;
-    document.getElementById('activityLastTime').textContent = logs[0] ? shortTime(logs[0].created_at) : '—';
-    const more = document.getElementById('activityMore');
-    more.hidden = state.page * state.pageSize >= Number(data.count || 0);
+    document.getElementById('activityStudentCount').textContent = new Set(state.logs.map(log => log.student_id).filter(Boolean)).size;
+    document.getElementById('activityLastTime').textContent = state.logs[0] ? shortTime(state.logs[0].created_at) : '—';
+    document.getElementById('activityMore').hidden = state.page * state.pageSize >= Number(data.count || 0);
+  }
+
+  function groupLogs(logs) {
+    const groups = [];
+    for (const log of logs) {
+      const ts = new Date(log.created_at).getTime();
+      const previous = groups[groups.length - 1];
+      const sameStudent = previous && previous.studentId === log.student_id;
+      const closeEnough = previous && Math.abs(previous.oldestTime - ts) <= GROUP_WINDOW_MS;
+      if (sameStudent && closeEnough) {
+        previous.logs.push(log);
+        previous.oldestTime = Math.min(previous.oldestTime, ts);
+      } else {
+        groups.push({ studentId: log.student_id, newestTime: ts, oldestTime: ts, logs: [log] });
+      }
+    }
+    return groups;
+  }
+
+  function groupHtml(group, flash) {
+    const first = group.logs[0];
+    const initials = String(first.student_name || 'S').trim().split(/\s+/).slice(0,2).map(p => p[0]).join('').toUpperCase();
+    if (group.logs.length === 1) return itemHtml(first, flash);
+    const categories = [...new Set(group.logs.map(log => log.category).filter(Boolean))];
+    const destructive = group.logs.some(log => log.action === 'deleted');
+    const burstRows = group.logs.map(log => `<div class="activity-burst-row ${log.action === 'deleted' ? 'is-destructive' : ''}"><span class="activity-chip category">${esc(log.category)}</span><span>${esc(prettySummary(log))}</span><time datetime="${esc(log.created_at)}">${esc(shortTime(log.created_at))}</time>${changeHtml(log)}</div>`).join('');
+    return `<article class="glass-card activity-item activity-group ${flash ? 'activity-new-flash' : ''}" data-student-id="${esc(first.student_id)}">
+      <div class="activity-avatar" aria-hidden="true">${esc(initials)}</div>
+      <div class="activity-main">
+        <div class="activity-topline"><strong>${esc(first.student_name)}</strong>${first.prn ? `<span class="activity-prn">${esc(first.prn)}</span>` : ''}<span class="activity-burst-count">${group.logs.length} updates</span></div>
+        <div class="activity-summary">Activity burst across ${categories.length} ${categories.length === 1 ? 'category' : 'categories'}${destructive ? ' · includes removal' : ''}</div>
+        <div class="activity-meta">${categories.map(category => `<span class="activity-chip category">${esc(category)}</span>`).join('')}${first.branch ? `<span class="activity-chip">${esc(first.branch)}</span>` : ''}${first.year ? `<span class="activity-chip">${esc(first.year)}</span>` : ''}${first.class ? `<span class="activity-chip">${esc(first.class)}</span>` : ''}</div>
+        <details class="activity-burst-details"><summary>View ${group.logs.length} actions</summary><div class="activity-burst-list">${burstRows}</div></details>
+      </div>
+      <time class="activity-time" datetime="${esc(first.created_at)}" title="${esc(fullTime(first.created_at))}">${esc(relativeTime(first.created_at))}<br>${esc(shortTime(first.created_at))}</time>
+    </article>`;
   }
 
   function itemHtml(log, flash) {
     const initials = String(log.student_name || 'S').trim().split(/\s+/).slice(0,2).map(p => p[0]).join('').toUpperCase();
-    const changes = changeHtml(log);
     return `<article class="glass-card activity-item ${flash ? 'activity-new-flash' : ''}" data-student-id="${esc(log.student_id)}">
       <div class="activity-avatar" aria-hidden="true">${esc(initials)}</div>
       <div class="activity-main">
         <div class="activity-topline"><strong>${esc(log.student_name)}</strong>${log.prn ? `<span class="activity-prn">${esc(log.prn)}</span>` : ''}</div>
         <div class="activity-summary">${esc(prettySummary(log))}</div>
         <div class="activity-meta"><span class="activity-chip category">${esc(log.category)}</span>${log.branch ? `<span class="activity-chip">${esc(log.branch)}</span>` : ''}${log.year ? `<span class="activity-chip">${esc(log.year)}</span>` : ''}${log.class ? `<span class="activity-chip">${esc(log.class)}</span>` : ''}</div>
-        ${changes}
+        ${changeHtml(log)}
       </div>
       <time class="activity-time" datetime="${esc(log.created_at)}" title="${esc(fullTime(log.created_at))}">${esc(relativeTime(log.created_at))}<br>${esc(shortTime(log.created_at))}</time>
     </article>`;
@@ -180,21 +213,12 @@
     if (log.action !== 'updated') return '';
     const fields = (log.changed_fields || []).slice(0,4);
     if (!fields.length || fields.includes('profile')) return '';
-    const rows = fields.map(field => {
-      const oldV = log.old_values?.[field];
-      const newV = log.new_values?.[field];
-      return `<div class="activity-change"><b>${esc(field.replace(/_/g,' '))}</b><span>${esc(displayValue(oldV))}</span><span class="arrow">→</span><span>${esc(displayValue(newV))}</span></div>`;
-    }).join('');
+    const rows = fields.map(field => `<div class="activity-change"><b>${esc(field.replace(/_/g,' '))}</b><span>${esc(displayValue(log.old_values?.[field]))}</span><span class="arrow">→</span><span>${esc(displayValue(log.new_values?.[field]))}</span></div>`).join('');
     return `<div class="activity-change-list">${rows}</div>`;
   }
 
-  function shortTime(value) {
-    if (!value) return '—';
-    return new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', hour:'numeric', minute:'2-digit' }).format(new Date(value));
-  }
-  function fullTime(value) {
-    return new Intl.DateTimeFormat('en-IN', { timeZone:'Asia/Kolkata', dateStyle:'medium', timeStyle:'medium' }).format(new Date(value));
-  }
+  function shortTime(value) { if (!value) return '—'; return new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', hour:'numeric', minute:'2-digit' }).format(new Date(value)); }
+  function fullTime(value) { return new Intl.DateTimeFormat('en-IN', { timeZone:'Asia/Kolkata', dateStyle:'medium', timeStyle:'medium' }).format(new Date(value)); }
   function relativeTime(value) {
     const diff = Math.max(0, Date.now() - new Date(value).getTime());
     const min = Math.floor(diff / 60000);
@@ -214,6 +238,5 @@
   }
   function stopPolling() { if (state.timer) clearInterval(state.timer); state.timer = null; }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once:true });
-  else install();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once:true }); else install();
 })();
