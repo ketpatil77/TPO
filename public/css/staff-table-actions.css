@@ -1,0 +1,47 @@
+.admin-dashboard-page table th:last-child,
+.admin-dashboard-page table td:last-child,
+.observer-shell table th:last-child,
+.observer-shell table td:last-child {
+  min-width: 88px;
+  width: 1%;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.admin-dashboard-page table td:last-child .btn,
+.admin-dashboard-page table td:last-child button,
+.admin-dashboard-page table td:last-child a,
+.observer-shell table td:last-child .btn,
+.observer-shell table td:last-child button,
+.observer-shell table td:last-child a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 58px;
+  max-width: none;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  line-height: 1.2;
+}
+
+@media (max-width: 760px) {
+  .admin-dashboard-page table th:last-child,
+  .admin-dashboard-page table td:last-child,
+  .observer-shell table th:last-child,
+  .observer-shell table td:last-child {
+    min-width: 76px;
+  }
+
+  .admin-dashboard-page table td:last-child .btn,
+  .admin-dashboard-page table td:last-child button,
+  .admin-dashboard-page table td:last-child a,
+  .observer-shell table td:last-child .btn,
+  .observer-shell table td:last-child button,
+  .observer-shell table td:last-child a {
+    min-width: 54px;
+    padding-left: .65rem;
+    padding-right: .65rem;
+  }
+}
