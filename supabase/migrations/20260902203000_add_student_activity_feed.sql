@@ -38,7 +38,11 @@ BEGIN
     IF sid_text IS NULL OR sid_text = '' THEN RETURN COALESCE(NEW, OLD); END IF;
     sid := sid_text::uuid;
 
-    SELECT st.prn, COALESCE(st.name,r.name), COALESCE(st.branch,r.branch), COALESCE(st.class,r.class), COALESCE(st.year,r.year)
+    SELECT st.prn AS prn,
+           COALESCE(st.name,r.name) AS student_name,
+           COALESCE(st.branch,r.branch) AS branch,
+           COALESCE(st.class,r.class) AS class,
+           COALESCE(st.year,r.year) AS year
       INTO s FROM students st LEFT JOIN roster r ON r.prn=st.prn WHERE st.id=sid;
 
     IF TG_OP='UPDATE' THEN
@@ -66,8 +70,15 @@ BEGIN
 
     label := COALESCE(row_new->>'title',row_new->>'name',row_new->>'company',row_new->>'role',row_old->>'title',row_old->>'name',row_old->>'company',row_old->>'role');
     INSERT INTO student_activity_log(student_id,prn,student_name,branch,class,year,action,category,target_table,target_id,changed_fields,old_values,new_values,summary,created_at)
-    VALUES(sid,COALESCE(s.prn,row_new->>'prn',row_old->>'prn'),COALESCE(s.coalesce,'Student'),s.coalesce_1,s.coalesce_2,s.coalesce_3,lower(TG_OP),cat,TG_TABLE_NAME,COALESCE(row_new->>'id',row_old->>'id'),fields,safe_old,safe_new,
-        CASE WHEN TG_OP='UPDATE' THEN cat||' updated: '||array_to_string(fields,', ') WHEN TG_OP='INSERT' THEN cat||' added'||CASE WHEN label IS NOT NULL THEN ': '||label ELSE '' END ELSE cat||' removed'||CASE WHEN label IS NOT NULL THEN ': '||label ELSE '' END END,NOW());
+    VALUES(sid,
+           COALESCE(s.prn,row_new->>'prn',row_old->>'prn'),
+           COALESCE(s.student_name,row_new->>'name',row_old->>'name','Student'),
+           COALESCE(s.branch,row_new->>'branch',row_old->>'branch'),
+           COALESCE(s.class,row_new->>'class',row_old->>'class'),
+           COALESCE(s.year,row_new->>'year',row_old->>'year'),
+           lower(TG_OP),cat,TG_TABLE_NAME,COALESCE(row_new->>'id',row_old->>'id'),fields,safe_old,safe_new,
+           CASE WHEN TG_OP='UPDATE' THEN cat||' updated: '||array_to_string(fields,', ') WHEN TG_OP='INSERT' THEN cat||' added'||CASE WHEN label IS NOT NULL THEN ': '||label ELSE '' END ELSE cat||' removed'||CASE WHEN label IS NOT NULL THEN ': '||label ELSE '' END END,
+           NOW());
     RETURN COALESCE(NEW,OLD);
 END; $$;
 
