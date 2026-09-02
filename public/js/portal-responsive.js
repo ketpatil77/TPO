@@ -107,10 +107,11 @@
             if (researchList) new MutationObserver(compactResearchCards).observe(researchList, { childList:true });
             loadScript('/js/competitions.js?v=20260901-4', 'competitions-module');
             loadStylesheet('/css/student-leaderboard-v1.css?v=20260902-1', 'student-leaderboard-v1');
-            loadScript('/js/profile-ranking.js?v=20260902-1', 'profile-ranking-module');
+            loadStylesheet('/css/student-leaderboard-v2.css?v=20260902-1', 'student-leaderboard-v2');
+            loadScript('/js/profile-ranking.js?v=20260902-2', 'profile-ranking-module');
+            loadScript('/js/leaderboard-target-inline.js?v=20260902-1', 'leaderboard-target-inline-js');
             loadScript('/js/college-academics-ui.js?v=20260901-2', 'college-academics-ui');
             loadStylesheet('/css/student-engagement-v1.css?v=20260902-2', 'student-engagement-v1');
-            loadScript('/js/rank-target-guard.js?v=20260902-1', 'rank-target-guard-js');
             loadScript('/js/student-engagement-v3.js?v=20260902-1', 'student-engagement-v3-js');
             loadStylesheet('/css/profile-declarations.css?v=20260902-1', 'profile-declarations');
             loadScript('/js/profile-declarations-ui.js?v=20260902-2', 'profile-declarations-ui');
