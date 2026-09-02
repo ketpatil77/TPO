@@ -7,6 +7,7 @@ const path = require('path');
 
 const root = path.join(__dirname, '..');
 const css = fs.readFileSync(path.join(root, 'public', 'css', 'tpc-layout-v2.css'), 'utf8');
+const page20Css = fs.readFileSync(path.join(root, 'public', 'css', 'tpc-directory-20.css'), 'utf8');
 const js = fs.readFileSync(path.join(root, 'public', 'js', 'tpc-layout-v2.js'), 'utf8');
 const loader = fs.readFileSync(path.join(root, 'public', 'js', 'portal-responsive.js'), 'utf8');
 
@@ -16,12 +17,13 @@ test('TPC desktop navigation keeps all six workspace tools on one row', () => {
     assert.match(css, /\.observer-shell \.dashboard-wrapper \.observer-tabs/);
 });
 
-test('TPC student and roster panels own the remaining desktop viewport', () => {
-    assert.match(css, /#observerTab-students\.active/);
+test('TPC roster keeps viewport fitting while student directory uses natural paginated height', () => {
     assert.match(css, /#observerTab-roster\.active/);
     assert.match(css, /height:\s*var\(--tpc-active-section-height\)\s*!important/);
+    assert.match(js, /section\.id === 'observerTab-students'/);
+    assert.match(js, /twenty-row-natural/);
     assert.match(js, /visualViewport\?\.height \|\| window\.innerHeight/);
-    assert.match(js, /dataset\.tpcViewportFit/);
+    assert.match(page20Css, /#observerTab-students\.active[\s\S]*height:\s*auto\s*!important/);
 });
 
 test('TPC readiness directory exposes completion, readable evidence and unified actions', () => {
@@ -36,8 +38,18 @@ test('TPC readiness directory exposes completion, readable evidence and unified 
     assert.match(css, /\.tpc-completion-state\.is-complete/);
 });
 
-test('TPC final layout layer is loaded only for observer workspace with current cache version', () => {
+test('TPC Student Profiles is exactly 20 records per page with no nested vertical table scroll', () => {
+    assert.match(js, /const STUDENT_PAGE_SIZE = 20/);
+    assert.match(js, /pageSize:\s*STUDENT_PAGE_SIZE/);
+    assert.match(js, /enhancedLoadStudents\(\{ returnToTop: true \}\)/);
+    assert.match(page20Css, /#observerTab-students \.table-shell[\s\S]*overflow:\s*visible\s*!important/);
+    assert.match(page20Css, /#observerTab-students \.tpc-directory-row td[\s\S]*padding:\s*4px 9px\s*!important/);
+    assert.match(page20Css, /tpc-directory-focus \.observer-hero/);
+});
+
+test('TPC final layout layers are loaded only for observer workspace with current cache version', () => {
     const observerBlock = loader.slice(loader.indexOf("if (document.body.classList.contains('observer-shell'))"), loader.indexOf("if (document.body.classList.contains('admin-dashboard-page') || document.body.classList.contains('observer-shell'))"));
-    assert.match(observerBlock, /tpc-layout-v2\.css\?v=20260902-3/);
-    assert.match(observerBlock, /tpc-layout-v2\.js\?v=20260902-3/);
+    assert.match(observerBlock, /tpc-layout-v2\.css\?v=20260902-4/);
+    assert.match(observerBlock, /tpc-directory-20\.css\?v=20260902-1/);
+    assert.match(observerBlock, /tpc-layout-v2\.js\?v=20260902-4/);
 });
