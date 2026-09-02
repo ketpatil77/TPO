@@ -1,27 +1,27 @@
 -- Certificate Vault metadata only. Actual certificate images live in private Cloudflare R2.
 alter table public.certificates
     add column if not exists evidence_path text,
-    add column if not exists evidence_mime_type text,
-    add column if not exists evidence_size_bytes integer,
+    add column if not exists evidence_mime text,
+    add column if not exists evidence_bytes integer,
     add column if not exists evidence_sha256 text,
     add column if not exists evidence_uploaded_at timestamptz;
 
 do $$
 begin
     if not exists (
-        select 1 from pg_constraint where conname = 'certificates_evidence_mime_type_check'
+        select 1 from pg_constraint where conname = 'certificates_evidence_mime_check'
     ) then
         alter table public.certificates
-            add constraint certificates_evidence_mime_type_check
-            check (evidence_mime_type is null or evidence_mime_type in ('image/jpeg', 'image/png', 'image/webp'));
+            add constraint certificates_evidence_mime_check
+            check (evidence_mime is null or evidence_mime in ('image/jpeg', 'image/png', 'image/webp'));
     end if;
 
     if not exists (
-        select 1 from pg_constraint where conname = 'certificates_evidence_size_check'
+        select 1 from pg_constraint where conname = 'certificates_evidence_bytes_check'
     ) then
         alter table public.certificates
-            add constraint certificates_evidence_size_check
-            check (evidence_size_bytes is null or (evidence_size_bytes > 0 and evidence_size_bytes <= 409600));
+            add constraint certificates_evidence_bytes_check
+            check (evidence_bytes is null or (evidence_bytes > 0 and evidence_bytes <= 409600));
     end if;
 
     if not exists (
