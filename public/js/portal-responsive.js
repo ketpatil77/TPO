@@ -118,8 +118,8 @@
             loadScript('/js/student-engagement-v2.js?v=20260902-2', 'student-engagement-v2-js');
             loadStylesheet('/css/profile-declarations.css?v=20260902-1', 'profile-declarations');
             loadScript('/js/profile-declarations-ui.js?v=20260902-1', 'profile-declarations-ui');
-            loadStylesheet('/css/free-learning.css?v=20260902-1', 'free-learning-css');
-            loadScript('/js/free-learning.js?v=20260902-1', 'free-learning-js');
+            loadStylesheet('/css/free-learning.css?v=20260902-2', 'free-learning-css');
+            loadScript('/js/free-learning.js?v=20260902-2', 'free-learning-js');
         }
 
         if (document.body.classList.contains('admin-dashboard-page')) {
