@@ -106,7 +106,8 @@
             const researchList = document.getElementById('researchList');
             if (researchList) new MutationObserver(compactResearchCards).observe(researchList, { childList:true });
             loadScript('/js/competitions.js?v=20260901-4', 'competitions-module');
-            loadScript('/js/profile-ranking.js?v=20260901-6', 'profile-ranking-module');
+            loadStylesheet('/css/student-leaderboard-v1.css?v=20260902-1', 'student-leaderboard-v1');
+            loadScript('/js/profile-ranking.js?v=20260902-1', 'profile-ranking-module');
             loadScript('/js/college-academics-ui.js?v=20260901-2', 'college-academics-ui');
             loadStylesheet('/css/student-engagement-v1.css?v=20260902-2', 'student-engagement-v1');
             loadScript('/js/rank-target-guard.js?v=20260902-1', 'rank-target-guard-js');
