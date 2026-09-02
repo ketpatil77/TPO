@@ -30,7 +30,7 @@
   ],
   "r2_buckets": [
     {
-      "binding": "CERTIFICATE_VAULT",
+      "binding": "CERTIFICATE_EVIDENCE",
       "bucket_name": "ait-certificate-vault"
     }
   ],
