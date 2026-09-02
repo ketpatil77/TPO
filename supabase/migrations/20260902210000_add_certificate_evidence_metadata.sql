@@ -13,7 +13,7 @@ begin
     ) then
         alter table public.certificates
             add constraint certificates_evidence_mime_check
-            check (evidence_mime is null or evidence_mime in ('image/jpeg', 'image/png', 'image/webp'));
+            check (evidence_mime is null or evidence_mime in ('image/jpeg', 'image/png'));
     end if;
 
     if not exists (
