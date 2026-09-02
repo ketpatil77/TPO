@@ -1,0 +1,124 @@
+/* Student Leaderboard v1 - native AIT student theme */
+#tab-ranking{--lb-gold:var(--student-gold,#f3c969);--lb-gold-soft:var(--student-gold-soft,rgba(243,201,105,.12));}
+#tab-ranking .leaderboard-shell{display:grid;gap:1rem;}
+#tab-ranking .leaderboard-hero{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1rem;align-items:center;padding:1.2rem 1.3rem;border-top:3px solid var(--lb-gold);}
+#tab-ranking .leaderboard-hero:after{content:'🏆';position:absolute;right:1.1rem;bottom:-2.4rem;font-size:8rem;opacity:.035;pointer-events:none;filter:grayscale(1);}
+#tab-ranking .leaderboard-titleline{display:flex;align-items:center;gap:.65rem;}
+#tab-ranking .leaderboard-title-icon{display:grid;place-items:center;width:42px;height:42px;border:1px solid color-mix(in srgb,var(--lb-gold) 55%,var(--border-color));border-radius:13px;background:var(--lb-gold-soft);color:var(--lb-gold);font-size:1.25rem;box-shadow:0 8px 24px rgba(0,0,0,.18);}
+#tab-ranking .leaderboard-hero h2{margin:0;font-size:1.55rem;}
+#tab-ranking .leaderboard-hero p{margin:.28rem 0 0;color:var(--text-muted);max-width:720px;font-size:.9rem;}
+#tab-ranking .leaderboard-motto{margin-top:.6rem;color:var(--text-body);font-size:.78rem;}
+#tab-ranking .leaderboard-motto b{color:var(--lb-gold);}
+#tab-ranking .leaderboard-my-mini{position:relative;z-index:1;min-width:170px;text-align:center;border:1px solid color-mix(in srgb,var(--lb-gold) 38%,var(--border-color));border-radius:var(--radius-md);background:color-mix(in srgb,var(--lb-gold-soft) 55%,var(--surface-muted));padding:.8rem .95rem;}
+#tab-ranking .leaderboard-my-mini span,#tab-ranking .leaderboard-my-mini small{display:block;color:var(--text-muted);font-size:.68rem;}
+#tab-ranking .leaderboard-my-mini strong{display:block;color:var(--lb-gold);font-size:1.75rem;line-height:1.05;margin:.08rem 0;}
+#tab-ranking .leaderboard-scopes{display:flex;gap:.45rem;align-items:center;overflow:auto;scrollbar-width:none;padding:.1rem 0;}
+#tab-ranking .leaderboard-scopes::-webkit-scrollbar{display:none;}
+#tab-ranking .leaderboard-scope{flex:0 0 auto;border:1px solid var(--border-color);background:var(--surface-muted);color:var(--text-muted);border-radius:999px;padding:.48rem .82rem;font:inherit;font-size:.78rem;font-weight:700;cursor:pointer;transition:var(--transition-fast);}
+#tab-ranking .leaderboard-scope:hover{color:var(--text-heading);border-color:color-mix(in srgb,var(--lb-gold) 40%,var(--border-color));}
+#tab-ranking .leaderboard-scope.active{background:var(--lb-gold-soft);border-color:color-mix(in srgb,var(--lb-gold) 65%,var(--border-color));color:var(--lb-gold);}
+#tab-ranking .leaderboard-toolbar{display:grid;grid-template-columns:auto minmax(150px,1fr) minmax(150px,1fr) auto;gap:.65rem;align-items:end;padding:.85rem 1rem;}
+#tab-ranking .leaderboard-toolbar .leaderboard-scopes{align-self:center;}
+#tab-ranking .leaderboard-toolbar .form-label{font-size:.72rem;color:var(--text-muted);}
+#tab-ranking .leaderboard-toolbar .form-select{padding:.58rem .75rem;font-size:.82rem;}
+#tab-ranking .leaderboard-toolbar .btn{padding:.58rem .85rem;font-size:.78rem;}
+#tab-ranking .leaderboard-podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;align-items:end;}
+#tab-ranking .leaderboard-podium-card{position:relative;min-height:178px;text-align:center;padding:1rem .8rem .85rem;overflow:hidden;border:1px solid var(--border-color);}
+#tab-ranking .leaderboard-podium-card.first{min-height:198px;border-color:color-mix(in srgb,var(--lb-gold) 70%,var(--border-color));background:linear-gradient(180deg,var(--lb-gold-soft),var(--bg-card) 66%);}
+#tab-ranking .leaderboard-podium-card.second{border-color:color-mix(in srgb,#cbd5e1 42%,var(--border-color));}
+#tab-ranking .leaderboard-podium-card.third{border-color:color-mix(in srgb,#c58a55 48%,var(--border-color));}
+#tab-ranking .leaderboard-medal{position:absolute;top:.65rem;left:.65rem;display:grid;place-items:center;min-width:31px;height:31px;padding:0 .35rem;border-radius:999px;background:var(--surface-muted);border:1px solid var(--border-color);font-size:.75rem;font-weight:900;color:var(--text-heading);}
+#tab-ranking .leaderboard-podium-card.first .leaderboard-medal{background:var(--lb-gold);border-color:var(--lb-gold);color:#241b08;}
+#tab-ranking .leaderboard-avatar{display:grid;place-items:center;width:64px;height:64px;margin:.35rem auto .55rem;border-radius:50%;border:1px solid var(--border-color);background:linear-gradient(145deg,var(--surface-muted),var(--bg-card));color:var(--text-heading);font-size:1rem;font-weight:800;letter-spacing:.04em;box-shadow:0 8px 20px rgba(0,0,0,.2);}
+#tab-ranking .leaderboard-podium-card.first .leaderboard-avatar{width:72px;height:72px;border-color:var(--lb-gold);box-shadow:0 0 0 4px var(--lb-gold-soft),0 10px 26px rgba(0,0,0,.24);}
+#tab-ranking .leaderboard-podium-card h3{margin:.1rem 0;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#tab-ranking .leaderboard-podium-card p{margin:0;color:var(--text-muted);font-size:.7rem;}
+#tab-ranking .leaderboard-podium-card .leaderboard-podium-points{display:block;margin-top:.35rem;color:var(--lb-gold);font-size:1.05rem;font-weight:800;}
+#tab-ranking .leaderboard-podium-card small{display:block;color:var(--text-muted);font-size:.62rem;margin-top:.05rem;}
+#tab-ranking .leaderboard-section-heading{display:flex;align-items:end;justify-content:space-between;gap:.8rem;margin-top:.2rem;}
+#tab-ranking .leaderboard-section-heading h3{margin:.08rem 0;font-size:1.1rem;}
+#tab-ranking .leaderboard-section-heading p{margin:0;color:var(--text-muted);font-size:.75rem;}
+#tab-ranking .leaderboard-table-card{overflow:hidden;padding:0;}
+#tab-ranking .leaderboard-table-head,#tab-ranking .leaderboard-entry-main{display:grid;grid-template-columns:62px minmax(220px,1.7fr) minmax(90px,.65fr) minmax(110px,.8fr) 110px;gap:.55rem;align-items:center;}
+#tab-ranking .leaderboard-table-head{padding:.68rem .85rem;border-bottom:1px solid var(--border-color);background:var(--surface-muted);color:var(--text-muted);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+#tab-ranking .leaderboard-entry{border-bottom:1px solid color-mix(in srgb,var(--border-color) 72%,transparent);}
+#tab-ranking .leaderboard-entry:last-child{border-bottom:0;}
+#tab-ranking .leaderboard-entry.is-me{background:linear-gradient(90deg,var(--lb-gold-soft),transparent 80%);box-shadow:inset 3px 0 0 var(--lb-gold);}
+#tab-ranking .leaderboard-entry-main{padding:.68rem .85rem;min-height:64px;}
+#tab-ranking .leaderboard-rankno{font-size:.95rem;font-weight:850;color:var(--text-heading);}
+#tab-ranking .leaderboard-entry.is-me .leaderboard-rankno{color:var(--lb-gold);}
+#tab-ranking .leaderboard-student{display:flex;align-items:center;gap:.65rem;min-width:0;}
+#tab-ranking .leaderboard-student .leaderboard-avatar{width:38px;height:38px;margin:0;flex:0 0 38px;font-size:.72rem;}
+#tab-ranking .leaderboard-student-copy{min-width:0;}
+#tab-ranking .leaderboard-student-copy strong{display:block;color:var(--text-heading);font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#tab-ranking .leaderboard-student-copy small{display:block;color:var(--text-muted);font-size:.64rem;}
+#tab-ranking .leaderboard-cell{font-size:.76rem;color:var(--text-body);}
+#tab-ranking .leaderboard-points-cell{text-align:right;color:var(--lb-gold);font-weight:850;font-size:.84rem;}
+#tab-ranking .leaderboard-entry-details{padding:0 .85rem .7rem;}
+#tab-ranking .leaderboard-entry-details>summary{cursor:pointer;display:inline-flex;align-items:center;gap:.35rem;color:var(--text-muted);font-size:.67rem;font-weight:700;list-style:none;}
+#tab-ranking .leaderboard-entry-details>summary::-webkit-details-marker{display:none;}
+#tab-ranking .leaderboard-entry-details>summary:before{content:'＋';color:var(--lb-gold);}
+#tab-ranking .leaderboard-entry-details[open]>summary:before{content:'−';}
+#tab-ranking .leaderboard-personal-bar{position:sticky;bottom:.65rem;z-index:5;display:grid;grid-template-columns:auto 1fr 1fr;gap:.8rem;align-items:center;padding:.75rem .9rem;border-color:color-mix(in srgb,var(--lb-gold) 65%,var(--border-color));background:color-mix(in srgb,var(--bg-card) 94%,var(--lb-gold-soft));box-shadow:0 16px 40px rgba(0,0,0,.38);}
+#tab-ranking .leaderboard-personal-trophy{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--lb-gold-soft);color:var(--lb-gold);font-size:1.2rem;}
+#tab-ranking .leaderboard-personal-stat span{display:block;color:var(--text-muted);font-size:.62rem;}
+#tab-ranking .leaderboard-personal-stat strong{display:block;color:var(--text-heading);font-size:1rem;line-height:1.2;}
+#tab-ranking .leaderboard-personal-stat.points strong{color:var(--lb-gold);}
+#tab-ranking .leaderboard-empty{padding:1.5rem;text-align:center;color:var(--text-muted);}
+
+@media(max-width:900px){
+ #tab-ranking .leaderboard-toolbar{grid-template-columns:1fr 1fr auto;}
+ #tab-ranking .leaderboard-toolbar .leaderboard-scopes{grid-column:1/-1;}
+ #tab-ranking .leaderboard-table-head,#tab-ranking .leaderboard-entry-main{grid-template-columns:48px minmax(180px,1fr) 80px 95px;}
+ #tab-ranking .leaderboard-table-head span:nth-child(4),#tab-ranking .leaderboard-entry-main>.leaderboard-cell.year{display:none;}
+}
+@media(max-width:760px){
+ #tab-ranking .leaderboard-shell{gap:.75rem;}
+ #tab-ranking .leaderboard-hero{grid-template-columns:1fr auto;padding:.9rem;border-top-width:2px;gap:.55rem;}
+ #tab-ranking .leaderboard-title-icon{width:36px;height:36px;border-radius:11px;font-size:1rem;}
+ #tab-ranking .leaderboard-hero h2{font-size:1.2rem;}
+ #tab-ranking .leaderboard-hero p{font-size:.72rem;line-height:1.45;}
+ #tab-ranking .leaderboard-motto{display:none;}
+ #tab-ranking .leaderboard-my-mini{min-width:84px;padding:.55rem .45rem;}
+ #tab-ranking .leaderboard-my-mini strong{font-size:1.4rem;}
+ #tab-ranking .leaderboard-my-mini small{font-size:.56rem;}
+ #tab-ranking .leaderboard-hero:after{display:none;}
+ #tab-ranking .leaderboard-toolbar{grid-template-columns:1fr 1fr;padding:.7rem;gap:.5rem;}
+ #tab-ranking .leaderboard-toolbar .leaderboard-scopes{grid-column:1/-1;}
+ #tab-ranking .leaderboard-toolbar #rankingRefresh{grid-column:1/-1;width:100%;}
+ #tab-ranking .leaderboard-scopes{width:100%;}
+ #tab-ranking .leaderboard-scope{flex:1 0 auto;text-align:center;padding:.42rem .65rem;font-size:.7rem;}
+ #tab-ranking .leaderboard-podium{gap:.38rem;align-items:end;}
+ #tab-ranking .leaderboard-podium-card{min-width:0;min-height:150px;padding:.8rem .35rem .6rem;border-radius:14px;}
+ #tab-ranking .leaderboard-podium-card.first{min-height:168px;}
+ #tab-ranking .leaderboard-medal{top:.45rem;left:.45rem;min-width:25px;height:25px;font-size:.62rem;}
+ #tab-ranking .leaderboard-avatar{width:48px;height:48px;font-size:.72rem;margin:.45rem auto .4rem;}
+ #tab-ranking .leaderboard-podium-card.first .leaderboard-avatar{width:56px;height:56px;}
+ #tab-ranking .leaderboard-podium-card h3{font-size:.72rem;}
+ #tab-ranking .leaderboard-podium-card p{font-size:.55rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+ #tab-ranking .leaderboard-podium-card .leaderboard-podium-points{font-size:.78rem;}
+ #tab-ranking .leaderboard-podium-card small{font-size:.5rem;}
+ #tab-ranking .leaderboard-section-heading{align-items:center;}
+ #tab-ranking .leaderboard-section-heading p{display:none;}
+ #tab-ranking .leaderboard-table-head{display:none;}
+ #tab-ranking .leaderboard-entry-main{grid-template-columns:34px minmax(0,1fr) auto;gap:.42rem;padding:.58rem .65rem;min-height:58px;}
+ #tab-ranking .leaderboard-entry-main>.leaderboard-cell.branch,#tab-ranking .leaderboard-entry-main>.leaderboard-cell.year{display:none;}
+ #tab-ranking .leaderboard-student{gap:.5rem;}
+ #tab-ranking .leaderboard-student .leaderboard-avatar{width:34px;height:34px;flex-basis:34px;font-size:.62rem;}
+ #tab-ranking .leaderboard-student-copy strong{font-size:.74rem;}
+ #tab-ranking .leaderboard-student-copy small{font-size:.58rem;}
+ #tab-ranking .leaderboard-rankno{font-size:.8rem;}
+ #tab-ranking .leaderboard-points-cell{font-size:.72rem;}
+ #tab-ranking .leaderboard-entry-details{padding:0 .65rem .55rem 2.95rem;}
+ #tab-ranking .leaderboard-personal-bar{bottom:.45rem;grid-template-columns:auto 1fr 1fr;padding:.6rem .7rem;gap:.55rem;border-radius:14px;}
+ #tab-ranking .leaderboard-personal-trophy{width:34px;height:34px;font-size:1rem;}
+ #tab-ranking .leaderboard-personal-stat strong{font-size:.86rem;}
+}
+@media(max-width:390px){
+ #tab-ranking .leaderboard-hero{grid-template-columns:1fr;}
+ #tab-ranking .leaderboard-my-mini{display:grid;grid-template-columns:auto auto auto;gap:.45rem;align-items:center;text-align:left;}
+ #tab-ranking .leaderboard-my-mini strong{font-size:1.2rem;}
+ #tab-ranking .leaderboard-toolbar{grid-template-columns:1fr;}
+ #tab-ranking .leaderboard-toolbar .leaderboard-scopes,#tab-ranking .leaderboard-toolbar #rankingRefresh{grid-column:1;}
+ #tab-ranking .leaderboard-podium-card{padding-left:.25rem;padding-right:.25rem;}
+}
