@@ -3,7 +3,6 @@
 
     const token = () => localStorage.getItem('tpo_token');
     let cachedLinks = { github_url: '', portfolio_url: '' };
-    let renderingOverview = false;
 
     function csrfToken() {
         const match = document.cookie.match(/(?:^|; )csrfToken=([^;]+)/);
@@ -58,34 +57,43 @@
 
     function renderOverviewLinks() {
         const host = document.getElementById('overviewProfileLinks');
-        if (!host || renderingOverview) return;
-        renderingOverview = true;
-        try {
-            host.querySelectorAll('[data-professional-link]').forEach(node => node.remove());
-            const entries = [
-                ['GitHub', cachedLinks.github_url, 'github'],
-                ['Portfolio', cachedLinks.portfolio_url, 'portfolio']
-            ];
-            entries.forEach(([label, value, key]) => {
-                if (!value) return;
-                const target = normalizedUrl(value);
-                host.querySelectorAll('a').forEach(anchor => {
-                    if (!anchor.dataset.professionalLink && anchor.textContent.trim().toLowerCase() === label.toLowerCase()) anchor.remove();
-                });
-                const duplicate = [...host.querySelectorAll('a')].some(anchor => normalizedUrl(anchor.href) === target);
-                if (duplicate) return;
-                const anchor = document.createElement('a');
-                anchor.className = 'btn btn-secondary btn-sm';
-                anchor.dataset.professionalLink = key;
-                anchor.href = value;
-                anchor.target = '_blank';
-                anchor.rel = 'noopener';
-                anchor.textContent = label;
-                host.appendChild(anchor);
+        if (!host) return;
+        const entries = [
+            ['GitHub', cachedLinks.github_url, 'github'],
+            ['Portfolio', cachedLinks.portfolio_url, 'portfolio']
+        ];
+
+        entries.forEach(([label, value, key]) => {
+            const managed = host.querySelector(`[data-professional-link="${key}"]`);
+            if (!value) {
+                managed?.remove();
+                return;
+            }
+
+            const target = normalizedUrl(value);
+            host.querySelectorAll('a:not([data-professional-link])').forEach(anchor => {
+                if (anchor.textContent.trim().toLowerCase() === label.toLowerCase()) anchor.remove();
             });
-        } finally {
-            renderingOverview = false;
-        }
+
+            if (managed) {
+                const alreadyCorrect = normalizedUrl(managed.href) === target && managed.textContent.trim() === label;
+                if (alreadyCorrect) return;
+                managed.href = value;
+                managed.textContent = label;
+                return;
+            }
+
+            const duplicate = [...host.querySelectorAll('a')].some(anchor => normalizedUrl(anchor.href) === target);
+            if (duplicate) return;
+            const anchor = document.createElement('a');
+            anchor.className = 'btn btn-secondary btn-sm';
+            anchor.dataset.professionalLink = key;
+            anchor.href = value;
+            anchor.target = '_blank';
+            anchor.rel = 'noopener';
+            anchor.textContent = label;
+            host.appendChild(anchor);
+        });
     }
 
     function validateGithub(input) {
@@ -150,13 +158,23 @@
         }
     }
 
+    function overviewNeedsSync(host) {
+        return [
+            ['github', cachedLinks.github_url],
+            ['portfolio', cachedLinks.portfolio_url]
+        ].some(([key, value]) => {
+            const managed = host.querySelector(`[data-professional-link="${key}"]`);
+            return value ? !managed || normalizedUrl(managed.href) !== normalizedUrl(value) : Boolean(managed);
+        });
+    }
+
     function boot() {
         ensureEditor();
         loadLinks();
         const overview = document.getElementById('overviewProfileLinks');
         if (overview) {
             new MutationObserver(() => {
-                if (!renderingOverview) queueMicrotask(renderOverviewLinks);
+                if (overviewNeedsSync(overview)) queueMicrotask(renderOverviewLinks);
             }).observe(overview, { childList: true });
         }
     }
