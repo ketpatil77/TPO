@@ -30,12 +30,14 @@ jobs:
           node --check src/server.js
           node --check src/routes/profileRankingView.js
           node --check src/routes/profileDeclarations.js
+          node --check src/routes/certificateEvidence.js
           node --check src/utils/profileCompletionModel.js
           node --check public/js/profile-ranking.js
           node --check public/js/portal-responsive.js
           node --check public/js/portal-back-guard.js
           node --check public/js/student-engagement-v2.js
           node --check public/js/profile-declarations-ui.js
+          node --check public/js/certificate-vault-ui.js
           node --check public/js/tpc-layout-v2.js
           node --check public/js/dob-view-controls.js
       - name: Cloudflare dry run
