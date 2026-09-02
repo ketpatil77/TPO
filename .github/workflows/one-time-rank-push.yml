@@ -15,8 +15,13 @@ jobs:
     steps:
       - name: Wait for production deployment
         run: sleep 75
-      - name: Deliver personalized ranking pushes
+      - name: Deliver personalized ranking pushes in batches
         run: |
           set -euo pipefail
-          curl --fail --show-error --silent --max-time 180 \
-            'https://ait.ait-placement-portal.workers.dev/api/internal/rank-push/deliver?key=HnibuXe8GoDmUrVHOgJmy2S8qTuGEjx6'
+          for i in $(seq 1 12); do
+            echo "Batch $i"
+            curl --fail --show-error --silent --max-time 60 \
+              'https://ait.ait-placement-portal.workers.dev/api/internal/rank-push/deliver?job=rank-broadcast-20260902-1550'
+            echo
+            sleep 2
+          done
