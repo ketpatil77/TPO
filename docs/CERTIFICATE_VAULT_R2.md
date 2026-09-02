@@ -42,7 +42,7 @@ Do not make the bucket public. Reads go through authenticated Worker routes.
 
 Release migration:
 
-`supabase/migrations/20260902191500_add_certificate_evidence_metadata.sql`
+`supabase/migrations/20260902210000_add_certificate_evidence_metadata.sql`
 
 It adds these nullable columns to `public.certificates`:
 
@@ -86,7 +86,7 @@ This is deliberate. Stored object count should not affect normal portal performa
 1. Review branch diff against `master`.
 2. Create the private R2 bucket `ait-certificate-vault` if it does not already exist.
 3. Confirm Worker R2 binding `CERTIFICATE_EVIDENCE` points to that bucket.
-4. Apply `20260902191500_add_certificate_evidence_metadata.sql` to the production Supabase project.
+4. Apply `20260902210000_add_certificate_evidence_metadata.sql` to the production Supabase project.
 5. Run syntax/tests and `wrangler deploy --dry-run` from the branch.
 6. Test with a non-production/sample student flow:
    - JPG upload
