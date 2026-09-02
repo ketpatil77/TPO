@@ -42,7 +42,6 @@
         list.querySelectorAll('.research-card:not([data-compact-ready])').forEach(card => {
             card.dataset.compactReady = 'true';
             card.classList.add('research-card-compact');
-
             const publication = card.querySelector('.research-publication');
             const abstract = [...card.children].find(node => node.tagName === 'P' && node !== publication);
             if (abstract) {
@@ -62,7 +61,6 @@
                     abstract.after(toggle);
                 }
             }
-
             const actions = document.createElement('div');
             actions.className = 'compact-record-actions';
             const links = card.querySelector('.project-links');
@@ -90,13 +88,9 @@
             });
         }
 
-        if (document.body.classList.contains('unified-auth-shell')) {
-            loadScript('/js/login-autofill.js?v=20260901-2', 'login-autofill');
-        }
+        if (document.body.classList.contains('unified-auth-shell')) loadScript('/js/login-autofill.js?v=20260901-2', 'login-autofill');
 
-        const authenticatedWorkspace = document.body.classList.contains('student-dashboard-page') ||
-            document.body.classList.contains('admin-dashboard-page') ||
-            document.body.classList.contains('observer-shell');
+        const authenticatedWorkspace = document.body.classList.contains('student-dashboard-page') || document.body.classList.contains('admin-dashboard-page') || document.body.classList.contains('observer-shell');
         if (authenticatedWorkspace) {
             loadStylesheet('/css/portal-back-guard.css?v=20260901-1', 'portal-back-guard');
             loadScript('/js/portal-back-guard.js?v=20260901-1', 'portal-back-guard-js');
@@ -109,7 +103,6 @@
             compactResearchCards();
             const researchList = document.getElementById('researchList');
             if (researchList) new MutationObserver(compactResearchCards).observe(researchList, { childList:true });
-
             loadScript('/js/competitions.js?v=20260901-4', 'competitions-module');
             loadScript('/js/profile-ranking.js?v=20260901-6', 'profile-ranking-module');
             loadScript('/js/college-academics-ui.js?v=20260901-2', 'college-academics-ui');
@@ -118,18 +111,12 @@
             loadScript('/js/student-engagement-v2.js?v=20260902-2', 'student-engagement-v2-js');
             loadStylesheet('/css/profile-declarations.css?v=20260902-1', 'profile-declarations');
             loadScript('/js/profile-declarations-ui.js?v=20260902-1', 'profile-declarations-ui');
-            loadStylesheet('/css/free-learning.css?v=20260902-2', 'free-learning-css');
-            loadScript('/js/free-learning.js?v=20260902-2', 'free-learning-js');
+            loadStylesheet('/css/free-learning.css?v=20260902-3', 'free-learning-css');
+            loadScript('/js/free-learning.js?v=20260902-3', 'free-learning-js');
         }
 
-        if (document.body.classList.contains('admin-dashboard-page')) {
-            loadScript('/js/calendar-polish.js?v=20260901-1', 'calendar-polish');
-        }
-
-        if (document.body.classList.contains('observer-shell')) {
-            loadScript('/js/dob-view-controls.js?v=20260901-2', 'dob-view-controls');
-        }
-
+        if (document.body.classList.contains('admin-dashboard-page')) loadScript('/js/calendar-polish.js?v=20260901-1', 'calendar-polish');
+        if (document.body.classList.contains('observer-shell')) loadScript('/js/dob-view-controls.js?v=20260901-2', 'dob-view-controls');
         if (document.body.classList.contains('admin-dashboard-page') || document.body.classList.contains('observer-shell')) {
             loadScript('/js/candidate-profile-v2.js?v=20260901-2', 'candidate-profile-v2-js');
             loadScript('/js/competition-review.js?v=20260901-1', 'competition-review-module');
