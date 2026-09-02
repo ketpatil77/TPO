@@ -120,8 +120,8 @@
 
         if (document.body.classList.contains('admin-dashboard-page')) loadScript('/js/calendar-polish.js?v=20260901-1', 'calendar-polish');
         if (document.body.classList.contains('observer-shell')) {
-            loadStylesheet('/css/tpc-layout-v2.css?v=20260902-2', 'tpc-layout-v2');
-            loadScript('/js/tpc-layout-v2.js?v=20260902-2', 'tpc-layout-v2-js');
+            loadStylesheet('/css/tpc-layout-v2.css?v=20260902-3', 'tpc-layout-v2');
+            loadScript('/js/tpc-layout-v2.js?v=20260902-3', 'tpc-layout-v2-js');
             loadScript('/js/dob-view-controls.js?v=20260901-2', 'dob-view-controls');
         }
         if (document.body.classList.contains('admin-dashboard-page') || document.body.classList.contains('observer-shell')) {
