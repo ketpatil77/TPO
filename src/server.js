@@ -12,6 +12,7 @@ require('dotenv').config();
 // Student Routes
 const authRoutes = require('./routes/auth');
 const studentRoutes = require('./routes/student');
+const certificateEvidenceRoutes = require('./routes/certificateEvidence');
 const competitionRoutes = require('./routes/competitions');
 const profileDeclarationRoutes = require('./routes/profileDeclarations');
 const profileLinksRoutes = require('./routes/profileLinks');
@@ -88,6 +89,9 @@ if (!isCloudflareWorker) app.use(express.static(path.join(process.cwd(), 'public
 // API Endpoints - Student
 app.use('/api/auth', authRoutes);
 app.use('/api/student', protectCollegeAcademics);
+// Keep evidence routes ahead of the legacy student router so certificate deletion
+// can atomically clean private R2 proof before the fallback CRUD route is reached.
+app.use('/api/student', certificateEvidenceRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/student/competitions', competitionRoutes);
 app.use('/api/student/profile-declarations', profileDeclarationRoutes);
