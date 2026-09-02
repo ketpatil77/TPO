@@ -118,6 +118,7 @@
         if (document.body.classList.contains('admin-dashboard-page')) loadScript('/js/calendar-polish.js?v=20260901-1', 'calendar-polish');
         if (document.body.classList.contains('observer-shell')) loadScript('/js/dob-view-controls.js?v=20260901-2', 'dob-view-controls');
         if (document.body.classList.contains('admin-dashboard-page') || document.body.classList.contains('observer-shell')) {
+            loadStylesheet('/css/staff-table-actions.css?v=20260902-1', 'staff-table-actions');
             loadScript('/js/candidate-profile-v2.js?v=20260901-2', 'candidate-profile-v2-js');
             loadScript('/js/competition-review.js?v=20260901-1', 'competition-review-module');
         }
