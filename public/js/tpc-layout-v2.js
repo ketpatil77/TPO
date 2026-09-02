@@ -7,6 +7,7 @@
     ].filter(Boolean);
 
     let frame = 0;
+    let directoryRefreshTimer = 0;
 
     function viewportHeight() {
         return window.visualViewport?.height || window.innerHeight;
@@ -64,9 +65,122 @@
         }
     }
 
+    function initials(name) {
+        const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+        return (parts[0]?.[0] || '?') + (parts.length > 1 ? parts[parts.length - 1][0] : '');
+    }
+
+    function completionLabel(state) {
+        return ({ complete: 'Complete', strong: 'Strong', building: 'Building', attention: 'Needs attention' })[state] || 'Needs attention';
+    }
+
+    function evidenceItem(label, count, title) {
+        return `<span class="tpc-evidence-item" title="${escapeHtml(title)}"><small>${label}</small><strong>${Number(count) || 0}</strong></span>`;
+    }
+
+    function renderDirectoryRow(student, index) {
+        const completion = student.profile_completion || { percent: 0, state: 'attention', missing: [], missing_count: 0 };
+        const percent = Math.max(0, Math.min(100, Number(completion.percent) || 0));
+        const missing = Array.isArray(completion.missing) ? completion.missing : [];
+        const missingText = missing.length ? `${missing.length} item${missing.length === 1 ? '' : 's'} need attention` : 'Everything resolved';
+        const missingTitle = missing.length ? missing.join(', ') : 'Profile complete';
+        const cgpa = Number(student.cgpa_overall || 0).toFixed(2);
+        const backlogs = Number(student.active_backlogs || 0);
+        const resume = student.resume_url
+            ? `<a class="tpc-action-btn tpc-action-resume" href="/api/observer/students/${encodeURIComponent(student.id)}/resume/open" target="_blank" rel="noopener" aria-label="Open ${escapeHtml(student.name)} resume">Resume</a>`
+            : '<span class="tpc-resume-missing">No resume</span>';
+
+        return `<tr class="tpc-directory-row">
+            <td data-label="Student">
+                <div class="tpc-student-identity"><span class="tpc-student-initials" aria-hidden="true">${escapeHtml(initials(student.name).toUpperCase())}</span><span class="tpc-student-copy"><strong>${escapeHtml(student.name)}</strong><small>${escapeHtml(student.prn)}</small></span></div>
+            </td>
+            <td data-label="Program"><div class="tpc-program-cell"><span class="branch-chip">${escapeHtml(student.branch)}</span><small>${escapeHtml(student.year || '—')} · ${escapeHtml(student.class || '—')}</small></div></td>
+            <td data-label="Completion" class="tpc-completion-cell" title="${escapeHtml(missingTitle)}">
+                <div class="tpc-completion-head"><strong>${percent}%</strong><span class="tpc-completion-state is-${escapeHtml(completion.state || 'attention')}">${completionLabel(completion.state)}</span></div>
+                <div class="tpc-completion-track" role="progressbar" aria-label="Profile completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><span style="width:${percent}%"></span></div>
+                <small>${escapeHtml(missingText)}</small>
+            </td>
+            <td data-label="Academic"><div class="tpc-academic-cell"><strong>${cgpa}</strong><span>CGPA</span><small>${backlogs ? `${backlogs} active backlog${backlogs === 1 ? '' : 's'}` : 'No active backlogs'}</small></div></td>
+            <td data-label="Evidence"><div class="tpc-evidence-strip">${evidenceItem('IN', student.internships?.length, 'Internships')}${evidenceItem('CERT', student.certificates?.length, 'Certificates')}${evidenceItem('PROJ', student.projects?.length, 'Projects')}${evidenceItem('RES', student.research_papers?.length, 'Research papers')}${evidenceItem('COMP', student.competitions?.length, 'Competitions')}</div></td>
+            <td data-label="Actions"><div class="tpc-row-actions">${resume}<button class="tpc-action-btn tpc-action-profile" type="button" onclick="openObserverStudent(${index})">Profile</button></div></td>
+        </tr>`;
+    }
+
+    async function enhancedLoadStudents() {
+        if (typeof observerState === 'undefined' || typeof requestJson !== 'function') return;
+        const branch = document.getElementById('observerBranch');
+        const year = document.getElementById('observerYear');
+        const search = document.getElementById('observerSearch');
+        const body = document.getElementById('observerStudents');
+        if (!branch || !year || !search || !body) return;
+
+        const params = new URLSearchParams({
+            page: observerState.studentPage,
+            pageSize: 25,
+            branch: branch.value,
+            year: year.value,
+            search: search.value.trim()
+        });
+
+        body.dataset.tpcLoading = 'true';
+        try {
+            const { data } = await requestJson(`/api/observer/students?${params}`);
+            observerState.students = data.students;
+            body.innerHTML = data.students.length
+                ? data.students.map(renderDirectoryRow).join('')
+                : '<tr><td colspan="6" class="empty-cell">No profiles match current filters.</td></tr>';
+            body.dataset.tpcEnhanced = 'true';
+            renderPagination('studentPagination', data.page, data.totalPages, page => {
+                observerState.studentPage = page;
+                enhancedLoadStudents();
+            });
+            scheduleFit();
+        } catch (error) {
+            body.innerHTML = `<tr><td colspan="6" class="empty-cell">${escapeHtml(error.message || 'Unable to load student profiles.')}</td></tr>`;
+        } finally {
+            delete body.dataset.tpcLoading;
+        }
+    }
+
+    function installDirectoryExperience() {
+        const table = document.querySelector('#observerTab-students .observer-table');
+        const body = document.getElementById('observerStudents');
+        if (!table || !body || typeof observerState === 'undefined') return;
+
+        table.classList.add('tpc-readiness-table');
+        const header = table.querySelector('thead tr');
+        if (header) header.innerHTML = '<th>Student</th><th>Program</th><th>Profile completion</th><th>Academic</th><th>Evidence</th><th>Actions</th>';
+
+        try { loadStudents = enhancedLoadStudents; } catch (_) { window.loadStudents = enhancedLoadStudents; }
+
+        ['observerBranch', 'observerYear'].forEach(id => document.getElementById(id)?.addEventListener('change', () => {
+            observerState.studentPage = 1;
+        }, true));
+        document.getElementById('observerSearch')?.addEventListener('input', () => {
+            observerState.studentPage = 1;
+        }, true);
+        document.getElementById('refreshStudents')?.addEventListener('click', event => {
+            event.stopImmediatePropagation();
+            enhancedLoadStudents();
+        }, true);
+
+        if ('MutationObserver' in window) {
+            new MutationObserver(() => {
+                if (body.dataset.tpcLoading === 'true') return;
+                if (body.children.length && !body.querySelector('.tpc-completion-cell') && !body.querySelector('.empty-cell')) {
+                    clearTimeout(directoryRefreshTimer);
+                    directoryRefreshTimer = setTimeout(enhancedLoadStudents, 30);
+                }
+            }).observe(body, { childList: true });
+        }
+
+        enhancedLoadStudents();
+    }
+
     function boot() {
         scheduleFit();
         observeLayoutChanges();
+        installDirectoryExperience();
 
         document.querySelector('.observer-tabs')?.addEventListener('click', event => {
             if (event.target.closest('.tab-btn')) setTimeout(scheduleFit, 0);
