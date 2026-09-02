@@ -12,7 +12,31 @@
         element.addEventListener('invalid', () => { details.open = true; }, true);
     }
 
+    function normalizePortalMessage(value, fallback = 'Something went wrong. Please try again.') {
+        if (typeof value === 'string' && value.trim()) return value.trim();
+        if (value instanceof Error && value.message) return value.message;
+        if (value && typeof value === 'object') {
+            if (typeof value.message === 'string' && value.message.trim()) return value.message.trim();
+            if (typeof value.error === 'string' && value.error.trim()) return value.error.trim();
+            if (value.error && typeof value.error === 'object' && typeof value.error.message === 'string' && value.error.message.trim()) return value.error.message.trim();
+            if (typeof value.details === 'string' && value.details.trim()) return value.details.trim();
+        }
+        return fallback;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+        // Legacy handlers occasionally pass structured API errors directly into the toast.
+        // Normalize once for every workspace so users never see "[object Object]" again.
+        if (typeof window.showToast === 'function' && !window.showToast.__portalNormalized) {
+            const originalShowToast = window.showToast;
+            const normalizedShowToast = function(message, type = 'info') {
+                return originalShowToast(normalizePortalMessage(message), type);
+            };
+            normalizedShowToast.__portalNormalized = true;
+            window.showToast = normalizedShowToast;
+        }
+        window.normalizePortalMessage = normalizePortalMessage;
+
         if (document.body.classList.contains('admin-dashboard-page')) {
             const tabs = document.querySelector('.admin-tabs');
             if (tabs && !tabs.querySelector('[aria-controls="tab-student-activity"]')) {
