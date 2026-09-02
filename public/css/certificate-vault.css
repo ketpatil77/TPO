@@ -15,6 +15,11 @@
 .certificate-evidence-status.is-working { color: #d9b96e; }
 .certificate-evidence-status.is-success { color: #75d5a1; }
 .certificate-evidence-status.is-error { color: #ff8f8f; }
+.certificate-evidence-quota {
+    margin-top: .35rem;
+    font-size: .76rem;
+    color: var(--text-muted);
+}
 
 .certificate-evidence-preview {
     display: grid;
