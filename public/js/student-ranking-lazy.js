@@ -75,6 +75,11 @@
 
     try {
       await addScript('/js/profile-ranking.js?v=20260902-3', 'profile-ranking-module');
+      try {
+        await addScript('/js/leaderboard-compact-score.js?v=20260902-1', 'leaderboard-compact-score-js');
+      } catch (_) {
+        // Ranking remains usable even if the optional compact presentation layer fails.
+      }
     } catch (error) {
       window.fetch = nativeFetch;
       loading = false;
