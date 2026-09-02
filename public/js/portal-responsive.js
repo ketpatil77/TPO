@@ -99,6 +99,7 @@
         document.getElementById('notificationGateSignOut')?.addEventListener('click', () => document.getElementById('logoutBtn')?.click());
 
         if (document.body.classList.contains('student-dashboard-page')) {
+            loadStylesheet('/css/student-mobile-density.css?v=20260902-1', 'student-mobile-density');
             loadCompactRecordStyles();
             compactResearchCards();
             const researchList = document.getElementById('researchList');
