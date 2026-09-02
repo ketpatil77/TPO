@@ -238,10 +238,17 @@
 
   function boot() {
     schedule(300);
-    const root = document.getElementById('dashboardContent') || document.body;
-    new MutationObserver(() => schedule(140)).observe(root, { childList:true, subtree:true });
+
+    // Refresh only after actions that can actually change profile state.
+    // The previous whole-dashboard MutationObserver created a feedback loop:
+    // refresh -> DOM mutation -> observer -> refresh, continuously burning the main thread.
     document.addEventListener('click', event => {
-      if (event.target.closest('.btn,button[type="submit"]')) schedule(700);
+      if (event.target.closest('.profile-none-btn, button[type="submit"], .item-actions .btn, .record-actions .btn')) schedule(700);
+    });
+
+    // When the user returns to the tab, do one cheap state sync instead of polling.
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) schedule(120);
     });
   }
 
