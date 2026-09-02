@@ -1,0 +1,166 @@
+/* TPC Student Profiles: exactly 12 records per page, readable density, no nested vertical table scroll. */
+@media (min-width: 900px) {
+  .observer-shell.tpc-directory-focus .observer-hero,
+  .observer-shell.tpc-directory-focus .observer-overview-disclosure {
+    display: none !important;
+  }
+
+  .observer-shell.tpc-directory-focus .dashboard-wrapper {
+    padding-top: 6px !important;
+  }
+
+  .observer-shell #observerTab-students.active {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    display: grid !important;
+    grid-template-rows: auto auto auto !important;
+    gap: 6px !important;
+  }
+
+  .observer-shell #observerTab-students .table-shell {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    scrollbar-gutter: auto !important;
+    overscroll-behavior: auto !important;
+  }
+
+  .observer-shell #observerTab-students .observer-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    padding: 7px 10px !important;
+    font-size: .7rem !important;
+    line-height: 1.08 !important;
+  }
+
+  .observer-shell #observerTab-students .tpc-directory-row td {
+    padding: 7px 10px !important;
+    line-height: 1.12 !important;
+  }
+
+  .observer-shell #observerTab-students .tpc-student-identity {
+    gap: 8px;
+  }
+
+  .observer-shell #observerTab-students .tpc-student-initials {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+    border-radius: 8px;
+    font-size: .64rem;
+  }
+
+  .observer-shell #observerTab-students .tpc-student-copy strong {
+    font-size: .82rem;
+    line-height: 1.08;
+  }
+
+  .observer-shell #observerTab-students .tpc-student-copy small,
+  .observer-shell #observerTab-students .tpc-program-cell small,
+  .observer-shell #observerTab-students .tpc-academic-cell small,
+  .observer-shell #observerTab-students .tpc-completion-cell > small {
+    margin-top: 2px !important;
+    font-size: .65rem !important;
+    line-height: 1.08 !important;
+  }
+
+  .observer-shell #observerTab-students .tpc-program-cell {
+    gap: 2px;
+  }
+
+  .observer-shell #observerTab-students .tpc-program-cell .branch-chip {
+    min-width: 35px;
+    padding: 3px 6px;
+    font-size: .64rem;
+  }
+
+  .observer-shell #observerTab-students .tpc-completion-head {
+    gap: 6px;
+    margin-bottom: 3px;
+  }
+
+  .observer-shell #observerTab-students .tpc-completion-head > strong {
+    font-size: .84rem;
+  }
+
+  .observer-shell #observerTab-students .tpc-completion-state {
+    padding: 2px 6px;
+    font-size: .56rem;
+  }
+
+  .observer-shell #observerTab-students .tpc-completion-track {
+    height: 4px;
+  }
+
+  .observer-shell #observerTab-students .tpc-academic-cell > strong {
+    font-size: .82rem;
+  }
+
+  .observer-shell #observerTab-students .tpc-academic-cell > span {
+    margin-top: 0;
+    font-size: .6rem;
+  }
+
+  .observer-shell #observerTab-students .tpc-evidence-strip {
+    gap: 3px;
+  }
+
+  .observer-shell #observerTab-students .tpc-evidence-item {
+    min-height: 29px;
+    padding: 3px 2px;
+    border-radius: 7px;
+  }
+
+  .observer-shell #observerTab-students .tpc-evidence-item small {
+    font-size: .48rem !important;
+    line-height: 1 !important;
+  }
+
+  .observer-shell #observerTab-students .tpc-evidence-item strong {
+    margin-top: 1px;
+    font-size: .69rem;
+    line-height: 1 !important;
+  }
+
+  .observer-shell #observerTab-students .tpc-row-actions {
+    gap: 5px;
+  }
+
+  .observer-shell #observerTab-students .tpc-action-btn,
+  .observer-shell #observerTab-students .tpc-resume-missing {
+    min-height: 28px;
+    padding: 4px 7px;
+    border-radius: 7px;
+    font-size: .64rem;
+    line-height: 1;
+  }
+
+  .observer-shell #observerTab-students .pagination-bar {
+    min-height: 36px;
+    padding-top: 2px;
+  }
+
+  .observer-shell #observerTab-students .pagination-bar .btn {
+    min-height: 32px !important;
+    height: 32px;
+    padding: 4px 10px !important;
+    font-size: .72rem;
+  }
+
+  .observer-shell #observerTab-students .pagination-bar span {
+    font-size: .72rem;
+  }
+}
+
+@media (max-width: 899px) {
+  .observer-shell #observerTab-students .table-shell {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+  }
+}
