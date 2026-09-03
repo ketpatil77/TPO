@@ -25,7 +25,7 @@ async function notifyMissingProof({ table, entry, studentId = entry.student_id, 
     const type = entryTypeFor(table);
     const deadline = deadlineFor(entry);
     const deadlineIso = deadline.toISOString();
-    return createStudentNotification({
+    const notification = await createStudentNotification({
         student_id: studentId,
         audience: 'student',
         branches: [],
@@ -35,6 +35,15 @@ async function notifyMissingProof({ table, entry, studentId = entry.student_id, 
         expires_at: deadlineIso,
         action_url: type === 'internship' ? '/dashboard?tab=internships' : '/dashboard?tab=certificates'
     }, options);
+    if (entry.id) {
+        const sentAt = new Date().toISOString();
+        await db.update(table, { id: entry.id, student_id: studentId }, {
+            proof_missing_since: entry.proof_missing_since || new Date(deadline.getTime() - PROOF_WINDOW_MS).toISOString(),
+            proof_deadline: deadlineIso,
+            proof_notice_sent_at: sentAt
+        });
+    }
+    return notification;
 }
 
 async function runProofExpiryCleanup({ now = new Date() } = {}) {
@@ -45,7 +54,7 @@ async function runProofExpiryCleanup({ now = new Date() } = {}) {
         db.select('students')
     ]);
     const studentById = new Map((students || []).map(student => [student.id, student]));
-    const result = { checked: 0, deleted: 0, internships: 0, certificates: 0, skipped_with_proof: 0 };
+    const result = { checked: 0, deleted: 0, internships: 0, certificates: 0, skipped_with_proof: 0, notices_sent: 0, notice_failures: 0 };
 
     for (const [table, rows] of [['internships', internships || []], ['certificates', certificates || []]]) {
         for (const entry of rows) {
@@ -56,6 +65,25 @@ async function runProofExpiryCleanup({ now = new Date() } = {}) {
             }
             const deadline = deadlineFor(entry, now);
             if (deadline.getTime() > nowMs) continue;
+
+            if (!entry.proof_notice_sent_at) {
+                const resetStart = now.toISOString();
+                const resetDeadline = new Date(nowMs + PROOF_WINDOW_MS).toISOString();
+                const refreshed = await db.update(table, { id: entry.id, student_id: entry.student_id }, {
+                    proof_missing_since: resetStart,
+                    proof_deadline: resetDeadline,
+                    proof_notice_sent_at: null
+                });
+                try {
+                    await notifyMissingProof({ table, entry: refreshed || { ...entry, proof_missing_since: resetStart, proof_deadline: resetDeadline }, studentId: entry.student_id });
+                    result.notices_sent += 1;
+                } catch (error) {
+                    result.notice_failures += 1;
+                    console.error(`Missing-proof expiry notice failed for ${table}/${entry.id}:`, error.message);
+                }
+                continue;
+            }
+
             const student = studentById.get(entry.student_id);
             await db.delete(table, { id: entry.id, student_id: entry.student_id });
             await db.logAudit('proof_auto_delete', table, entry.id, {
@@ -64,6 +92,7 @@ async function runProofExpiryCleanup({ now = new Date() } = {}) {
                 student_id: entry.student_id,
                 reason: 'no proof attached within 48hrs',
                 proof_deadline: deadline.toISOString(),
+                proof_notice_sent_at: entry.proof_notice_sent_at,
                 deleted_at: now.toISOString()
             });
             result.deleted += 1;
