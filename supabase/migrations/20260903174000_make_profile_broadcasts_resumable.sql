@@ -1,5 +1,5 @@
 alter table public.notifications add column if not exists campaign_key text;
-create unique index if not exists notifications_campaign_student_uidx on public.notifications(campaign_key, student_id) where campaign_key is not null and student_id is not null;
+create unique index if not exists notifications_campaign_student_uidx on public.notifications(campaign_key, student_id);
 
 create table if not exists public.notification_broadcast_deliveries (
   id uuid primary key default gen_random_uuid(),
