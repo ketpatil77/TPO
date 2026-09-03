@@ -174,7 +174,7 @@ router.get('/excel', async (req, res) => {
 
         sheet.getColumn('prn').numFmt = '@';
         sheet.getColumn('dob').numFmt = '@';
-        sheet.autoFilter = { from: 'A1', to: 'AR1' };
+        sheet.autoFilter = { from: 'A1', to: 'AS1' };
         const header = sheet.getRow(1);
         header.font = { bold: true, color: { argb: 'FFFFFFFF' } };
         header.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF174A3A' } };
