@@ -1,74 +1,47 @@
-/* TPO student table: readable on wide screens and compact-fit on laptop widths. */
-.admin-dashboard-page .student-table-shell { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-.admin-dashboard-page .student-table { width:100%; min-width:1180px; table-layout:auto; }
-.admin-dashboard-page .student-table th,
-.admin-dashboard-page .student-table td { padding:.85rem 1rem; vertical-align:middle; word-break:normal!important; overflow-wrap:normal!important; hyphens:none!important; }
-.admin-dashboard-page .student-table th:nth-child(1),
-.admin-dashboard-page .student-table td:nth-child(1) { min-width:145px; white-space:nowrap; }
-.admin-dashboard-page .student-table th:nth-child(2),
-.admin-dashboard-page .student-table td:nth-child(2) { min-width:235px; }
-.admin-dashboard-page .student-table th:nth-child(3),
-.admin-dashboard-page .student-table td:nth-child(3) { min-width:115px; white-space:nowrap; }
-.admin-dashboard-page .student-table th:nth-child(4),
-.admin-dashboard-page .student-table td:nth-child(4) { min-width:105px; }
-.admin-dashboard-page .student-table th:nth-child(5),
-.admin-dashboard-page .student-table td:nth-child(5) { min-width:110px; }
-.admin-dashboard-page .student-table th:nth-child(6),
-.admin-dashboard-page .student-table td:nth-child(6) { min-width:190px; }
-.admin-dashboard-page .student-table th:nth-child(7),
-.admin-dashboard-page .student-table td:nth-child(7) { min-width:170px; }
-.admin-dashboard-page .student-table th:nth-child(8),
-.admin-dashboard-page .student-table td:nth-child(8) { min-width:82px; text-align:center; }
-.admin-dashboard-page .student-table .compact-table-cell { gap:.22rem; line-height:1.3; }
-.admin-dashboard-page .student-table .profile-pending-note { display:block; margin-top:.25rem; line-height:1.25; }
+/* TPO student directory: preserve readable columns. Narrow viewports scroll the table;
+   never split words letter-by-letter just to force eight columns onto one screen. */
+.admin-dashboard-page #tab-students .student-table-shell {
+  width:100%;
+  overflow-x:auto!important;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+.admin-dashboard-page #tab-students .student-table {
+  width:100%;
+  min-width:1180px!important;
+  table-layout:auto!important;
+}
+.admin-dashboard-page #tab-students .student-table th,
+.admin-dashboard-page #tab-students .student-table td {
+  padding:.8rem .9rem;
+  vertical-align:middle;
+  word-break:normal!important;
+  overflow-wrap:normal!important;
+  hyphens:none!important;
+}
+.admin-dashboard-page #tab-students .student-table th:nth-child(1),
+.admin-dashboard-page #tab-students .student-table td:nth-child(1) { min-width:145px; white-space:nowrap!important; }
+.admin-dashboard-page #tab-students .student-table th:nth-child(2),
+.admin-dashboard-page #tab-students .student-table td:nth-child(2) { min-width:230px; }
+.admin-dashboard-page #tab-students .student-table th:nth-child(3),
+.admin-dashboard-page #tab-students .student-table td:nth-child(3) { min-width:120px; white-space:nowrap!important; }
+.admin-dashboard-page #tab-students .student-table th:nth-child(4),
+.admin-dashboard-page #tab-students .student-table td:nth-child(4) { min-width:105px; white-space:nowrap!important; }
+.admin-dashboard-page #tab-students .student-table th:nth-child(5),
+.admin-dashboard-page #tab-students .student-table td:nth-child(5) { min-width:115px; }
+.admin-dashboard-page #tab-students .student-table th:nth-child(6),
+.admin-dashboard-page #tab-students .student-table td:nth-child(6) { min-width:180px; }
+.admin-dashboard-page #tab-students .student-table th:nth-child(7),
+.admin-dashboard-page #tab-students .student-table td:nth-child(7) { min-width:165px; }
+.admin-dashboard-page #tab-students .student-table th:nth-child(8),
+.admin-dashboard-page #tab-students .student-table td:nth-child(8) { min-width:90px; white-space:nowrap!important; text-align:center; }
+.admin-dashboard-page #tab-students .student-table .compact-table-cell { gap:.22rem; line-height:1.3; }
+.admin-dashboard-page #tab-students .student-table .profile-pending-note { display:block; margin-top:.25rem; line-height:1.25; }
 
-/* Laptop/tablet landscape: fit the complete 8-column table in the available viewport.
-   The old global responsive rules were squeezing words letter-by-letter, which is what
-   produced "Acade / mic" and "Secon / d" in the TPO screen. */
-@media (min-width:761px) and (max-width:1200px) {
-  .admin-dashboard-page #tab-students .student-table-shell { overflow-x:hidden!important; }
-  .admin-dashboard-page #tab-students .student-table {
-    width:100%!important;
-    min-width:0!important;
-    table-layout:fixed!important;
-    font-size:.76rem!important;
-  }
+@media (max-width:760px) {
+  .admin-dashboard-page #tab-students .student-table { min-width:1050px!important; font-size:.78rem; }
   .admin-dashboard-page #tab-students .student-table th,
-  .admin-dashboard-page #tab-students .student-table td {
-    min-width:0!important;
-    width:auto!important;
-    padding:.62rem .48rem!important;
-    line-height:1.3!important;
-    word-break:normal!important;
-    overflow-wrap:normal!important;
-    white-space:normal!important;
-    hyphens:none!important;
-  }
-  .admin-dashboard-page #tab-students .student-table th { font-size:.72rem!important; }
-  .admin-dashboard-page #tab-students .student-table th:nth-child(1),
-  .admin-dashboard-page #tab-students .student-table td:nth-child(1) { width:15%!important; white-space:nowrap!important; }
-  .admin-dashboard-page #tab-students .student-table th:nth-child(2),
-  .admin-dashboard-page #tab-students .student-table td:nth-child(2) { width:23%!important; }
-  .admin-dashboard-page #tab-students .student-table th:nth-child(3),
-  .admin-dashboard-page #tab-students .student-table td:nth-child(3) { width:9%!important; }
-  .admin-dashboard-page #tab-students .student-table th:nth-child(4),
-  .admin-dashboard-page #tab-students .student-table td:nth-child(4) { width:9%!important; }
-  .admin-dashboard-page #tab-students .student-table th:nth-child(5),
-  .admin-dashboard-page #tab-students .student-table td:nth-child(5) { width:9%!important; }
-  .admin-dashboard-page #tab-students .student-table th:nth-child(6),
-  .admin-dashboard-page #tab-students .student-table td:nth-child(6) { width:15%!important; }
-  .admin-dashboard-page #tab-students .student-table th:nth-child(7),
-  .admin-dashboard-page #tab-students .student-table td:nth-child(7) { width:13%!important; }
-  .admin-dashboard-page #tab-students .student-table th:nth-child(8),
-  .admin-dashboard-page #tab-students .student-table td:nth-child(8) { width:7%!important; text-align:center!important; white-space:nowrap!important; }
-  .admin-dashboard-page #tab-students .student-table td:nth-child(2) { overflow-wrap:anywhere!important; }
-  .admin-dashboard-page #tab-students .student-table td:nth-child(3),
-  .admin-dashboard-page #tab-students .student-table td:nth-child(4),
-  .admin-dashboard-page #tab-students .student-table td:nth-child(5),
-  .admin-dashboard-page #tab-students .student-table td:nth-child(6),
-  .admin-dashboard-page #tab-students .student-table td:nth-child(7) { overflow-wrap:break-word!important; }
-  .admin-dashboard-page #tab-students .student-table .compact-table-cell { line-height:1.25!important; gap:.12rem!important; }
-  .admin-dashboard-page #tab-students .student-table .btn { min-width:0!important; padding:.42rem .5rem!important; font-size:.72rem!important; }
+  .admin-dashboard-page #tab-students .student-table td { padding:.65rem .7rem; }
 }
 
 .certificate-review-section { margin-top:1rem; }
