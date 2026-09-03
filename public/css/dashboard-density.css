@@ -1,0 +1,250 @@
+/* Shared dashboard density pass.
+   Goal: useful controls and records first, no giant explanatory/empty cards on phone or desktop. */
+
+.student-dashboard-page,
+.admin-dashboard-page,
+.observer-shell{
+  overflow-x:hidden;
+}
+
+.student-dashboard-page .dashboard-wrapper,
+.admin-dashboard-page .dashboard-wrapper,
+.observer-shell .dashboard-wrapper{
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+}
+
+/* Verification queues: compact header + controls rather than three oversized cards. */
+#tab-competition-review.active,
+#observerTab-competitions.active,
+#tab-evidence-review.active,
+#observerTab-evidence-review.active{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:.55rem!important;
+  align-content:start!important;
+  min-height:0!important;
+}
+
+.review-hero{
+  min-height:0!important;
+  padding:.7rem .85rem!important;
+  margin:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:.75rem!important;
+  border-radius:12px!important;
+}
+.review-hero>div:first-child{min-width:0!important;}
+.review-hero .eyebrow,
+.review-hero p{display:none!important;}
+.review-hero h2{
+  margin:0!important;
+  font-size:1.02rem!important;
+  line-height:1.15!important;
+  letter-spacing:0!important;
+}
+.review-count{
+  flex:0 0 auto!important;
+  min-width:0!important;
+  display:inline-flex!important;
+  align-items:baseline!important;
+  justify-content:center!important;
+  gap:.28rem!important;
+  padding:.34rem .52rem!important;
+  border:1px solid var(--border-color)!important;
+  border-radius:9px!important;
+  background:var(--surface-muted)!important;
+}
+.review-count strong{font-size:.96rem!important;line-height:1!important;}
+.review-count span{font-size:.62rem!important;line-height:1!important;text-transform:uppercase!important;letter-spacing:.05em!important;}
+
+.review-toolbar{
+  min-height:0!important;
+  margin:0!important;
+  padding:.58rem!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) auto!important;
+  gap:.45rem!important;
+  align-items:end!important;
+  border-radius:12px!important;
+}
+.review-toolbar>div{min-width:0!important;}
+.review-toolbar .form-label{
+  margin:0 0 .2rem!important;
+  font-size:.64rem!important;
+  line-height:1.1!important;
+}
+.review-toolbar .form-select,
+.review-toolbar .form-input{
+  width:100%!important;
+  min-width:0!important;
+  height:36px!important;
+  min-height:36px!important;
+  margin:0!important;
+  padding:.36rem .55rem!important;
+  font-size:.74rem!important;
+}
+.review-toolbar .btn{
+  min-width:82px!important;
+  min-height:36px!important;
+  height:36px!important;
+  margin:0!important;
+  padding:.35rem .65rem!important;
+  font-size:.72rem!important;
+}
+
+/* The rule is enforced by code. It does not need a permanent lecture card. */
+.evidence-integrity-note{display:none!important;}
+
+.competition-review-list,
+.evidence-review-list{
+  margin:0!important;
+  gap:.55rem!important;
+  align-content:start!important;
+}
+
+.panel-empty,
+.dashboard-wrapper .empty-state{
+  min-height:0!important;
+  padding:.75rem .85rem!important;
+  margin:0!important;
+  border-radius:10px!important;
+  text-align:left!important;
+}
+.panel-empty strong,
+.dashboard-wrapper .empty-state strong{
+  display:block!important;
+  margin:0!important;
+  font-size:.82rem!important;
+  line-height:1.2!important;
+}
+.panel-empty p,
+.dashboard-wrapper .empty-state p{
+  margin:.16rem 0 0!important;
+  font-size:.7rem!important;
+  line-height:1.3!important;
+}
+
+/* Common dashboard chrome. Keep useful content above the fold without crushing touch targets. */
+.admin-dashboard-page .filter-bar{
+  padding:.75rem!important;
+  margin-bottom:.75rem!important;
+  gap:.65rem!important;
+}
+.admin-dashboard-page .header-banner,
+.student-dashboard-page .header-banner{
+  padding:.85rem!important;
+  margin-bottom:.75rem!important;
+  min-height:0!important;
+}
+.admin-dashboard-page .header-split,
+.student-dashboard-page .header-split,
+.observer-shell .header-split{
+  margin-bottom:.65rem!important;
+  gap:.65rem!important;
+}
+
+.task-disclosure>summary{
+  min-height:38px!important;
+  padding:.48rem .65rem!important;
+}
+.task-disclosure>summary span{
+  font-size:.7rem!important;
+  line-height:1.25!important;
+}
+
+@media(max-width:900px){
+  .review-toolbar{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+  .review-toolbar .btn{width:100%!important;min-width:0!important;}
+}
+
+@media(max-width:760px){
+  .student-dashboard-page .dashboard-wrapper,
+  .admin-dashboard-page .dashboard-wrapper,
+  .observer-shell .dashboard-wrapper{
+    padding-left:.5rem!important;
+    padding-right:.5rem!important;
+  }
+
+  .review-hero{
+    padding:.5rem .6rem!important;
+    gap:.45rem!important;
+    border-radius:10px!important;
+  }
+  .review-hero h2{font-size:.88rem!important;}
+  .review-count{padding:.27rem .4rem!important;border-radius:8px!important;}
+  .review-count strong{font-size:.82rem!important;}
+  .review-count span{font-size:.54rem!important;}
+
+  .review-toolbar{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:.38rem!important;
+    padding:.45rem!important;
+    border-radius:10px!important;
+  }
+  .review-toolbar .form-label{font-size:.6rem!important;}
+  .review-toolbar .form-select,
+  .review-toolbar .form-input{
+    height:36px!important;
+    min-height:36px!important;
+    padding:.34rem .48rem!important;
+    font-size:.7rem!important;
+  }
+  .review-toolbar .btn{
+    width:100%!important;
+    min-width:0!important;
+    height:36px!important;
+    min-height:36px!important;
+    font-size:.68rem!important;
+  }
+
+  .panel-empty,
+  .dashboard-wrapper .empty-state{
+    padding:.58rem .65rem!important;
+    border-radius:9px!important;
+  }
+  .panel-empty strong,
+  .dashboard-wrapper .empty-state strong{font-size:.76rem!important;}
+  .panel-empty p,
+  .dashboard-wrapper .empty-state p{font-size:.65rem!important;}
+
+  .admin-dashboard-page .header-banner,
+  .student-dashboard-page .header-banner{
+    padding:.65rem!important;
+    margin-bottom:.55rem!important;
+  }
+  .admin-dashboard-page .header-banner h2,
+  .student-dashboard-page .header-banner h2{
+    font-size:1rem!important;
+    line-height:1.15!important;
+  }
+  .admin-dashboard-page .header-banner p,
+  .student-dashboard-page .header-banner p{
+    margin-top:.18rem!important;
+    font-size:.7rem!important;
+    line-height:1.25!important;
+  }
+
+  .admin-dashboard-page .filter-bar{
+    padding:.55rem!important;
+    margin-bottom:.55rem!important;
+    gap:.45rem!important;
+  }
+
+  .task-disclosure>summary{
+    min-height:36px!important;
+    padding:.42rem .55rem!important;
+  }
+  .task-disclosure>summary span{display:none!important;}
+}
+
+@media(max-width:420px){
+  .review-toolbar{gap:.32rem!important;padding:.4rem!important;}
+  .review-hero h2{font-size:.82rem!important;}
+  .review-count span{display:none!important;}
+}
