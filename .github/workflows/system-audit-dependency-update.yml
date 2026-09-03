@@ -25,15 +25,35 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install multer@2.3.0 --save
+      - name: Harden multipart limits
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          function replaceOne(file, before, after) {
+            const source = fs.readFileSync(file, 'utf8');
+            if (!source.includes(before)) throw new Error(`Expected multipart configuration not found in ${file}`);
+            fs.writeFileSync(file, source.replace(before, after));
+          }
+          replaceOne(
+            'src/routes/adminRoster.js',
+            "const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });",
+            "const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 1, fields: 2, parts: 3, fieldNestingDepth: 0, fieldArrayIndexLimit: 0 } });"
+          );
+          replaceOne(
+            'src/routes/student.js',
+            "const resumeUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_RESUME_BYTES, files: 1 } });",
+            "const resumeUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_RESUME_BYTES, files: 1, fields: 0, parts: 1, fieldNestingDepth: 0, fieldArrayIndexLimit: 0 } });"
+          );
+          NODE
       - run: node scripts/generate-roster-template.js
       - run: npm audit --audit-level=high
       - run: npm test
-      - name: Commit generated dependency and template files
+      - name: Commit generated dependency, security, and template files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json public/templates/AIT-roster-template.xlsx
+          git add package.json package-lock.json src/routes/adminRoster.js src/routes/student.js public/templates/AIT-roster-template.xlsx
           if ! git diff --cached --quiet; then
-            git commit -m "Upgrade Multer and refresh safe roster template"
+            git commit -m "Upgrade Multer and harden multipart uploads"
             git push origin HEAD:system-audit-20260903
           fi
