@@ -79,4 +79,13 @@ async function signedAvatar(res, path) {
     return res.json({ success: true, data: { url: data.signedUrl, expires_in: 3600 } });
 }
 
-module.exports = { acceptAvatar, uploadAvatar, getAvatar, deleteAvatar, MAX_AVATAR_BYTES };
+async function redirectAvatar(res, path) {
+    if (!path) return res.status(404).send('Profile picture not uploaded.');
+    if (db.isLocal()) return res.status(404).send('Profile picture unavailable in local mode.');
+    const { data, error } = await db.supabaseClient().storage.from('avatars').createSignedUrl(path, 600);
+    if (error || !data?.signedUrl) return res.status(404).send('Profile picture unavailable.');
+    res.setHeader('Cache-Control', 'private, max-age=300');
+    return res.redirect(302, data.signedUrl);
+}
+
+module.exports = { acceptAvatar, uploadAvatar, getAvatar, deleteAvatar, redirectAvatar, MAX_AVATAR_BYTES };

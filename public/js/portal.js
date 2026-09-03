@@ -1,7 +1,7 @@
 const roleConfig = {
-    student: { form: 'studentUnifiedForm', endpoint: '/api/auth/login', redirect: '/dashboard', body: () => ({ prn: value('studentPrn'), dob: value('studentDob'), token: turnstileState.student.token }) },
-    admin: { form: 'adminUnifiedForm', endpoint: '/api/admin/auth/login', redirect: '/admin/dashboard', body: () => ({ email: value('adminEmail'), password: value('adminPassword', false), token: turnstileState.admin.token }) },
-    observer: { form: 'observerUnifiedForm', endpoint: '/api/observer/auth/login', redirect: '/observer/dashboard', body: () => ({ email: value('observerEmail'), password: value('observerPassword', false), token: turnstileState.observer.token }) }
+    student: { form: 'studentUnifiedForm', endpoint: '/api/auth/login', session: '/api/auth/me', redirect: '/dashboard', body: () => ({ prn: value('studentPrn'), dob: value('studentDob'), token: turnstileState.student.token }) },
+    admin: { form: 'adminUnifiedForm', endpoint: '/api/admin/auth/login', session: '/api/admin/auth/me', redirect: '/admin/dashboard', body: () => ({ email: value('adminEmail'), password: value('adminPassword', false), token: turnstileState.admin.token }) },
+    observer: { form: 'observerUnifiedForm', endpoint: '/api/observer/auth/login', session: '/api/observer/auth/me', redirect: '/observer/dashboard', body: () => ({ email: value('observerEmail'), password: value('observerPassword', false), token: turnstileState.observer.token }) }
 };
 
 const TURNSTILE_SITEKEY = '1x00000000000000000000AA';
@@ -131,11 +131,28 @@ function selectRole(role) {
     renderTurnstile(role);
 }
 
+function clearLegacyAuthTokens() {
+    ['tpo_token', 'tpo_student', 'tpo_admin_token', 'tpo_observer_token', 'adminToken', 'observerToken'].forEach(key => {
+        try { localStorage.removeItem(key); } catch (_) { /* Storage can be unavailable in strict privacy modes. */ }
+    });
+}
+
+async function verifyFreshSession(config) {
+    const response = await fetch(config.session, {
+        method: 'GET',
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: { 'Accept': 'application/json' }
+    });
+    if (!response.ok) throw new Error('Sign-in succeeded but the new session could not be opened. Please try once more.');
+}
+
 async function login(event, role) {
     event.preventDefault();
     const config = roleConfig[role];
     const button = event.currentTarget.querySelector('button[type="submit"]');
     const original = button.textContent;
+    let navigating = false;
     button.disabled = true;
     button.textContent = 'Verifying access…';
     showPortalAlert('');
@@ -147,24 +164,33 @@ async function login(event, role) {
         return;
     }
     try {
-        const response = await fetch(config.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config.body()) });
+        const response = await fetch(config.endpoint, {
+            method: 'POST',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(config.body())
+        });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error?.message || result.error || 'Unable to sign in.');
 
-        if (role === 'admin' && result.message) {
-            showPortalAlert(result.message, 'success');
-            setTimeout(() => {
-                window.location.href = config.redirect;
-            }, 1000);
-        } else {
-            window.location.href = config.redirect;
-        }
+        // Old builds stored JWTs in localStorage. A stale Bearer token can override the
+        // newly issued secure cookie on the dashboard, causing a successful login to
+        // bounce straight back to this page. Remove those legacy tokens globally.
+        clearLegacyAuthTokens();
+        await verifyFreshSession(config);
+
+        navigating = true;
+        showPortalAlert('Access verified. Opening workspace…', 'success');
+        window.location.replace(config.redirect);
     } catch (error) {
         showPortalAlert(error.message, 'error');
     } finally {
-        button.disabled = false;
-        button.textContent = original;
-        resetTurnstile(role);
+        if (!navigating) {
+            button.disabled = false;
+            button.textContent = original;
+            resetTurnstile(role);
+        }
     }
 }
 

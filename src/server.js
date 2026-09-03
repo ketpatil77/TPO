@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const { rateLimit } = require('express-rate-limit');
 const { csrfProtection } = require('./middleware/security');
 const { protectCollegeAcademics } = require('./middleware/collegeAcademics');
+const { authenticateStudent, authenticateAdmin, authenticateObserver } = require('./middleware/auth');
 
 require('dotenv').config();
 
@@ -19,11 +20,13 @@ const freeLearningRoutes = require('./routes/freeLearning');
 const competitionReviewRoutes = require('./routes/competitionReview');
 const profileRankingViewRoutes = require('./routes/profileRankingView');
 const rosterRoutes = require('./routes/roster');
+const { createStudentAvatarDirectory } = require('./routes/studentAvatarDirectory');
 
 // Admin Routes (Part 2)
 const adminAuthRoutes = require('./routes/adminAuth');
 const adminRosterRoutes = require('./routes/adminRoster');
 const adminStudentsRoutes = require('./routes/adminStudents');
+const fullStudentExportRoutes = require('./routes/fullStudentExport');
 const profileCompletionRoutes = require('./routes/profileCompletion');
 const adminAuditRoutes = require('./routes/adminAudit');
 const adminDriveRoutes = require('./routes/adminDrives');
@@ -88,6 +91,7 @@ if (!isCloudflareWorker) app.use(express.static(path.join(process.cwd(), 'public
 // API Endpoints - Student
 app.use('/api/auth', authRoutes);
 app.use('/api/student', protectCollegeAcademics);
+app.use('/api/student/student-avatars', createStudentAvatarDirectory(authenticateStudent));
 app.use('/api/student', studentRoutes);
 app.use('/api/student/competitions', competitionRoutes);
 app.use('/api/student/profile-declarations', profileDeclarationRoutes);
@@ -101,6 +105,8 @@ app.use('/api/student/advanced', advancedRoutes.student);
 // API Endpoints - Admin (Part 2)
 app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin/roster', adminRosterRoutes);
+app.use('/api/admin/student-avatars', createStudentAvatarDirectory(authenticateAdmin));
+app.use('/api/admin/students/export', fullStudentExportRoutes);
 app.use('/api/admin/students', adminStudentsRoutes);
 app.use('/api/admin/profile-completion', profileCompletionRoutes.admin);
 app.use('/api/admin/audit-logs', adminAuditRoutes);
@@ -111,6 +117,7 @@ app.use('/api/admin/advanced', advancedRoutes.admin);
 app.use('/api/admin/intelligence', intelligenceRoutes);
 app.use('/api/admin/launch', launchOperationsRoutes);
 app.use('/api/observer/auth', observerAuthRoutes);
+app.use('/api/observer/student-avatars', createStudentAvatarDirectory(authenticateObserver));
 app.use('/api/observer/profile-completion', profileCompletionRoutes.observer);
 app.use('/api/observer/competitions', competitionReviewRoutes.observer);
 app.use('/api/observer', observerRoutes);
