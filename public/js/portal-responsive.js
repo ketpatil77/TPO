@@ -94,7 +94,7 @@
         if (authenticatedWorkspace) {
             loadStylesheet('/css/portal-back-guard.css?v=20260901-1', 'portal-back-guard');
             loadScript('/js/portal-back-guard.js?v=20260901-1', 'portal-back-guard-js');
-            loadStylesheet('/css/proof-workflow.css?v=20260903-1', 'proof-workflow');
+            loadStylesheet('/css/proof-workflow.css?v=20260903-2', 'proof-workflow');
         }
 
         document.getElementById('notificationGateSignOut')?.addEventListener('click', () => document.getElementById('logoutBtn')?.click());
@@ -141,7 +141,7 @@
             loadScript('/js/student-directory-avatars.js?v=20260903-1', 'student-directory-avatars-js');
             loadScript('/js/candidate-profile-v2.js?v=20260901-2', 'candidate-profile-v2-js');
             loadScript('/js/competition-review.js?v=20260901-1', 'competition-review-module');
-            loadScript('/js/proof-review-ui.js?v=20260903-1', 'proof-review-ui-js');
+            loadScript('/js/proof-review-ui.js?v=20260903-2', 'proof-review-ui-js');
         }
     });
 })();
