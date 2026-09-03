@@ -11,22 +11,120 @@
 .certificate-evidence-preview strong,.certificate-evidence-preview small { display:block; }
 .certificate-evidence-preview small { margin-top:.2rem; color:var(--text-muted); }
 .certificate-vault-empty { padding:2rem; text-align:center; color:var(--text-muted); }
-.certificate-vault-title { display:flex; flex-wrap:wrap; align-items:center; gap:.65rem; }
-.certificate-vault-title h4 { margin:0; }
-.certificate-vault-date { margin-top:.2rem; font-size:.8rem; }
-.certificate-proof-state { display:inline-flex; margin-top:.45rem; padding:.25rem .55rem; border-radius:999px; font-size:.76rem; font-weight:700; }
+
+/* Keep every certificate card aligned to the same visual grid. */
+.certificate-vault-card {
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:end!important;
+  gap:1rem!important;
+  text-align:left!important;
+}
+.certificate-vault-card .item-details {
+  min-width:0;
+  width:100%;
+  text-align:left!important;
+}
+.certificate-vault-title {
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:.75rem;
+  width:100%;
+  text-align:left!important;
+}
+.certificate-vault-title h4 {
+  flex:1 1 auto;
+  min-width:0;
+  margin:0!important;
+  text-align:left!important;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+.certificate-vault-title .badge {
+  flex:0 0 auto;
+  margin:0!important;
+  white-space:nowrap;
+}
+.certificate-vault-card .item-details > p {
+  margin:.35rem 0 0!important;
+  text-align:left!important;
+}
+.certificate-vault-date { margin-top:.3rem!important; font-size:.8rem; }
+.certificate-proof-state { display:inline-flex; margin-top:.55rem; padding:.25rem .55rem; border-radius:999px; font-size:.76rem; font-weight:700; }
 .certificate-proof-state.has-proof { color:#8ce0b2; background:rgba(55,180,110,.12); border:1px solid rgba(80,205,135,.22); }
 .certificate-proof-state.no-proof { color:#d9b96e; background:rgba(217,185,110,.08); border:1px solid rgba(217,185,110,.18); }
+.certificate-vault-actions {
+  align-self:end;
+}
 .certificate-evidence-viewer-card { width:min(94vw,980px); max-height:94vh; display:flex; flex-direction:column; }
 .certificate-evidence-viewer-status { min-height:160px; display:grid; place-items:center; color:var(--text-muted); text-align:center; }
 .certificate-evidence-canvas { min-height:0; overflow:auto; display:grid; place-items:center; padding:.75rem; border-radius:12px; background:rgba(0,0,0,.22); }
 .certificate-evidence-canvas[hidden] { display:none!important; }
 .certificate-evidence-canvas img { display:block; width:auto; max-width:100%; height:auto; max-height:76vh; object-fit:contain; background:#fff; touch-action:pinch-zoom; }
+
 @media (max-width:760px) {
-  .certificate-vault-card { gap:.7rem!important; }
-  .certificate-vault-actions { display:grid!important; grid-template-columns:1fr 1fr 1fr; width:100%; gap:.45rem!important; }
-  .certificate-vault-actions .btn { min-width:0; padding:.55rem .35rem; font-size:.76rem; }
+  .certificate-vault-card {
+    display:block!important;
+    padding:1rem!important;
+    text-align:left!important;
+  }
+  .certificate-vault-card .item-details {
+    display:block!important;
+    width:100%!important;
+    text-align:left!important;
+  }
+  .certificate-vault-title {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:start!important;
+    gap:.65rem!important;
+    width:100%;
+  }
+  .certificate-vault-title h4 {
+    grid-column:1;
+    margin:0!important;
+    text-align:left!important;
+    line-height:1.2;
+  }
+  .certificate-vault-title .badge {
+    grid-column:2;
+    grid-row:1;
+    justify-self:end;
+    align-self:start;
+  }
+  .certificate-vault-card .item-details > p {
+    margin:.4rem 0 0!important;
+    text-align:left!important;
+  }
+  .certificate-proof-state {
+    margin-top:.6rem;
+  }
+  .certificate-vault-actions {
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    width:100%;
+    gap:.45rem!important;
+    margin-top:.85rem!important;
+  }
+  .certificate-vault-actions .btn {
+    width:100%!important;
+    min-width:0!important;
+    padding:.6rem .25rem!important;
+    font-size:.76rem!important;
+    white-space:nowrap;
+  }
   .certificate-evidence-viewer-card { width:96vw; max-height:96vh; padding:.8rem!important; }
   .certificate-evidence-canvas { padding:.35rem; }
   .certificate-evidence-canvas img { max-height:78vh; }
+}
+
+@media (max-width:420px) {
+  .certificate-vault-card { padding:.9rem!important; }
+  .certificate-vault-title { gap:.5rem!important; }
+  .certificate-vault-title h4 { font-size:1.15rem!important; }
+  .certificate-vault-title .badge { font-size:.7rem!important; padding:.38rem .55rem!important; }
+  .certificate-vault-actions { gap:.35rem!important; }
+  .certificate-vault-actions .btn { font-size:.72rem!important; }
 }
