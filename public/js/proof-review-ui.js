@@ -153,12 +153,8 @@
                 });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok) throw new Error(window.apiError ? window.apiError(data) : 'Review failed.');
-
                 removeResolvedRow(type, id, action, rowElement);
                 if (window.showToast) window.showToast(data.message || 'Proof review updated.', 'success');
-
-                // Reconcile quietly with the server after the optimistic transition. This
-                // avoids flashing the whole queue back to "Loading" after every decision.
                 window.setTimeout(() => loadQueue({ silent: true }), 700);
             } catch (error) {
                 rowElement?.classList.remove('is-resolving');
@@ -214,7 +210,7 @@
             <td class="proof-review-type-cell" data-label="Type"><span class="proof-review-type">${esc(row.type)}</span></td>
             <td class="proof-review-entry" data-label="Entry"><strong>${esc(row.entry_name)}</strong>${row.details ? `<small>${esc(row.details)}</small>` : ''}</td>
             <td class="proof-review-uploaded" data-label="Uploaded"><span class="proof-review-mobile-label">Uploaded</span>${row.evidence_uploaded_at ? esc(new Date(row.evidence_uploaded_at).toLocaleString()) : '—'}</td>
-            <td class="proof-review-action-cell" data-label="Action"><div class="proof-review-actions"><button class="btn btn-secondary btn-sm" data-proof-action="view" data-type="${esc(row.type)}" data-id="${esc(row.id)}">View</button><button class="btn btn-primary btn-sm" data-proof-action="approved" data-type="${esc(row.type)}" data-id="${esc(row.id)}">Approve</button><button class="btn btn-danger btn-sm" data-proof-action="rejected" data-type="${esc(row.type)}" data-id="${esc(row.id)}">Reject</button></div></td>
+            <td class="proof-review-action-cell" data-label="Action"><div class="proof-review-actions"><button class="proof-action-btn proof-action-view" data-proof-action="view" data-type="${esc(row.type)}" data-id="${esc(row.id)}">View</button><button class="proof-action-btn proof-action-approve" data-proof-action="approved" data-type="${esc(row.type)}" data-id="${esc(row.id)}">Approve</button><button class="proof-action-btn proof-action-reject" data-proof-action="rejected" data-type="${esc(row.type)}" data-id="${esc(row.id)}">Reject</button></div></td>
         </tr>`).join('');
     }
 
