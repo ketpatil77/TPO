@@ -100,7 +100,7 @@
             <td data-label="Student">
                 <button class="tpc-student-open" type="button" data-open-student="${index}" aria-label="Open profile for ${escapeHtml(student.name)}">
                     <span class="tpc-student-identity"><span class="tpc-student-initials" aria-hidden="true">${escapeHtml(initials(student.name).toUpperCase())}</span><span class="tpc-student-copy"><strong>${escapeHtml(student.name)}</strong><small>${escapeHtml(student.prn)}</small></span></span>
-                    <span class="tpc-student-chevron" aria-hidden="true">›</span>
+                    <span class="tpc-student-row-meta"><span class="tpc-student-completion is-${escapeHtml(completion.state || 'attention')}" title="Profile completion">${percent}%</span><span class="tpc-student-chevron" aria-hidden="true">›</span></span>
                 </button>
             </td>
             <td data-label="Program"><div class="tpc-program-cell"><span class="branch-chip">${escapeHtml(student.branch)}</span><small>${escapeHtml(student.year || '—')} · ${escapeHtml(student.class || '—')}</small></div></td>
