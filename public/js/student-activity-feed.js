@@ -1,5 +1,7 @@
 (() => {
   if (!document.body.classList.contains('admin-dashboard-page')) return;
+  if (window.__studentActivityFeedLoaded) return;
+  window.__studentActivityFeedLoaded = true;
 
   const GROUP_WINDOW_MS = 5 * 60 * 1000;
   const state = { page: 1, pageSize: 50, loading: false, timer: null, latestId: null, initialized: false, retries: 0, logs: [] };
@@ -53,7 +55,8 @@
           <div class="activity-filter-grid">
             <div><label class="form-label" for="activityRange">Period</label><select id="activityRange" class="form-select"><option value="today">Today</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option><option value="all">All activity</option></select></div>
             <div><label class="form-label" for="activityBranch">Branch</label><select id="activityBranch" class="form-select"><option value="all">All branches</option></select></div>
-            <div><label class="form-label" for="activityYear">Class / Year</label><select id="activityYear" class="form-select"><option value="all">All classes</option></select></div>
+            <div><label class="form-label" for="activityClass">Class</label><select id="activityClass" class="form-select"><option value="all">All classes</option></select></div>
+            <div><label class="form-label" for="activityYear">Year</label><select id="activityYear" class="form-select"><option value="all">All years</option></select></div>
             <div><label class="form-label" for="activityCategory">Activity type</label><select id="activityCategory" class="form-select"><option value="all">All activity</option></select></div>
             <div><label class="form-label" for="activityStudent">Student</label><input id="activityStudent" class="form-input" list="activityStudents" placeholder="Name or PRN" autocomplete="off"><datalist id="activityStudents"></datalist></div>
             <div class="activity-filter-actions"><button id="activityApply" class="btn btn-primary btn-sm" type="button">Apply</button><button id="activityReset" class="btn btn-secondary btn-sm" type="button">Reset</button></div>
@@ -67,7 +70,7 @@
     document.getElementById('activityApply').onclick = () => { state.page = 1; load(false); };
     document.getElementById('activityReset').onclick = resetFilters;
     document.getElementById('activityMore').onclick = () => { state.page += 1; load(true); };
-    ['activityRange','activityBranch','activityYear','activityCategory'].forEach(id => document.getElementById(id).onchange = () => { state.page = 1; load(false); });
+    ['activityRange','activityBranch','activityClass','activityYear','activityCategory'].forEach(id => document.getElementById(id).onchange = () => { state.page = 1; load(false); });
     document.getElementById('activityStudent').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); state.page = 1; load(false); } };
     document.addEventListener('visibilitychange', () => document.hidden ? stopPolling() : (panel.classList.contains('active') && startPolling()));
   }
@@ -75,6 +78,7 @@
   function resetFilters() {
     document.getElementById('activityRange').value = 'today';
     document.getElementById('activityBranch').value = 'all';
+    document.getElementById('activityClass').value = 'all';
     document.getElementById('activityYear').value = 'all';
     document.getElementById('activityCategory').value = 'all';
     document.getElementById('activityStudent').value = '';
@@ -85,10 +89,12 @@
   function params() {
     const p = new URLSearchParams({ page: state.page, pageSize: state.pageSize, range: document.getElementById('activityRange').value });
     const branch = document.getElementById('activityBranch').value;
+    const className = document.getElementById('activityClass').value;
     const year = document.getElementById('activityYear').value;
     const category = document.getElementById('activityCategory').value;
     const student = document.getElementById('activityStudent').value.trim();
     if (branch !== 'all') p.set('branch', branch);
+    if (className !== 'all') p.set('class', className);
     if (year !== 'all') p.set('year', year);
     if (category !== 'all') p.set('category', category);
     if (student) p.set('student', student);
@@ -102,9 +108,13 @@
     if (!append && !silent) feed.innerHTML = '<div class="glass-card activity-empty">Loading activity…</div>';
     try {
       const res = await fetch(`/api/admin/audit-logs/student-activity?${params()}`, { headers: { Authorization: `Bearer ${token()}` } });
-      if (res.status === 401 || res.status === 403) return;
+      if (res.status === 401 || res.status === 403) {
+        stopPolling();
+        if (!silent) feed.innerHTML = '<div class="glass-card activity-empty">Your administrator session has expired. Sign in again.</div>';
+        return;
+      }
       const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error?.message || 'Unable to load activity.');
+      if (!res.ok || !json.success) throw new Error(json.error?.message || json.error || 'Unable to load activity.');
       render(json.data, append, silent);
     } catch (error) {
       if (!silent) feed.innerHTML = `<div class="glass-card activity-empty">${esc(error.message)}</div>`;
@@ -120,7 +130,8 @@
 
   function render(data, append, silent) {
     fillSelect('activityBranch', data.options?.branches, 'All branches');
-    fillSelect('activityYear', data.options?.years, 'All classes');
+    fillSelect('activityClass', data.options?.classes, 'All classes');
+    fillSelect('activityYear', data.options?.years, 'All years');
     fillSelect('activityCategory', data.options?.categories, 'All activity');
     document.getElementById('activityStudents').innerHTML = (data.options?.students || []).map(s => `<option value="${esc(s.prn || s.name)}">${esc(s.name)}${s.prn ? ` · ${esc(s.prn)}` : ''}</option>`).join('');
 
