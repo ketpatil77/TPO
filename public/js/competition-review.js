@@ -4,7 +4,37 @@
     const isTPC = () => document.body.classList.contains('observer-shell');
     let role = null;
 
+    function ensureCompactStyles() {
+        if (document.getElementById('competitionReviewCompactStyles')) return;
+        const style = document.createElement('style');
+        style.id = 'competitionReviewCompactStyles';
+        style.textContent = `
+            .competition-review-list{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:.7rem!important;align-items:stretch}
+            .competition-review-card{padding:.7rem!important;display:flex!important;flex-direction:column!important;gap:.5rem!important;min-width:0!important;border-radius:10px!important}
+            .competition-review-card .review-card-head{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:.4rem!important;align-items:start!important}
+            .competition-review-card .review-card-head h3{font-size:.92rem!important;line-height:1.2!important;margin:.12rem 0!important;overflow-wrap:anywhere}
+            .competition-review-card .review-card-head p{font-size:.7rem!important;line-height:1.25!important;color:var(--text-muted)!important;overflow-wrap:anywhere}
+            .competition-review-card .eyebrow{font-size:.62rem!important;line-height:1.2!important;letter-spacing:.08em!important}
+            .competition-review-card .verification-pill{font-size:.62rem!important;padding:.2rem .36rem!important}
+            .competition-review-card .review-facts{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:.35rem!important}
+            .competition-review-card .review-facts>span,.competition-review-card .review-line{padding:.42rem .48rem!important;border-radius:8px!important;background:var(--surface-muted)!important;min-width:0!important}
+            .competition-review-card .review-facts small,.competition-review-card .review-line small{display:block!important;font-size:.58rem!important;line-height:1.2!important;margin-bottom:.12rem!important;text-transform:uppercase!important;letter-spacing:.05em!important;color:var(--text-muted)!important}
+            .competition-review-card .review-facts strong,.competition-review-card .review-line strong{display:block!important;font-size:.7rem!important;line-height:1.25!important;overflow-wrap:anywhere!important}
+            .competition-review-card .review-links,.competition-review-card .review-actions{display:flex!important;gap:.3rem!important;flex-wrap:wrap!important}
+            .competition-review-card .review-actions{margin-top:auto!important}
+            .competition-review-card .btn{min-height:30px!important;min-width:0!important;padding:.28rem .5rem!important;font-size:.66rem!important;border-radius:7px!important}
+            .competition-review-card .review-notes{font-size:.68rem!important}
+            .competition-review-card .review-verification-note{padding:.42rem!important;font-size:.66rem!important}
+            @media(max-width:1350px){.competition-review-list{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+            @media(max-width:1050px){.competition-review-list{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+            @media(max-width:760px){.competition-review-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+            @media(max-width:480px){.competition-review-list{grid-template-columns:1fr!important}}
+        `;
+        document.head.appendChild(style);
+    }
+
     function install() {
+        ensureCompactStyles();
         if (isAdmin()) return installAdmin();
         if (isTPC()) return installTPC();
     }
