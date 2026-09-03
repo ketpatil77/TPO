@@ -25,14 +25,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install multer@2.3.0 --save
+      - run: node scripts/generate-roster-template.js
       - run: npm audit --audit-level=high
       - run: npm test
-      - name: Commit generated lockfile
+      - name: Commit generated dependency and template files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json
+          git add package.json package-lock.json public/templates/AIT-roster-template.xlsx
           if ! git diff --cached --quiet; then
-            git commit -m "Upgrade Multer to 2.3.0"
+            git commit -m "Upgrade Multer and refresh safe roster template"
             git push origin HEAD:system-audit-20260903
           fi
