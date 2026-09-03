@@ -13,6 +13,14 @@
     return String(value || '').replace(/\s+/g, ' ').trim();
   }
 
+  function studentByPrn(prn) {
+    try {
+      return (Array.isArray(allStudentsData) ? allStudentsData : []).find(student => String(student.prn) === String(prn)) || null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   function make(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -24,12 +32,21 @@
     row.classList.toggle('is-mobile-expanded', expanded);
     row.setAttribute('aria-expanded', String(expanded));
     const button = row.querySelector('.mobile-student-summary');
-    if (button) button.setAttribute('aria-expanded', String(expanded));
+    if (button) {
+      button.setAttribute('aria-expanded', String(expanded));
+      button.setAttribute('aria-label', `${expanded ? 'Hide' : 'Show'} details for ${button.dataset.studentName || 'student'}`);
+    }
   }
 
   function toggleRow(row) {
     if (!mobileQuery.matches) return;
-    setExpanded(row, !row.classList.contains('is-mobile-expanded'));
+    const opening = !row.classList.contains('is-mobile-expanded');
+    if (opening) {
+      tbody.querySelectorAll('.student-mobile-directory-row.is-mobile-expanded').forEach(other => {
+        if (other !== row) setExpanded(other, false);
+      });
+    }
+    setExpanded(row, opening);
   }
 
   function enhanceRow(row) {
@@ -37,10 +54,14 @@
 
     const cells = [...row.cells];
     const prn = firstLine(cells[0].innerText);
-    const name = firstLine(cells[1].innerText) || 'Student';
-    const branchClass = compact(cells[2].innerText).replace(/\s*\(\s*/g, ' · ').replace(/\s*\)\s*/g, '');
-    const year = compact(cells[3].innerText);
-    const cgpaRaw = compact(cells[4].querySelector('strong')?.textContent || '—');
+    const student = studentByPrn(prn);
+    const name = compact(student?.name) || firstLine(cells[1].innerText) || 'Student';
+    const branch = compact(student?.branch) || firstLine(cells[2].innerText);
+    const className = compact(student?.class);
+    const branchClass = [branch, className].filter(Boolean).join(' · ') || compact(cells[2].innerText).replace(/\s*\(\s*/g, ' · ').replace(/\s*\)\s*/g, '');
+    const year = compact(student?.year) || compact(cells[3].innerText);
+    const dataCgpa = student?.profile_active && student?.cgpa_overall ? Number(student.cgpa_overall).toFixed(2) : '';
+    const cgpaRaw = dataCgpa || compact(cells[4].querySelector('strong')?.textContent || '—');
     const cgpa = cgpaRaw.replace(/\s*CGPA\s*/i, '') || '—';
 
     row.dataset.mobileStudentCard = 'ready';
@@ -49,6 +70,7 @@
 
     const summary = make('button', 'mobile-student-summary');
     summary.type = 'button';
+    summary.dataset.studentName = name;
     summary.setAttribute('aria-expanded', 'false');
     summary.setAttribute('aria-label', `Show details for ${name}`);
 
