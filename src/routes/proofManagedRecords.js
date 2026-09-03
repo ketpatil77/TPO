@@ -119,6 +119,33 @@ router.put('/certificates/:id', validate(certificateSchema), async (req, res) =>
     }
 });
 
+router.delete('/certificate-evidence/:id', async (req, res) => {
+    try {
+        const studentId = req.student.studentId;
+        const certificate = await db.selectOne('certificates', { id: req.params.id, student_id: studentId });
+        if (!certificate) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Certificate not found.' } });
+        const oldPath = certificate.evidence_path;
+        const updated = await db.update('certificates', { id: certificate.id, student_id: studentId }, {
+            evidence_path: null,
+            evidence_mime: null,
+            evidence_bytes: null,
+            evidence_sha256: null,
+            evidence_uploaded_at: null,
+            verification_status: 'pending',
+            verification_note: null,
+            verified_at: null,
+            verified_by: null,
+            verified_role: null
+        });
+        if (oldPath && !db.isLocal()) await db.supabaseClient().storage.from('certificate-evidence').remove([oldPath]).catch(() => {});
+        await notifyMissingProof({ table: 'certificates', entry: updated, studentId }).catch(() => {});
+        return res.json({ success: true, message: oldPath ? 'Certificate proof removed.' : 'No certificate proof was stored.' });
+    } catch (error) {
+        console.error('Managed certificate proof removal failed:', error.message);
+        return res.status(500).json({ success: false, error: { code: 'VAULT_DELETE_FAILED', message: 'Could not remove certificate proof.' } });
+    }
+});
+
 router.post('/proof-missing-notice/:type/:id', async (req, res) => {
     const table = req.params.type === 'internship' ? 'internships' : req.params.type === 'certificate' ? 'certificates' : null;
     if (!table) return res.status(400).json({ success: false, error: { code: 'INVALID_TYPE', message: 'Invalid proof entry type.' } });
