@@ -1,8 +1,95 @@
-.student-registration-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; margin-top:24px; }
+.student-registration-form {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px 18px;
+  margin-top:16px;
+}
 .student-registration-form > div { min-width:0; }
-.student-registration-form .form-label { display:block; margin-bottom:8px; }
-.student-registration-form input,.student-registration-form select { width:100%; box-sizing:border-box; }
-.student-registration-form small { display:block; color:var(--text-muted); margin-top:8px; }
-.student-registration-form .registration-footer { grid-column:1 / -1; }
-#registrationStatus { overflow-wrap:anywhere; margin-top:12px; }
-@media(max-width:640px) { .student-registration-form { grid-template-columns:1fr; } }
+.student-registration-form .form-label {
+  display:block;
+  margin-bottom:5px;
+  font-size:.82rem;
+  line-height:1.2;
+}
+.student-registration-form input,
+.student-registration-form select {
+  width:100%;
+  box-sizing:border-box;
+  min-height:40px!important;
+  height:40px!important;
+  padding:7px 12px!important;
+  font-size:.9rem!important;
+}
+.student-registration-form small {
+  display:block;
+  color:var(--text-muted);
+  margin-top:4px;
+  font-size:.72rem;
+  line-height:1.3;
+}
+.student-registration-form .registration-footer {
+  grid-column:1 / -1;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-top:2px;
+}
+.student-registration-form .registration-footer .btn {
+  min-height:38px!important;
+  height:38px!important;
+  padding:7px 14px!important;
+  width:auto!important;
+  font-size:.82rem!important;
+}
+#registrationStatus {
+  overflow-wrap:anywhere;
+  margin:0;
+  font-size:.78rem;
+}
+
+/* Keep registration compact instead of stretching across the entire workspace. */
+#observerTab-registration > .glass-card,
+#tab-registration > .glass-card {
+  width:min(100%,980px);
+  margin:0 auto;
+  padding:18px 20px!important;
+}
+#observerTab-registration > .glass-card > h3,
+#tab-registration > .glass-card > h3 {
+  margin:0 0 3px!important;
+  font-size:1.05rem!important;
+  line-height:1.2!important;
+}
+#observerTab-registration > .glass-card > p,
+#tab-registration > .glass-card > p {
+  margin:0!important;
+  color:var(--text-muted);
+  font-size:.8rem!important;
+  line-height:1.35!important;
+}
+
+@media(max-width:760px) {
+  #observerTab-registration > .glass-card,
+  #tab-registration > .glass-card {
+    width:100%;
+    padding:14px!important;
+    border-radius:10px!important;
+  }
+  .student-registration-form {
+    grid-template-columns:1fr;
+    gap:10px;
+    margin-top:12px;
+  }
+  .student-registration-form input,
+  .student-registration-form select {
+    min-height:38px!important;
+    height:38px!important;
+  }
+  .student-registration-form .registration-footer {
+    display:block;
+  }
+  .student-registration-form .registration-footer .btn {
+    width:100%!important;
+  }
+  #registrationStatus { margin-top:8px; }
+}
