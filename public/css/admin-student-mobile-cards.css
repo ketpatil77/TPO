@@ -1,10 +1,36 @@
-/* Administrator student directory: compact mobile rows that expand only when needed. */
-.mobile-student-summary{display:none}
+/* Administrator student directory: dense mobile accordion, isolated from legacy responsive table rules. */
+.mobile-student-summary,.mobile-student-details{display:none}
 
 @media(max-width:760px){
+  #tab-students .filter-bar{
+    padding:8px!important;
+    gap:6px!important;
+    margin-bottom:8px!important;
+  }
+  #tab-students .filter-actions{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    width:100%!important;
+    gap:4px!important;
+    margin-top:2px!important;
+  }
+  #tab-students .filter-actions .filter-action-divider{display:none!important}
+  #tab-students .filter-actions .btn{
+    width:100%!important;
+    min-width:0!important;
+    min-height:30px!important;
+    height:30px!important;
+    padding:0 5px!important;
+    border-radius:8px!important;
+    font-size:.61rem!important;
+    line-height:1!important;
+    white-space:normal!important;
+  }
+
   #tab-students .student-table-shell{
     overflow:visible!important;
     padding:0!important;
+    margin:0!important;
     border:0!important;
     background:transparent!important;
     box-shadow:none!important;
@@ -13,188 +39,208 @@
     display:block!important;
     width:100%!important;
     min-width:0!important;
+    margin:0!important;
     background:transparent!important;
+    border:0!important;
   }
   #tab-students .student-table thead{display:none!important}
   #studentsTableBody{
     display:grid!important;
-    gap:6px!important;
+    width:100%!important;
+    gap:3px!important;
     padding:0!important;
+    margin:0!important;
   }
+
   #studentsTableBody .student-mobile-directory-row{
     display:block!important;
+    position:relative!important;
     width:100%!important;
     min-width:0!important;
     min-height:0!important;
+    height:auto!important;
+    margin:0!important;
+    padding:0!important;
     overflow:hidden!important;
     border:1px solid var(--border-color)!important;
-    border-radius:11px!important;
+    border-radius:8px!important;
     background:var(--bg-card)!important;
     box-shadow:none!important;
-    transition:border-color .16s ease,background .16s ease!important;
+    transform:none!important;
+    transition:border-color .14s ease,background .14s ease!important;
   }
   #studentsTableBody .student-mobile-directory-row:hover{background:var(--bg-card)!important}
+
+  /* Never reveal the old responsive table cells on mobile. They are the source of the giant blank cards. */
   #studentsTableBody .student-mobile-directory-row>td{
     display:none!important;
     width:100%!important;
     min-width:0!important;
+    min-height:0!important;
+    height:auto!important;
     padding:0!important;
+    margin:0!important;
     border:0!important;
     box-sizing:border-box!important;
-    overflow:visible!important;
+    overflow:hidden!important;
   }
-  #studentsTableBody .student-mobile-directory-row>td:first-child{display:block!important}
-  #studentsTableBody .student-mobile-directory-row>td::before{display:none!important}
+  #studentsTableBody .student-mobile-directory-row>td:first-child{
+    display:block!important;
+    position:relative!important;
+  }
+  #studentsTableBody .student-mobile-directory-row>td::before,
   #studentsTableBody .student-mobile-directory-row>td:first-child>strong{display:none!important}
 
   .mobile-student-summary{
     display:grid!important;
-    grid-template-columns:minmax(0,1fr) auto 18px;
-    align-items:center;
-    gap:8px;
-    width:100%;
-    min-width:0;
-    min-height:54px;
-    margin:0;
-    padding:7px 10px;
-    border:0;
-    border-radius:0;
-    background:transparent;
-    color:var(--text-body);
-    text-align:left;
-    box-shadow:none;
-    cursor:pointer;
+    grid-template-columns:minmax(0,1fr) 36px 14px!important;
+    align-items:center!important;
+    gap:6px!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:44px!important;
+    height:44px!important;
+    margin:0!important;
+    padding:4px 8px!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    color:var(--text-body)!important;
+    text-align:left!important;
+    box-shadow:none!important;
+    cursor:pointer!important;
   }
   .mobile-student-summary:focus-visible{outline:2px solid var(--workspace-accent);outline-offset:-2px}
-  .mobile-student-identity{display:block;min-width:0}
+
+  .mobile-student-identity{display:block!important;min-width:0!important;overflow:hidden!important}
   .mobile-student-identity strong{
-    display:block;
-    min-width:0;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    color:var(--text-heading);
-    font-size:.82rem;
-    line-height:1.15;
-    font-weight:700;
+    display:block!important;
+    min-width:0!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    color:var(--text-heading)!important;
+    font-size:.72rem!important;
+    line-height:1.05!important;
+    font-weight:700!important;
   }
   .mobile-student-identity small{
-    display:block;
-    min-width:0;
-    margin-top:3px;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    color:var(--text-muted);
-    font-size:.62rem;
-    line-height:1.15;
-    font-variant-numeric:tabular-nums;
+    display:block!important;
+    min-width:0!important;
+    margin-top:2px!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    color:var(--text-muted)!important;
+    font-size:.52rem!important;
+    line-height:1.05!important;
+    font-variant-numeric:tabular-nums!important;
   }
   .mobile-student-score{
-    display:flex;
-    flex-direction:column;
-    align-items:flex-end;
-    justify-content:center;
-    min-width:34px;
-    line-height:1;
-  }
-  .mobile-student-score strong{font-size:.8rem;color:var(--workspace-accent);font-variant-numeric:tabular-nums}
-  .mobile-student-score small{margin-top:3px;font-size:.52rem;color:var(--text-muted);letter-spacing:.04em}
-  .mobile-student-chevron{
-    display:grid;
-    place-items:center;
-    color:var(--text-muted);
-    font-size:1rem;
-    line-height:1;
-    transform:rotate(0deg);
-    transition:transform .16s ease,color .16s ease;
-  }
-
-  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded{
-    border-color:color-mix(in srgb,var(--workspace-accent) 55%,var(--border-color))!important;
-    background:color-mix(in srgb,var(--bg-card) 95%,var(--workspace-accent) 5%)!important;
-  }
-  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded .mobile-student-chevron{
-    transform:rotate(180deg);
-    color:var(--workspace-accent);
-  }
-  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded>td:nth-child(5),
-  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded>td:nth-child(6),
-  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded>td:nth-child(7),
-  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded>td:nth-child(8){
-    display:grid!important;
-    grid-template-columns:72px minmax(0,1fr);
-    align-items:center;
-    gap:7px;
-    padding:6px 10px!important;
-    border-top:1px solid var(--border-color)!important;
-    font-size:.7rem!important;
-    line-height:1.25!important;
-  }
-  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded>td:nth-child(5)::before,
-  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded>td:nth-child(6)::before,
-  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded>td:nth-child(7)::before,
-  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded>td:nth-child(8)::before{
-    display:block!important;
-    margin:0!important;
-    color:var(--text-muted)!important;
-    font-size:.58rem!important;
-    line-height:1.1!important;
-    font-weight:700!important;
-    letter-spacing:.05em;
-    text-transform:uppercase;
-  }
-  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded>td:nth-child(5)::before{content:"Academic"}
-  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded>td:nth-child(6)::before{content:"Experience"}
-  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded>td:nth-child(7)::before{content:"Documents"}
-  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded>td:nth-child(8)::before{content:"Action"}
-
-  #studentsTableBody .student-mobile-directory-row .compact-table-cell{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-end!important;
+    justify-content:center!important;
     min-width:0!important;
-    gap:2px!important;
-    font-size:.7rem!important;
-    line-height:1.2!important;
-  }
-  #studentsTableBody .student-mobile-directory-row .compact-table-cell strong,
-  #studentsTableBody .student-mobile-directory-row .compact-table-cell span,
-  #studentsTableBody .student-mobile-directory-row .compact-table-cell small{
-    font-size:inherit!important;
-    line-height:inherit!important;
-  }
-  #studentsTableBody .student-mobile-directory-row .badge{
-    width:max-content!important;
-    max-width:100%!important;
-    min-height:0!important;
-    padding:3px 6px!important;
-    font-size:.6rem!important;
-    line-height:1.1!important;
-  }
-  #studentsTableBody .student-mobile-directory-row .btn{
-    width:max-content!important;
-    min-width:0!important;
-    min-height:32px!important;
-    height:32px!important;
-    padding:0 10px!important;
-    font-size:.66rem!important;
     line-height:1!important;
-    white-space:nowrap!important;
   }
-  #studentsTableBody .student-mobile-directory-row .resume-open-link{min-height:30px!important;height:30px!important}
-  #studentsTableBody .student-mobile-directory-row>td:nth-child(7) .compact-table-cell{align-items:flex-start!important}
-  #studentsTableBody .student-mobile-directory-row>td:nth-child(7) a:not(.btn){font-size:.62rem!important;line-height:1.2!important}
+  .mobile-student-score strong{font-size:.68rem!important;color:var(--workspace-accent)!important;font-variant-numeric:tabular-nums!important}
+  .mobile-student-score small{margin-top:2px!important;font-size:.44rem!important;color:var(--text-muted)!important;letter-spacing:.03em!important}
+  .mobile-student-chevron{
+    display:grid!important;
+    place-items:center!important;
+    color:var(--text-muted)!important;
+    font-size:.82rem!important;
+    line-height:1!important;
+    transform:rotate(0deg)!important;
+    transition:transform .14s ease,color .14s ease!important;
+  }
+
+  .mobile-student-details{
+    display:none!important;
+    width:100%!important;
+    min-width:0!important;
+    padding:7px 8px 8px!important;
+    border-top:1px solid var(--border-color)!important;
+    background:color-mix(in srgb,var(--bg-card) 96%,var(--workspace-accent) 4%)!important;
+  }
+  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded{
+    border-color:color-mix(in srgb,var(--workspace-accent) 52%,var(--border-color))!important;
+  }
+  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded .mobile-student-details{display:block!important}
+  #studentsTableBody .student-mobile-directory-row.is-mobile-expanded .mobile-student-chevron{
+    transform:rotate(180deg)!important;
+    color:var(--workspace-accent)!important;
+  }
+
+  .mobile-student-detail-grid{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:5px!important;
+  }
+  .mobile-student-detail-block{
+    min-width:0!important;
+    padding:5px 6px!important;
+    border:1px solid color-mix(in srgb,var(--border-color) 88%,transparent)!important;
+    border-radius:7px!important;
+    background:color-mix(in srgb,var(--bg-card) 94%,white 6%)!important;
+  }
+  .mobile-student-detail-block small{
+    display:block!important;
+    margin:0 0 2px!important;
+    color:var(--text-muted)!important;
+    font-size:.48rem!important;
+    line-height:1!important;
+    font-weight:700!important;
+    letter-spacing:.04em!important;
+    text-transform:uppercase!important;
+  }
+  .mobile-student-detail-block strong{
+    display:block!important;
+    min-width:0!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    color:var(--text-body)!important;
+    font-size:.58rem!important;
+    line-height:1.2!important;
+    font-weight:600!important;
+  }
+  .mobile-student-detail-actions{margin-top:6px!important}
+  .mobile-student-open-profile{
+    width:100%!important;
+    min-height:30px!important;
+    height:30px!important;
+    margin:0!important;
+    padding:0 8px!important;
+    border:1px solid var(--border-color)!important;
+    border-radius:7px!important;
+    background:transparent!important;
+    color:var(--text-heading)!important;
+    font-size:.6rem!important;
+    line-height:1!important;
+    font-weight:700!important;
+    box-shadow:none!important;
+  }
 
   #tab-students .student-pagination{
-    margin-top:8px!important;
-    padding:8px 4px!important;
-    gap:6px!important;
-    font-size:.68rem!important;
+    margin-top:6px!important;
+    padding:6px 2px!important;
+    gap:4px!important;
+    font-size:.61rem!important;
   }
-  #tab-students .student-pagination .btn{min-height:34px!important;height:34px!important;padding:0 9px!important;font-size:.65rem!important}
+  #tab-students .student-pagination .btn{
+    min-height:30px!important;
+    height:30px!important;
+    padding:0 7px!important;
+    font-size:.58rem!important;
+  }
 }
 
 @media(max-width:420px){
-  .mobile-student-summary{min-height:52px;padding:6px 9px;gap:7px}
-  .mobile-student-identity strong{font-size:.79rem}
-  .mobile-student-identity small{font-size:.59rem}
-  #studentsTableBody{gap:5px!important}
+  #studentsTableBody{gap:2px!important}
+  .mobile-student-summary{min-height:42px!important;height:42px!important;padding:3px 7px!important;gap:5px!important}
+  .mobile-student-identity strong{font-size:.69rem!important}
+  .mobile-student-identity small{font-size:.49rem!important}
+  .mobile-student-detail-grid{gap:4px!important}
+  #tab-students .filter-actions .btn{font-size:.57rem!important}
 }
