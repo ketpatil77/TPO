@@ -25,6 +25,14 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        if (document.body.matches('.student-dashboard-page,.admin-dashboard-page,.observer-shell') && !document.querySelector('link[data-dashboard-density]')) {
+            const density = document.createElement('link');
+            density.rel = 'stylesheet';
+            density.href = '/css/dashboard-density.css?v=20260903-density1';
+            density.dataset.dashboardDensity = 'true';
+            document.head.appendChild(density);
+        }
+
         // Legacy handlers occasionally pass structured API errors directly into the toast.
         // Normalize once for every workspace so users never see "[object Object]" again.
         if (typeof window.showToast === 'function' && !window.showToast.__portalNormalized) {
