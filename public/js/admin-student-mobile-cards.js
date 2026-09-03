@@ -5,12 +5,8 @@
   const tbody = document.getElementById('studentsTableBody');
   if (!tbody) return;
 
-  function firstLine(value) {
-    return String(value || '').split('\n').map(part => part.trim()).filter(Boolean)[0] || '';
-  }
-
   function compact(value) {
-    return String(value || '').replace(/\s+/g, ' ').trim();
+    return String(value ?? '').replace(/\s+/g, ' ').trim();
   }
 
   function studentByPrn(prn) {
@@ -28,14 +24,68 @@
     return node;
   }
 
+  function countLabel(value, singular, short) {
+    const count = Number(value || 0);
+    return `${count} ${short || (count === 1 ? singular : `${singular}s`)}`;
+  }
+
+  function detailBlock(label, value) {
+    const block = make('div', 'mobile-student-detail-block');
+    block.append(make('small', '', label), make('strong', '', value));
+    return block;
+  }
+
+  function buildDetails(student, row) {
+    const panel = make('div', 'mobile-student-details');
+    panel.setAttribute('aria-hidden', 'true');
+
+    const grid = make('div', 'mobile-student-detail-grid');
+    const cgpa = student?.profile_active && student?.cgpa_overall
+      ? Number(student.cgpa_overall).toFixed(2)
+      : '—';
+    const academic = `${cgpa} CGPA · ${countLabel(student?.active_backlogs, 'backlog')}`;
+    const experience = [
+      countLabel(student?.internships_count, 'internship', 'int'),
+      countLabel(student?.certificates_count, 'certificate', 'cert'),
+      countLabel(student?.projects_count, 'project', 'proj'),
+      countLabel(student?.research_papers_count, 'research paper', 'research')
+    ].join(' · ');
+    const profileType = !student?.profile_active ? 'Profile pending' : (student?.has_diploma ? 'Diploma' : 'Regular');
+    const documents = `${profileType} · ${student?.resume_url ? 'Resume ready' : 'No resume'}`;
+    const status = student?.profile_active ? 'Student profile active' : 'Awaiting first login';
+
+    grid.append(
+      detailBlock('Academic', academic),
+      detailBlock('Experience', experience),
+      detailBlock('Documents', documents),
+      detailBlock('Status', status)
+    );
+    panel.appendChild(grid);
+
+    const actions = make('div', 'mobile-student-detail-actions');
+    const openButton = make('button', 'mobile-student-open-profile', 'Open full profile');
+    openButton.type = 'button';
+    openButton.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (student?.id && typeof window.openStudentModal === 'function') window.openStudentModal(student.id);
+      else row.querySelector('td:nth-child(8) button')?.click();
+    });
+    actions.appendChild(openButton);
+    panel.appendChild(actions);
+    return panel;
+  }
+
   function setExpanded(row, expanded) {
     row.classList.toggle('is-mobile-expanded', expanded);
     row.setAttribute('aria-expanded', String(expanded));
-    const button = row.querySelector('.mobile-student-summary');
-    if (button) {
-      button.setAttribute('aria-expanded', String(expanded));
-      button.setAttribute('aria-label', `${expanded ? 'Hide' : 'Show'} details for ${button.dataset.studentName || 'student'}`);
+    const summary = row.querySelector('.mobile-student-summary');
+    const details = row.querySelector('.mobile-student-details');
+    if (summary) {
+      summary.setAttribute('aria-expanded', String(expanded));
+      summary.setAttribute('aria-label', `${expanded ? 'Hide' : 'Show'} details for ${summary.dataset.studentName || 'student'}`);
     }
+    if (details) details.setAttribute('aria-hidden', String(!expanded));
   }
 
   function toggleRow(row) {
@@ -53,16 +103,13 @@
     if (!(row instanceof HTMLTableRowElement) || row.dataset.mobileStudentCard === 'ready' || row.cells.length !== 8) return;
 
     const cells = [...row.cells];
-    const prn = firstLine(cells[0].innerText);
+    const prn = compact(cells[0].textContent);
     const student = studentByPrn(prn);
-    const name = compact(student?.name) || firstLine(cells[1].innerText) || 'Student';
-    const branch = compact(student?.branch) || firstLine(cells[2].innerText);
-    const className = compact(student?.class);
-    const branchClass = [branch, className].filter(Boolean).join(' · ') || compact(cells[2].innerText).replace(/\s*\(\s*/g, ' · ').replace(/\s*\)\s*/g, '');
-    const year = compact(student?.year) || compact(cells[3].innerText);
-    const dataCgpa = student?.profile_active && student?.cgpa_overall ? Number(student.cgpa_overall).toFixed(2) : '';
-    const cgpaRaw = dataCgpa || compact(cells[4].querySelector('strong')?.textContent || '—');
-    const cgpa = cgpaRaw.replace(/\s*CGPA\s*/i, '') || '—';
+    if (!student) return;
+
+    const name = compact(student.name) || 'Student';
+    const branchClassYear = [student.branch, student.class, student.year].map(compact).filter(Boolean).join(' · ');
+    const cgpa = student.profile_active && student.cgpa_overall ? Number(student.cgpa_overall).toFixed(2) : '—';
 
     row.dataset.mobileStudentCard = 'ready';
     row.classList.add('student-mobile-directory-row');
@@ -75,19 +122,16 @@
     summary.setAttribute('aria-label', `Show details for ${name}`);
 
     const identity = make('span', 'mobile-student-identity');
-    identity.appendChild(make('strong', '', name));
-    const metaParts = [prn, branchClass, year].filter(Boolean);
-    identity.appendChild(make('small', '', metaParts.join(' · ')));
+    identity.append(make('strong', '', name), make('small', '', `${prn}${branchClassYear ? ` · ${branchClassYear}` : ''}`));
 
     const score = make('span', 'mobile-student-score');
-    score.appendChild(make('strong', '', cgpa));
-    score.appendChild(make('small', '', 'CGPA'));
+    score.append(make('strong', '', cgpa), make('small', '', 'CGPA'));
 
     const chevron = make('span', 'mobile-student-chevron', '⌄');
     chevron.setAttribute('aria-hidden', 'true');
 
     summary.append(identity, score, chevron);
-    cells[0].appendChild(summary);
+    cells[0].append(summary, buildDetails(student, row));
 
     summary.addEventListener('click', event => {
       event.preventDefault();
@@ -97,7 +141,7 @@
 
     row.addEventListener('click', event => {
       if (!mobileQuery.matches) return;
-      if (event.target.closest('a,button,input,select,textarea,label')) return;
+      if (event.target.closest('.mobile-student-details a, .mobile-student-details button, input, select, textarea, label')) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       toggleRow(row);
