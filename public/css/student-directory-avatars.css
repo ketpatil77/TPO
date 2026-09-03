@@ -1,7 +1,11 @@
 .directory-student-name-cell {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
+    display: table-cell !important;
+    vertical-align: middle;
+}
+
+.directory-student-name-cell > .directory-student-avatar {
+    vertical-align: middle;
+    margin-right: 0.65rem;
 }
 
 .directory-student-avatar {
