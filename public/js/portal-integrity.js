@@ -6,10 +6,15 @@
   window.__AIT_PORTAL_INTEGRITY__ = true;
 
   let scheduled = false;
+  const placeholderPattern = /(?:lazy|placeholder|loading)/i;
 
   function panelFor(control) {
     if (!control) return null;
     try { return document.getElementById(control); } catch (_) { return null; }
+  }
+
+  function labelOf(button) {
+    return String(button?.textContent || '').replace(/\bnew\b/ig, '').replace(/\s+/g, ' ').trim().toLowerCase();
   }
 
   function preferButton(left, right) {
@@ -21,17 +26,16 @@
     if (rightPanel && !leftPanel) return right;
     if (left.classList.contains('active') && !right.classList.contains('active')) return left;
     if (right.classList.contains('active') && !left.classList.contains('active')) return right;
-    if (/lazy/i.test(leftControl) && !/lazy/i.test(rightControl)) return right;
-    if (/lazy/i.test(rightControl) && !/lazy/i.test(leftControl)) return left;
+    if (placeholderPattern.test(leftControl) && !placeholderPattern.test(rightControl)) return right;
+    if (placeholderPattern.test(rightControl) && !placeholderPattern.test(leftControl)) return left;
     return left;
   }
 
   function removeNodeWithPanel(button) {
     const control = button?.getAttribute?.('aria-controls');
     button?.remove();
-    if (!control) return;
-    const panel = document.getElementById(control);
-    if (panel && /(?:-lazy|placeholder)$/i.test(control)) panel.remove();
+    if (!control || !placeholderPattern.test(control)) return;
+    panelFor(control)?.remove();
   }
 
   function cleanTabNav(nav) {
@@ -51,25 +55,37 @@
       removeNodeWithPanel(remove);
     });
 
-    const realRanking = nav.querySelector('[aria-controls="tab-ranking"]');
-    if (realRanking) {
-      nav.querySelectorAll('[aria-controls="tab-ranking-lazy"]').forEach(removeNodeWithPanel);
-      document.getElementById('tab-ranking-lazy')?.remove();
-    }
+    const afterControlCleanup = [...nav.querySelectorAll(':scope > .tab-btn[aria-controls], :scope > button[role="tab"][aria-controls]')];
+    const byLabel = new Map();
+    afterControlCleanup.forEach(button => {
+      const label = labelOf(button);
+      if (!label) return;
+      const existing = byLabel.get(label);
+      if (!existing) {
+        byLabel.set(label, button);
+        return;
+      }
+      const existingControl = existing.getAttribute('aria-controls') || '';
+      const currentControl = button.getAttribute('aria-controls') || '';
+      if (!placeholderPattern.test(existingControl) && !placeholderPattern.test(currentControl)) return;
+      const keep = preferButton(existing, button);
+      const remove = keep === existing ? button : existing;
+      byLabel.set(label, keep);
+      removeNodeWithPanel(remove);
+    });
 
     const remaining = [...nav.querySelectorAll(':scope > .tab-btn[aria-controls], :scope > button[role="tab"][aria-controls]')];
     const active = remaining.filter(button => button.classList.contains('active') || button.getAttribute('aria-selected') === 'true');
-    const winner = active[0] || remaining[0] || null;
+    const winner = active[0] || null;
     if (active.length > 1) {
       active.slice(1).forEach(button => {
         button.classList.remove('active');
         button.setAttribute('aria-selected', 'false');
-        const panel = panelFor(button.getAttribute('aria-controls'));
-        panel?.classList.remove('active');
+        panelFor(button.getAttribute('aria-controls'))?.classList.remove('active');
       });
     }
     remaining.forEach(button => {
-      const selected = button === winner && (button.classList.contains('active') || button.getAttribute('aria-selected') === 'true');
+      const selected = button === winner;
       button.setAttribute('aria-selected', selected ? 'true' : 'false');
       button.tabIndex = selected ? 0 : -1;
     });
@@ -90,17 +106,10 @@
     });
   }
 
-  function fixInteractiveWidths() {
-    document.querySelectorAll('.dashboard-wrapper input, .dashboard-wrapper select, .dashboard-wrapper textarea, .dashboard-wrapper button, .dashboard-wrapper .glass-card').forEach(node => {
-      if (node instanceof HTMLElement) node.style.minWidth = node.style.minWidth === '0px' ? node.style.minWidth : '';
-    });
-  }
-
   function run() {
     scheduled = false;
     document.querySelectorAll('.tabs-nav').forEach(cleanTabNav);
     cleanDuplicatePanels();
-    fixInteractiveWidths();
   }
 
   function schedule() {
