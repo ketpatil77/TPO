@@ -62,6 +62,13 @@ async function pendingRows({ branch = null } = {}) {
         .sort((a, b) => String(a.evidence_uploaded_at || '').localeCompare(String(b.evidence_uploaded_at || '')));
 }
 
+async function clearStudentCache() {
+    try {
+        const adminStudentsRouter = require('./adminStudents');
+        await adminStudentsRouter.clearStudentCache?.();
+    } catch (_) {}
+}
+
 function createRouter(role) {
     const router = express.Router();
     const isObserver = role === 'observer';
@@ -72,6 +79,8 @@ function createRouter(role) {
             const branch = isObserver ? req.observer.department : (req.query.branch && req.query.branch !== 'all' ? String(req.query.branch).toUpperCase() : null);
             let rows = await pendingRows({ branch });
             if (req.query.type === 'internship' || req.query.type === 'certificate') rows = rows.filter(row => row.type === req.query.type);
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+            res.setHeader('Pragma', 'no-cache');
             return res.json({ success: true, data: rows, scope: { role, branch: branch || 'all' } });
         } catch (error) {
             console.error('Proof review pending list failed:', error.message);
@@ -118,6 +127,7 @@ function createRouter(role) {
             const actorId = isObserver ? req.observer.observerId : req.admin.adminId;
             const actorRole = isObserver ? 'tpc' : 'tpo';
             const storedStatus = statusForDatabase(type, req.body.status);
+
             const updated = await db.update(table, { id: entry.id }, {
                 verification_status: storedStatus,
                 verification_note: req.body.note || null,
@@ -125,6 +135,16 @@ function createRouter(role) {
                 verified_by: req.body.status === 'pending' ? null : actorId,
                 verified_role: req.body.status === 'pending' ? null : actorRole
             });
+
+            // Never tell the UI "approved" unless the database actually persisted it.
+            if (!updated) throw new Error('Proof review update matched no record.');
+            const persisted = await db.selectOne(table, { id: entry.id });
+            const persistedStatus = normalizeStoredStatus(type, persisted?.verification_status);
+            if (!persisted || persistedStatus !== req.body.status) {
+                throw new Error(`Proof review persistence check failed: expected ${req.body.status}, got ${persistedStatus}.`);
+            }
+
+            await clearStudentCache();
             await db.logAudit('proof_verification_status_change', table, entry.id, {
                 entry_type: type,
                 student_id: entry.student_id,
@@ -136,10 +156,12 @@ function createRouter(role) {
                 note: req.body.note || '',
                 changed_at: now
             });
-            return res.json({ success: true, data: { ...updated, verification_status: req.body.status }, message: `${type === 'internship' ? 'Internship' : 'Certificate'} ${req.body.status}.` });
+
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+            return res.json({ success: true, data: { ...persisted, verification_status: persistedStatus }, message: `${type === 'internship' ? 'Internship' : 'Certificate'} ${req.body.status}.` });
         } catch (error) {
             console.error('Proof review update failed:', error.message);
-            return res.status(500).json({ success: false, error: { code: 'PROOF_REVIEW_FAILED', message: 'Could not update proof verification.' } });
+            return res.status(500).json({ success: false, error: { code: 'PROOF_REVIEW_FAILED', message: 'Could not persist proof verification. Please retry.' } });
         }
     });
 
