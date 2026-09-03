@@ -3,6 +3,7 @@
 
     let proofInput = null;
     let wrapping = false;
+    let viewerUrl = '';
 
     function ensureField() {
         const form = document.getElementById('internshipForm');
@@ -14,6 +15,24 @@
         group.innerHTML = '<label class="form-label" for="internshipProof">Internship proof</label><input type="file" id="internshipProof" class="form-input" accept="image/jpeg,image/png,.jpg,.jpeg,.png"><div class="form-hint">JPG/PNG, maximum 400 KB. Proof is required within 48 hours. TPO/TPC verification happens after upload.</div><div id="internshipProofStatus" class="form-hint" aria-live="polite"></div>';
         submit.before(group);
         proofInput = group.querySelector('#internshipProof');
+    }
+
+    function ensureViewer() {
+        if (document.getElementById('internshipEvidenceViewer')) return;
+        const modal = document.createElement('div');
+        modal.id = 'internshipEvidenceViewer';
+        modal.className = 'modal-backdrop certificate-evidence-viewer';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.innerHTML = `
+            <div class="glass-card modal-card certificate-evidence-viewer-card">
+                <div class="modal-header"><div><span class="eyebrow">Private evidence</span><h3>Internship proof</h3></div><button type="button" class="close-btn" id="closeInternshipEvidenceViewer" aria-label="Close internship proof">&times;</button></div>
+                <div id="internshipEvidenceViewerStatus" class="certificate-evidence-viewer-status">Loading internship proof…</div>
+                <div class="certificate-evidence-canvas" hidden><img id="internshipEvidenceImage" alt="Internship proof"></div>
+            </div>`;
+        document.body.appendChild(modal);
+        document.getElementById('closeInternshipEvidenceViewer').addEventListener('click', closeInternshipEvidence);
+        modal.addEventListener('click', event => { if (event.target === modal) closeInternshipEvidence(); });
     }
 
     async function uploadProof(entryId, file) {
@@ -71,16 +90,67 @@
             const items = payload?.data?.internships || [];
             const cards = [...root.querySelectorAll('.item-card')];
             cards.forEach((card, index) => {
-                if (card.querySelector('.internship-proof-chip')) return;
                 const item = items[index];
                 if (!item) return;
-                const chip = document.createElement('span');
-                chip.className = `internship-proof-chip ${item.evidence_path ? 'has-proof' : 'missing-proof'}`;
-                const status = item.verification_status || 'pending';
-                chip.textContent = item.evidence_path ? `Proof: ${status}` : `Proof missing${item.proof_deadline ? ` · due ${new Date(item.proof_deadline).toLocaleString()}` : ''}`;
-                card.querySelector('.item-details')?.appendChild(chip);
+
+                if (!card.querySelector('.internship-proof-chip')) {
+                    const chip = document.createElement('span');
+                    chip.className = `internship-proof-chip ${item.evidence_path ? 'has-proof' : 'missing-proof'}`;
+                    const status = item.verification_status || 'pending';
+                    chip.textContent = item.evidence_path ? `Proof: ${status}` : `Proof missing${item.proof_deadline ? ` · due ${new Date(item.proof_deadline).toLocaleString()}` : ''}`;
+                    card.querySelector('.item-details')?.appendChild(chip);
+                }
+
+                const actions = card.querySelector('.item-actions');
+                if (!actions || actions.querySelector('.internship-proof-action')) return;
+                const proofButton = document.createElement('button');
+                proofButton.type = 'button';
+                proofButton.className = 'btn btn-primary btn-sm internship-proof-action';
+                proofButton.textContent = item.evidence_path ? 'View proof' : 'Add proof';
+                proofButton.addEventListener('click', () => {
+                    if (item.evidence_path) openInternshipEvidence(item.id);
+                    else if (typeof window.editInternship === 'function') window.editInternship(item.id);
+                });
+                actions.prepend(proofButton);
             });
         }).catch(() => {}).finally(() => { root.dataset.proofStatusLoading = '0'; });
+    }
+
+    async function openInternshipEvidence(id) {
+        ensureViewer();
+        const modal = document.getElementById('internshipEvidenceViewer');
+        const status = document.getElementById('internshipEvidenceViewerStatus');
+        const canvas = modal.querySelector('.certificate-evidence-canvas');
+        const image = document.getElementById('internshipEvidenceImage');
+        if (viewerUrl) URL.revokeObjectURL(viewerUrl);
+        viewerUrl = '';
+        image.removeAttribute('src');
+        canvas.hidden = true;
+        status.hidden = false;
+        status.textContent = 'Loading private internship proof…';
+        modal.classList.add('active');
+        try {
+            const response = await fetch(`/api/student/internship-evidence/${encodeURIComponent(id)}`);
+            if (!response.ok) {
+                let result = null;
+                try { result = await response.json(); } catch (_) {}
+                throw new Error(result?.error?.message || 'Could not open internship proof.');
+            }
+            const blob = await response.blob();
+            viewerUrl = URL.createObjectURL(blob);
+            image.src = viewerUrl;
+            status.hidden = true;
+            canvas.hidden = false;
+        } catch (error) {
+            status.textContent = error.message || 'Could not open internship proof.';
+        }
+    }
+
+    function closeInternshipEvidence() {
+        const modal = document.getElementById('internshipEvidenceViewer');
+        if (modal) modal.classList.remove('active');
+        if (viewerUrl) URL.revokeObjectURL(viewerUrl);
+        viewerUrl = '';
     }
 
     function boot() {
@@ -93,6 +163,9 @@
             if (event.target.closest('[onclick*="openInternshipModal"], [onclick*="editInternship"]')) window.setTimeout(ensureField, 0);
         });
     }
+
+    window.openInternshipEvidence = openInternshipEvidence;
+    window.closeInternshipEvidence = closeInternshipEvidence;
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
     else boot();
