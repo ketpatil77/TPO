@@ -1,0 +1,38 @@
+name: System Audit Dependency Update
+
+on:
+  push:
+    branches: [system-audit-20260903]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: system-audit-dependency-update
+  cancel-in-progress: true
+
+jobs:
+  update-multer:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: system-audit-20260903
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install multer@2.3.0 --save
+      - run: npm audit --audit-level=high
+      - run: npm test
+      - name: Commit generated lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Upgrade Multer to 2.3.0"
+            git push origin HEAD:system-audit-20260903
+          fi
