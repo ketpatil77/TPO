@@ -118,6 +118,8 @@
             loadScript('/js/profile-links.js?v=20260902-2', 'profile-links-js');
             loadStylesheet('/css/free-learning.css?v=20260902-3', 'free-learning-css');
             loadScript('/js/free-learning.js?v=20260902-3', 'free-learning-js');
+            loadStylesheet('/css/certificate-vault.css?v=20260903-1', 'certificate-vault-css');
+            loadScript('/js/certificate-vault-ui.js?v=20260903-1', 'certificate-vault-ui-js');
         }
 
         if (document.body.classList.contains('admin-dashboard-page')) loadScript('/js/calendar-polish.js?v=20260901-1', 'calendar-polish');
