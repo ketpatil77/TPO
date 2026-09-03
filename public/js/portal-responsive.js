@@ -20,6 +20,14 @@
         return script;
     }
 
+    function withOperationFeedback(callback) {
+        if (window.PortalOperationFeedback) {
+            callback?.();
+            return;
+        }
+        loadScript('/js/operation-feedback.js?v=20260903-1', 'operation-feedback', callback);
+    }
+
     loadStylesheet('/css/mobile-system-v2.css?v=20260901-1', 'mobile-system-v2');
     loadStylesheet('/css/mobile-tabs-fix.css?v=20260901-1', 'mobile-tabs-fix');
     loadStylesheet('/css/dashboard-polish-v3.css?v=20260901-1', 'dashboard-polish-v3');
@@ -120,8 +128,10 @@
             loadStylesheet('/css/free-learning.css?v=20260902-3', 'free-learning-css');
             loadScript('/js/free-learning.js?v=20260902-3', 'free-learning-js');
             loadStylesheet('/css/certificate-vault.css?v=20260903-1', 'certificate-vault-css');
-            loadScript('/js/certificate-vault-ui.js?v=20260903-1', 'certificate-vault-ui-js');
-            loadScript('/js/internship-proof-ui.js?v=20260903-1', 'internship-proof-ui-js');
+            withOperationFeedback(() => {
+                loadScript('/js/certificate-vault-ui.js?v=20260903-2', 'certificate-vault-ui-js');
+                loadScript('/js/internship-proof-ui.js?v=20260903-2', 'internship-proof-ui-js');
+            });
         }
 
         if (document.body.classList.contains('admin-dashboard-page')) {
@@ -138,10 +148,10 @@
         if (document.body.classList.contains('admin-dashboard-page') || document.body.classList.contains('observer-shell')) {
             loadStylesheet('/css/staff-table-actions.css?v=20260902-1', 'staff-table-actions');
             loadStylesheet('/css/student-directory-avatars.css?v=20260903-1', 'student-directory-avatars');
-            loadScript('/js/student-directory-avatars.js?v=20260903-1', 'student-directory-avatars-js');
+            loadScript('/js/student-directory-avatars.js?v=20260903-2', 'student-directory-avatars-js');
             loadScript('/js/candidate-profile-v2.js?v=20260901-2', 'candidate-profile-v2-js');
             loadScript('/js/competition-review.js?v=20260901-1', 'competition-review-module');
-            loadScript('/js/proof-review-ui.js?v=20260903-2', 'proof-review-ui-js');
+            withOperationFeedback(() => loadScript('/js/proof-review-ui.js?v=20260903-3', 'proof-review-ui-js'));
         }
     });
 })();
