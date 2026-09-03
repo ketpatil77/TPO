@@ -66,15 +66,22 @@ async function main() {
     await workbook.xlsx.writeFile(outputPath);
 
     // Re-open the generated file so CI fails if ExcelJS produced an unreadable workbook
-    // or if the PRN text-format contract regresses.
+    // or if the PRN/text/dropdown contract regresses.
     const verification = new ExcelJS.Workbook();
     await verification.xlsx.readFile(outputPath);
     const verifySheet = verification.getWorksheet('Roster');
     if (!verifySheet) throw new Error('Generated roster workbook has no Roster sheet.');
     if (verifySheet.getColumn('A').numFmt !== '@') throw new Error('Generated PRN column is not formatted as Text.');
     if (verifySheet.getColumn('C').numFmt !== '@') throw new Error('Generated DOB column is not formatted as Text.');
-    if (!verifySheet.dataValidations.model[`D2:D${MAX_DATA_ROWS + 1}`]) throw new Error('Generated branch validation is missing.');
-    if (!verifySheet.dataValidations.model[`F2:F${MAX_DATA_ROWS + 1}`]) throw new Error('Generated year validation is missing.');
+
+    const branchValidation = verifySheet.getCell('D2').dataValidation;
+    const yearValidation = verifySheet.getCell('F2').dataValidation;
+    if (branchValidation?.type !== 'list' || !String(branchValidation.formulae?.[0] || '').includes('AIML')) {
+        throw new Error('Generated branch validation is missing.');
+    }
+    if (yearValidation?.type !== 'list' || !String(yearValidation.formulae?.[0] || '').includes('First Year')) {
+        throw new Error('Generated year validation is missing.');
+    }
 
     console.log(`Generated PRN-safe roster template at ${outputPath}`);
 }
