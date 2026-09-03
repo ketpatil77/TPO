@@ -129,6 +129,8 @@
         }
         if (document.body.classList.contains('admin-dashboard-page') || document.body.classList.contains('observer-shell')) {
             loadStylesheet('/css/staff-table-actions.css?v=20260902-1', 'staff-table-actions');
+            loadStylesheet('/css/student-directory-avatars.css?v=20260903-1', 'student-directory-avatars');
+            loadScript('/js/student-directory-avatars.js?v=20260903-1', 'student-directory-avatars-js');
             loadScript('/js/candidate-profile-v2.js?v=20260901-2', 'candidate-profile-v2-js');
             loadScript('/js/competition-review.js?v=20260901-1', 'competition-review-module');
         }
