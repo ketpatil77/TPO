@@ -10,28 +10,28 @@
 
     function loadScript(src, marker, onLoad) {
         const existing = document.querySelector(`script[data-${marker}]`);
-        if (existing) { if (onLoad) existing.addEventListener('load', onLoad, { once:true }); return existing; }
+        if (existing) {
+            if (onLoad) {
+                if (existing.dataset.loaded === 'true') onLoad();
+                else existing.addEventListener('load', onLoad, { once:true });
+            }
+            return existing;
+        }
         const script = document.createElement('script');
         script.src = src;
         script.defer = true;
         script.setAttribute(`data-${marker}`, 'true');
+        script.addEventListener('load', () => { script.dataset.loaded = 'true'; }, { once:true });
         if (onLoad) script.addEventListener('load', onLoad, { once:true });
         document.body.appendChild(script);
         return script;
-    }
-
-    function withOperationFeedback(callback) {
-        if (window.PortalOperationFeedback) {
-            callback?.();
-            return;
-        }
-        loadScript('/js/operation-feedback.js?v=20260903-1', 'operation-feedback', callback);
     }
 
     loadStylesheet('/css/mobile-system-v2.css?v=20260901-1', 'mobile-system-v2');
     loadStylesheet('/css/mobile-tabs-fix.css?v=20260901-1', 'mobile-tabs-fix');
     loadStylesheet('/css/dashboard-polish-v3.css?v=20260901-1', 'dashboard-polish-v3');
     loadStylesheet('/css/dashboard-audit-v4.css?v=20260901-1', 'dashboard-audit-v4');
+    loadStylesheet('/css/dashboard-density.css?v=20260903-global1', 'dashboard-density');
     loadStylesheet('/css/profile-ranking-v2.css?v=20260901-2', 'profile-ranking-v2');
     loadStylesheet('/css/profile-ranking-potential.css?v=20260901-2', 'profile-ranking-potential');
     loadStylesheet('/css/candidate-profile-v2.css?v=20260901-1', 'candidate-profile-v2');
@@ -83,26 +83,27 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        const tabs = document.querySelector('.tabs-nav');
-        if (tabs) {
+        document.querySelectorAll('.tabs-nav').forEach(tabs => {
             tabs.addEventListener('keydown', event => {
                 if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key) || !event.target.matches('.tab-btn')) return;
                 const buttons = [...tabs.querySelectorAll('.tab-btn')];
                 const i = buttons.indexOf(event.target);
                 const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : (i + (event.key === 'ArrowRight' ? 1 : -1) + buttons.length) % buttons.length;
                 event.preventDefault();
-                buttons[next].focus();
-                buttons[next].click();
+                buttons[next]?.focus();
+                buttons[next]?.click();
             });
-        }
+        });
 
         if (document.body.classList.contains('unified-auth-shell')) loadScript('/js/login-autofill.js?v=20260901-2', 'login-autofill');
 
         const authenticatedWorkspace = document.body.classList.contains('student-dashboard-page') || document.body.classList.contains('admin-dashboard-page') || document.body.classList.contains('observer-shell');
         if (authenticatedWorkspace) {
             loadStylesheet('/css/portal-back-guard.css?v=20260901-1', 'portal-back-guard');
-            loadScript('/js/portal-back-guard.js?v=20260901-1', 'portal-back-guard-js');
             loadStylesheet('/css/proof-workflow.css?v=20260903-2', 'proof-workflow');
+            loadScript('/js/portal-back-guard.js?v=20260901-1', 'portal-back-guard-js');
+            loadScript('/js/operation-feedback.js?v=20260903-global2', 'operation-feedback');
+            loadScript('/js/portal-integrity.js?v=20260903-global1', 'portal-integrity');
         }
 
         document.getElementById('notificationGateSignOut')?.addEventListener('click', () => document.getElementById('logoutBtn')?.click());
@@ -117,10 +118,10 @@
             loadScript('/js/competitions.js?v=20260901-4', 'competitions-module');
             loadStylesheet('/css/student-leaderboard-v1.css?v=20260902-1', 'student-leaderboard-v1');
             loadStylesheet('/css/student-leaderboard-v2.css?v=20260902-1', 'student-leaderboard-v2');
-            loadScript('/js/student-ranking-lazy.js?v=20260902-1', 'student-ranking-lazy-js');
+            loadStylesheet('/css/student-leaderboard-v3.css?v=20260902-1', 'student-leaderboard-v3');
+            loadScript('/js/student-ranking-lazy.js?v=20260903-single1', 'student-ranking-lazy-js');
             loadScript('/js/college-academics-ui.js?v=20260901-2', 'college-academics-ui');
             loadStylesheet('/css/student-engagement-v1.css?v=20260902-2', 'student-engagement-v1');
-            loadStylesheet('/css/student-leaderboard-v3.css?v=20260902-1', 'student-leaderboard-v3');
             loadScript('/js/student-engagement-v3.js?v=20260902-1', 'student-engagement-v3-js');
             loadStylesheet('/css/profile-declarations.css?v=20260902-1', 'profile-declarations');
             loadScript('/js/profile-declarations-ui.js?v=20260902-2', 'profile-declarations-ui');
@@ -128,10 +129,8 @@
             loadStylesheet('/css/free-learning.css?v=20260902-3', 'free-learning-css');
             loadScript('/js/free-learning.js?v=20260902-3', 'free-learning-js');
             loadStylesheet('/css/certificate-vault.css?v=20260903-1', 'certificate-vault-css');
-            withOperationFeedback(() => {
-                loadScript('/js/certificate-vault-ui.js?v=20260903-2', 'certificate-vault-ui-js');
-                loadScript('/js/internship-proof-ui.js?v=20260903-2', 'internship-proof-ui-js');
-            });
+            loadScript('/js/certificate-vault-ui.js?v=20260903-2', 'certificate-vault-ui-js');
+            loadScript('/js/internship-proof-ui.js?v=20260903-2', 'internship-proof-ui-js');
         }
 
         if (document.body.classList.contains('admin-dashboard-page')) {
@@ -151,7 +150,7 @@
             loadScript('/js/student-directory-avatars.js?v=20260903-2', 'student-directory-avatars-js');
             loadScript('/js/candidate-profile-v2.js?v=20260901-2', 'candidate-profile-v2-js');
             loadScript('/js/competition-review.js?v=20260901-1', 'competition-review-module');
-            withOperationFeedback(() => loadScript('/js/proof-review-ui.js?v=20260903-3', 'proof-review-ui-js'));
+            loadScript('/js/proof-review-ui.js?v=20260903-3', 'proof-review-ui-js');
         }
     });
 })();
