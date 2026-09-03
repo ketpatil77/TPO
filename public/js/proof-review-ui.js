@@ -75,6 +75,51 @@
         window.setTimeout(() => { rowElement.classList.add('proof-review-row-leaving'); window.setTimeout(() => { rowElement.remove(); showEmptyIfNeeded(); }, 320); }, 180);
     }
 
+    function writeProofLoadingPage(tab) {
+        if (!tab || tab.closed) return;
+        try {
+            tab.opener = null;
+            tab.document.open();
+            tab.document.write('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Loading proof</title><style>html,body{margin:0;min-height:100%;background:#10151f;color:#e7ebf3;font-family:system-ui,sans-serif}body{display:grid;place-items:center;min-height:100vh}.box{display:flex;align-items:center;gap:12px;padding:16px 18px;border:1px solid #30394a;border-radius:14px;background:#171e2a;box-shadow:0 16px 40px #0006}.spin{width:20px;height:20px;border:2px solid #566174;border-top-color:#70d7c8;border-radius:50%;animation:s .7s linear infinite}@keyframes s{to{transform:rotate(360deg)}}small{display:block;color:#97a2b6;margin-top:3px}</style></head><body><div class="box"><span class="spin"></span><div><strong>Loading proof…</strong><small>Please wait a moment.</small></div></div></body></html>');
+            tab.document.close();
+        } catch (_) {}
+    }
+
+    async function openProof(button, type, id) {
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Opening…';
+        const proofTab = window.open('about:blank', '_blank');
+        writeProofLoadingPage(proofTab);
+
+        try {
+            const response = await fetch(`${apiBase}/${encodeURIComponent(type)}/${encodeURIComponent(id)}/proof`, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
+            if (!response.ok) {
+                let data = null;
+                try { data = await response.json(); } catch (_) {}
+                throw new Error(data?.error?.message || 'Could not load proof.');
+            }
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            if (!proofTab || proofTab.closed) {
+                URL.revokeObjectURL(objectUrl);
+                throw new Error('The proof window was blocked or closed. Allow pop-ups and try again.');
+            }
+            proofTab.location.replace(objectUrl);
+            window.setTimeout(() => URL.revokeObjectURL(objectUrl), 120000);
+        } catch (error) {
+            if (proofTab && !proofTab.closed) {
+                try {
+                    proofTab.document.body.innerHTML = `<div style="min-height:100vh;display:grid;place-items:center;background:#10151f;color:#e7ebf3;font-family:system-ui,sans-serif;padding:24px;box-sizing:border-box"><div style="max-width:420px;padding:18px;border:1px solid #47323a;border-radius:14px;background:#1b1820"><strong>Could not open proof</strong><p style="color:#c5c9d2">${esc(error.message)}</p></div></div>`;
+                } catch (_) {}
+            }
+            if (window.showToast) window.showToast(error.message, 'error'); else alert(error.message);
+        } finally {
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    }
+
     function bindControls() {
         const root = scopeRoot(); if (!root) return;
         root.querySelector('[data-proof-refresh]')?.addEventListener('click', () => loadQueue());
@@ -83,7 +128,7 @@
         root.addEventListener('click', async event => {
             const button = event.target.closest('[data-proof-action]'); if (!button) return;
             const type = button.dataset.type, id = button.dataset.id, action = button.dataset.proofAction;
-            if (action === 'view') { window.open(`${apiBase}/${encodeURIComponent(type)}/${encodeURIComponent(id)}/proof`, '_blank', 'noopener'); return; }
+            if (action === 'view') { await openProof(button, type, id); return; }
             let note = '';
             if (action === 'rejected') { const response = window.prompt('Reason for rejection (optional):', ''); if (response === null) return; note = response; }
             const rowElement = button.closest('[data-proof-row]'); const actionButtons = rowElement?.querySelectorAll('[data-proof-action]') || [button];
