@@ -45,11 +45,11 @@ function patchDashboardHtml(html, assetPath) {
 }
 
 export default {
-    async fetch(request, env) {
+    async fetch(request, env, context) {
         const url = new URL(request.url);
         if (url.pathname.startsWith('/api/')) {
             const handler = await ensureExpress(env);
-            return handler.fetch(request, env);
+            return handler.fetch(request, env, context);
         }
 
         const assetPath = pageMap.get(url.pathname);
@@ -67,7 +67,7 @@ export default {
         return /\.(?:html|js|css)$/i.test(url.pathname) ? noStore(response, env) : response;
     },
 
-    async scheduled(event, env) {
+    async scheduled(event, env, context) {
         try {
             process.env.SUPABASE_URL = env.SUPABASE_URL;
             process.env.SUPABASE_KEY = env.SUPABASE_KEY;
