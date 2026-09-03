@@ -1,4 +1,38 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    const excelTemplateLink = document.querySelector('a[href="/templates/AIT-roster-template.xlsx"]');
+    if (excelTemplateLink) {
+        excelTemplateLink.title = 'PRN column is preformatted as Text so long PRNs keep every digit.';
+        excelTemplateLink.addEventListener('click', async event => {
+            event.preventDefault();
+            const originalText = excelTemplateLink.textContent;
+            excelTemplateLink.textContent = 'Preparing safe Excel template…';
+            excelTemplateLink.setAttribute('aria-busy', 'true');
+            try {
+                const response = await fetch('/templates/AIT-roster-template-safe.b64?v=20260903-prn-text1', { cache: 'no-store' });
+                if (!response.ok) throw new Error('Unable to prepare Excel template.');
+                const base64 = (await response.text()).replace(/\s+/g, '');
+                const binary = atob(base64);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = URL.createObjectURL(blob);
+                const download = document.createElement('a');
+                download.href = url;
+                download.download = 'AIT-roster-template.xlsx';
+                document.body.appendChild(download);
+                download.click();
+                download.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            } catch (error) {
+                console.error('Safe roster template download failed:', error);
+                alert('Unable to prepare the PRN-safe Excel template. Reload the page and try again.');
+            } finally {
+                excelTemplateLink.textContent = originalText;
+                excelTemplateLink.removeAttribute('aria-busy');
+            }
+        });
+    }
+
     const observer = Boolean(document.querySelector('.observer-tabs'));
     const anchor = document.getElementById(observer ? 'observerTab-roster' : 'tab-roster');
     if (!anchor) return;
