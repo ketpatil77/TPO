@@ -1,0 +1,32 @@
+/* Certificate Vault: lightweight image-only proof UI. */
+.certificate-evidence-field { margin-top:1rem; padding:.9rem; border:1px solid var(--border-color); border-radius:14px; background:rgba(255,255,255,.025); }
+.certificate-evidence-status { margin-top:.55rem; font-size:.82rem; color:var(--text-muted); }
+.certificate-evidence-status.is-working { color:#d9b96e; }
+.certificate-evidence-status.is-success { color:#75d5a1; }
+.certificate-evidence-status.is-error { color:#ff8f8f; }
+.certificate-evidence-quota { margin-top:.35rem; font-size:.76rem; color:var(--text-muted); }
+.certificate-evidence-preview { display:grid; grid-template-columns:86px minmax(0,1fr); gap:.75rem; align-items:center; margin-top:.8rem; padding:.65rem; border:1px solid var(--border-color); border-radius:12px; }
+.certificate-evidence-preview[hidden] { display:none!important; }
+.certificate-evidence-preview img { width:86px; height:64px; object-fit:contain; border-radius:8px; background:#fff; }
+.certificate-evidence-preview strong,.certificate-evidence-preview small { display:block; }
+.certificate-evidence-preview small { margin-top:.2rem; color:var(--text-muted); }
+.certificate-vault-empty { padding:2rem; text-align:center; color:var(--text-muted); }
+.certificate-vault-title { display:flex; flex-wrap:wrap; align-items:center; gap:.65rem; }
+.certificate-vault-title h4 { margin:0; }
+.certificate-vault-date { margin-top:.2rem; font-size:.8rem; }
+.certificate-proof-state { display:inline-flex; margin-top:.45rem; padding:.25rem .55rem; border-radius:999px; font-size:.76rem; font-weight:700; }
+.certificate-proof-state.has-proof { color:#8ce0b2; background:rgba(55,180,110,.12); border:1px solid rgba(80,205,135,.22); }
+.certificate-proof-state.no-proof { color:#d9b96e; background:rgba(217,185,110,.08); border:1px solid rgba(217,185,110,.18); }
+.certificate-evidence-viewer-card { width:min(94vw,980px); max-height:94vh; display:flex; flex-direction:column; }
+.certificate-evidence-viewer-status { min-height:160px; display:grid; place-items:center; color:var(--text-muted); text-align:center; }
+.certificate-evidence-canvas { min-height:0; overflow:auto; display:grid; place-items:center; padding:.75rem; border-radius:12px; background:rgba(0,0,0,.22); }
+.certificate-evidence-canvas[hidden] { display:none!important; }
+.certificate-evidence-canvas img { display:block; width:auto; max-width:100%; height:auto; max-height:76vh; object-fit:contain; background:#fff; touch-action:pinch-zoom; }
+@media (max-width:760px) {
+  .certificate-vault-card { gap:.7rem!important; }
+  .certificate-vault-actions { display:grid!important; grid-template-columns:1fr 1fr 1fr; width:100%; gap:.45rem!important; }
+  .certificate-vault-actions .btn { min-width:0; padding:.55rem .35rem; font-size:.76rem; }
+  .certificate-evidence-viewer-card { width:96vw; max-height:96vh; padding:.8rem!important; }
+  .certificate-evidence-canvas { padding:.35rem; }
+  .certificate-evidence-canvas img { max-height:78vh; }
+}
