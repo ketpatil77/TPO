@@ -7,12 +7,14 @@ const { authenticateStudent } = require('../middleware/auth');
 const router = express.Router();
 router.use(authenticateStudent);
 
+const STORAGE_BUCKET = 'certificate-evidence';
 const MAX_CERTIFICATE_BYTES = 400 * 1024;
 const STUDENT_CERTIFICATE_QUOTA_BYTES = 15 * 1024 * 1024;
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_CERTIFICATE_BYTES, files: 1 } });
 
-function bucket() {
-    return globalThis.cloudflareEnv?.CERTIFICATE_VAULT || null;
+function storage() {
+    if (db.isLocal()) return null;
+    return db.supabaseClient()?.storage?.from(STORAGE_BUCKET) || null;
 }
 
 function detectImageMime(buffer) {
@@ -39,10 +41,10 @@ function acceptEvidence(req, res, next) {
     });
 }
 
-function clearStudentCache() {
+async function clearStudentCache() {
     try {
         const adminStudentsRouter = require('./adminStudents');
-        adminStudentsRouter.clearStudentCache?.();
+        await adminStudentsRouter.clearStudentCache?.();
     } catch (_) {}
 }
 
@@ -62,13 +64,26 @@ async function studentUsage(studentId, excludeCertificateId = null) {
     }, 0);
 }
 
+async function removeObject(path) {
+    if (!path) return;
+    const evidenceStorage = storage();
+    if (!evidenceStorage) return;
+    const { error } = await evidenceStorage.remove([path]);
+    if (error) throw error;
+}
+
 router.get('/certificate-evidence/status', async (req, res) => {
     try {
         const rows = await studentCertificates(req.student.studentId);
         const used = (rows || []).reduce((sum, item) => sum + Number(item.evidence_bytes || 0), 0);
+        const ready = Boolean(storage());
         return res.json({ success: true, data: {
-            configured: Boolean(bucket()), storage_ready: Boolean(bucket()), max_file_bytes: MAX_CERTIFICATE_BYTES,
-            quota_bytes: STUDENT_CERTIFICATE_QUOTA_BYTES, used_bytes: used,
+            configured: ready,
+            storage_ready: ready,
+            storage_provider: ready ? 'supabase' : 'unavailable',
+            max_file_bytes: MAX_CERTIFICATE_BYTES,
+            quota_bytes: STUDENT_CERTIFICATE_QUOTA_BYTES,
+            used_bytes: used,
             remaining_bytes: Math.max(0, STUDENT_CERTIFICATE_QUOTA_BYTES - used)
         }});
     } catch (error) {
@@ -78,8 +93,8 @@ router.get('/certificate-evidence/status', async (req, res) => {
 });
 
 router.post('/certificate-evidence/:id', acceptEvidence, async (req, res) => {
-    const evidenceBucket = bucket();
-    if (!evidenceBucket) return res.status(503).json({ success: false, error: { code: 'VAULT_NOT_CONFIGURED', message: 'Certificate Vault R2 storage is not configured yet.' } });
+    const evidenceStorage = storage();
+    if (!evidenceStorage) return res.status(503).json({ success: false, error: { code: 'VAULT_NOT_CONFIGURED', message: 'Certificate proof storage is not configured yet.' } });
     try {
         const studentId = req.student.studentId;
         const certificate = await ownedCertificate(studentId, req.params.id);
@@ -92,27 +107,42 @@ router.post('/certificate-evidence/:id', acceptEvidence, async (req, res) => {
             return res.status(413).json({ success: false, error: { code: 'CERTIFICATE_STORAGE_QUOTA', message: 'Your 15 MB certificate proof quota is full. Remove or replace older proof files.' } });
         }
         const sha256 = createHash('sha256').update(req.file.buffer).digest('hex');
-        if (certificate.evidence_sha256 === sha256 && certificate.evidence_path) return res.json({ success: true, message: 'This proof is already uploaded.', data: { certificate } });
+        if (certificate.evidence_sha256 === sha256 && certificate.evidence_path) {
+            return res.json({ success: true, message: 'This proof is already uploaded.', data: { certificate } });
+        }
         const rows = await studentCertificates(studentId);
         const duplicate = (rows || []).find(item => item.id !== certificate.id && item.evidence_sha256 === sha256);
         if (duplicate) return res.status(409).json({ success: false, error: { code: 'DUPLICATE_CERTIFICATE_PROOF', message: 'The same certificate image is already attached to another certificate record.' } });
+
         const objectPath = `certificates/${studentId}/${certificate.id}.${extensionForMime(mime)}`;
-        await evidenceBucket.put(objectPath, req.file.buffer, {
-            httpMetadata: { contentType: mime, cacheControl: 'private, no-store, max-age=0' },
-            customMetadata: { studentId: String(studentId), certificateId: String(certificate.id), sha256 }
+        const { error: uploadError } = await evidenceStorage.upload(objectPath, req.file.buffer, {
+            contentType: mime,
+            cacheControl: '0',
+            upsert: true
         });
+        if (uploadError) throw uploadError;
+
         let updated;
         try {
             updated = await db.update('certificates', { id: certificate.id, student_id: studentId }, {
-                evidence_path: objectPath, evidence_mime: mime, evidence_bytes: req.file.size,
-                evidence_sha256: sha256, evidence_uploaded_at: new Date().toISOString()
+                evidence_path: objectPath,
+                evidence_mime: mime,
+                evidence_bytes: req.file.size,
+                evidence_sha256: sha256,
+                evidence_uploaded_at: new Date().toISOString(),
+                verification_status: 'pending',
+                verification_note: null,
+                verified_at: null,
+                verified_by: null
             });
         } catch (error) {
-            await evidenceBucket.delete(objectPath).catch(() => {});
+            await removeObject(objectPath).catch(() => {});
             throw error;
         }
-        if (certificate.evidence_path && certificate.evidence_path !== objectPath) await evidenceBucket.delete(certificate.evidence_path).catch(() => {});
-        clearStudentCache();
+        if (certificate.evidence_path && certificate.evidence_path !== objectPath) {
+            await removeObject(certificate.evidence_path).catch(() => {});
+        }
+        await clearStudentCache();
         return res.json({ success: true, message: certificate.evidence_path ? 'Certificate proof replaced.' : 'Certificate proof uploaded.', data: { certificate: updated } });
     } catch (error) {
         console.error('Certificate evidence upload failed:', error.message);
@@ -121,21 +151,21 @@ router.post('/certificate-evidence/:id', acceptEvidence, async (req, res) => {
 });
 
 router.get('/certificate-evidence/:id', async (req, res) => {
-    const evidenceBucket = bucket();
-    if (!evidenceBucket) return res.status(503).json({ success: false, error: { code: 'VAULT_NOT_CONFIGURED', message: 'Certificate Vault R2 storage is not configured yet.' } });
+    const evidenceStorage = storage();
+    if (!evidenceStorage) return res.status(503).json({ success: false, error: { code: 'VAULT_NOT_CONFIGURED', message: 'Certificate proof storage is not configured yet.' } });
     try {
         const certificate = await ownedCertificate(req.student.studentId, req.params.id);
         if (!certificate?.evidence_path) return res.status(404).json({ success: false, error: { code: 'NO_EVIDENCE', message: 'Certificate proof has not been uploaded.' } });
-        const object = await evidenceBucket.get(certificate.evidence_path);
-        if (!object) return res.status(404).json({ success: false, error: { code: 'EVIDENCE_MISSING', message: 'Certificate proof file is unavailable.' } });
-        const bytes = await object.arrayBuffer();
-        res.setHeader('Content-Type', certificate.evidence_mime || object.httpMetadata?.contentType || 'image/jpeg');
-        res.setHeader('Content-Length', String(bytes.byteLength));
+        const { data, error } = await evidenceStorage.download(certificate.evidence_path);
+        if (error || !data) return res.status(404).json({ success: false, error: { code: 'EVIDENCE_MISSING', message: 'Certificate proof file is unavailable.' } });
+        const bytes = Buffer.from(await data.arrayBuffer());
+        res.setHeader('Content-Type', certificate.evidence_mime || data.type || 'image/jpeg');
+        res.setHeader('Content-Length', String(bytes.length));
         res.setHeader('Cache-Control', 'private, no-store, max-age=0');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('X-Content-Type-Options', 'nosniff');
         res.setHeader('Content-Disposition', 'inline');
-        return res.end(Buffer.from(bytes));
+        return res.end(bytes);
     } catch (error) {
         console.error('Certificate evidence view failed:', error.message);
         return res.status(500).json({ success: false, error: { code: 'VAULT_VIEW_FAILED', message: 'Could not open certificate proof.' } });
@@ -149,10 +179,18 @@ router.delete('/certificate-evidence/:id', async (req, res) => {
         if (!certificate) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Certificate not found.' } });
         const oldPath = certificate.evidence_path;
         await db.update('certificates', { id: certificate.id, student_id: studentId }, {
-            evidence_path: null, evidence_mime: null, evidence_bytes: null, evidence_sha256: null, evidence_uploaded_at: null
+            evidence_path: null,
+            evidence_mime: null,
+            evidence_bytes: null,
+            evidence_sha256: null,
+            evidence_uploaded_at: null,
+            verification_status: 'pending',
+            verification_note: null,
+            verified_at: null,
+            verified_by: null
         });
-        if (oldPath) await bucket()?.delete(oldPath).catch(() => {});
-        clearStudentCache();
+        if (oldPath) await removeObject(oldPath).catch(() => {});
+        await clearStudentCache();
         return res.json({ success: true, message: oldPath ? 'Certificate proof removed.' : 'No certificate proof was stored.' });
     } catch (error) {
         console.error('Certificate proof removal failed:', error.message);
@@ -166,8 +204,8 @@ router.delete('/certificates/:id', async (req, res) => {
         const certificate = await ownedCertificate(studentId, req.params.id);
         if (!certificate) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Certificate not found.' } });
         await db.delete('certificates', { id: certificate.id, student_id: studentId });
-        if (certificate.evidence_path) await bucket()?.delete(certificate.evidence_path).catch(() => {});
-        clearStudentCache();
+        if (certificate.evidence_path) await removeObject(certificate.evidence_path).catch(() => {});
+        await clearStudentCache();
         return res.json({ success: true, message: 'Certificate deleted successfully.' });
     } catch (error) {
         console.error('Certificate delete with proof cleanup failed:', error.message);
