@@ -10,7 +10,6 @@ const { authenticateStudent, authenticateAdmin, authenticateObserver } = require
 
 require('dotenv').config();
 
-// Student Routes
 const authRoutes = require('./routes/auth');
 const studentRoutes = require('./routes/student');
 const proofManagedRecordsRoutes = require('./routes/proofManagedRecords');
@@ -22,10 +21,8 @@ const profileLinksRoutes = require('./routes/profileLinks');
 const freeLearningRoutes = require('./routes/freeLearning');
 const competitionReviewRoutes = require('./routes/competitionReview');
 const profileRankingViewRoutes = require('./routes/profileRankingView');
-const rosterRoutes = require('./routes/roster');
 const { createStudentAvatarDirectory } = require('./routes/studentAvatarDirectory');
 
-// Admin Routes (Part 2)
 const adminAuthRoutes = require('./routes/adminAuth');
 const adminRosterRoutes = require('./routes/adminRoster');
 const adminStudentsRoutes = require('./routes/adminStudents');
@@ -79,6 +76,12 @@ app.use(rateLimit({
     message: { success: false, error: { code: 'RATE_LIMIT', message: 'Too many requests. Try again later.' } }
 }));
 app.use(csrfProtection);
+app.use('/api', (_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+});
 
 if (!isCloudflareWorker) app.use(express.static(path.join(process.cwd(), 'public')));
 
