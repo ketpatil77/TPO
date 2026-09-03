@@ -11,9 +11,14 @@ test('all portal shells load final responsive CSS and accessible section navigat
         assert.doesNotMatch(html,/user-scalable=no|maximum-scale=1/);
     }
 });
-test('Worker places responsive contract after every legacy role patch', () => {
+test('Worker uses one authoritative dashboard boot path without injecting a second ranking module', () => {
     const worker=read('worker/index.mjs');
-    assert.match(worker,/\$\{profileRequirements\}\$\{rolePatch\}\$\{adminActivityPatch\}<link rel="stylesheet" href="\/css\/portal-responsive\.css/);
+    const loader=read('public/js/portal-responsive.js');
+    assert.match(worker,/portal-responsive\.js\?v=20260903-global-integrity1/);
+    assert.doesNotMatch(worker,/data-ranking-authoritative-v3|rankingV3Patch|script\.src = '\/js\/profile-ranking\.js/);
+    assert.match(loader,/dashboard-density\.css\?v=20260903-global1/);
+    assert.match(loader,/portal-integrity\.js\?v=20260903-global1/);
+    assert.match(loader,/operation-feedback\.js\?v=20260903-global2/);
 });
 test('responsive rules prevent clipped tabs, narrow semester fields and sticky form overlap', () => {
     const css=read('public/css/portal-responsive.css');
