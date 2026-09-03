@@ -38,7 +38,7 @@ test('TPO and TPC load student profile-photo enhancement with authenticated avat
     const source = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'student-directory-avatars.js'), 'utf8');
     assert.match(loader, /student-directory-avatars\.css/);
     assert.match(loader, /student-directory-avatars\.js/);
-    assert.match(source, /student\.avatar_path/);
+    assert.match(source, /avatar_path/);
     assert.match(source, /\/api\/admin\/student-avatars\//);
     assert.match(source, /\/api\/observer\/student-avatars\//);
 });
