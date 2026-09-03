@@ -74,7 +74,7 @@
     };
 
     try {
-      await addScript('/js/profile-ranking.js?v=20260902-3', 'profile-ranking-module');
+      await addScript('/js/profile-ranking.js?v=20260903-4', 'profile-ranking-module');
       try {
         await addScript('/js/leaderboard-compact-score.js?v=20260902-1', 'leaderboard-compact-score-js');
       } catch (_) {
