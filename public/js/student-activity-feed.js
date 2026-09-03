@@ -4,7 +4,21 @@
   window.__studentActivityFeedLoaded = true;
 
   const GROUP_WINDOW_MS = 5 * 60 * 1000;
-  const state = { page: 1, pageSize: 50, loading: false, timer: null, latestId: null, initialized: false, retries: 0, logs: [] };
+  const POLL_MS = 15000;
+  const INTERNAL_FIELDS = new Set([
+    'id','student_id','created_at','updated_at','evidence_path','evidence_bytes','evidence_sha256','evidence_uploaded_at','evidence_mime',
+    'verified_by','verified_at','proof_deadline','proof_notice_sent_at','proof_missing_since'
+  ]);
+  const PROOF_FIELDS = new Set(['evidence_path','evidence_bytes','evidence_sha256','evidence_uploaded_at','evidence_mime']);
+  const FIELD_LABELS = {
+    name:'Name', title:'Title', issuer:'Issuer', company:'Company', role:'Role', mode:'Mode', date:'Date', start_date:'Start date', end_date:'End date',
+    verification_status:'Verification', verification_note:'Verification note', verified_role:'Verified by', skill:'Skill', skills:'Skills', branch:'Branch', class:'Class', year:'Year',
+    repository_url:'Repository', project_url:'Live project', paper_url:'Paper link', doi_url:'DOI', result_status:'Result', level:'Level'
+  };
+  const state = {
+    page: 1, pageSize: 50, loading: false, timer: null, latestId: null, initialized: false, retries: 0,
+    logs: [], signature: '', openGroups: new Set()
+  };
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const token = () => localStorage.getItem('tpo_admin_token');
 
@@ -43,13 +57,13 @@
     panel.innerHTML = `
       <div class="activity-feed-shell">
         <section class="glass-card activity-feed-hero">
-          <div><span class="eyebrow">Student updates</span><h2>Live Activity</h2><p>Meaningful student changes are grouped into short activity bursts so the feed stays readable.</p></div>
-          <div class="activity-live-pill"><span class="activity-live-dot"></span><span id="activityLiveLabel">Live · refreshes every 10s</span></div>
+          <div><span class="eyebrow">Student updates</span><h2>Live Activity</h2><p>See what students added, changed, or removed without technical database noise.</p></div>
+          <div class="activity-live-pill"><span class="activity-live-dot"></span><span id="activityLiveLabel">Live · refreshes every 15s</span></div>
         </section>
         <div class="activity-summary-grid">
-          <div class="glass-card activity-summary-card"><span>Matching activities</span><strong id="activityCount">0</strong></div>
-          <div class="glass-card activity-summary-card"><span>Students in view</span><strong id="activityStudentCount">0</strong></div>
-          <div class="glass-card activity-summary-card"><span>Last update</span><strong id="activityLastTime">—</strong></div>
+          <div class="glass-card activity-summary-card"><span>Activities</span><strong id="activityCount">0</strong></div>
+          <div class="glass-card activity-summary-card"><span>Students</span><strong id="activityStudentCount">0</strong></div>
+          <div class="glass-card activity-summary-card"><span>Latest</span><strong id="activityLastTime">—</strong></div>
         </div>
         <section class="glass-card activity-filter-card">
           <div class="activity-filter-grid">
@@ -66,12 +80,30 @@
         <div class="activity-feed-footer"><button id="activityMore" class="btn btn-secondary btn-sm" type="button" hidden>Load more</button></div>
       </div>`;
 
-    button.onclick = () => { window.switchAdminTab('student-activity', button); state.page = 1; load(false); startPolling(); };
-    document.getElementById('activityApply').onclick = () => { state.page = 1; load(false); };
+    const feed = document.getElementById('activityFeed');
+    feed.addEventListener('toggle', event => {
+      const details = event.target.closest?.('.activity-burst-details');
+      if (!details?.dataset.groupKey) return;
+      if (details.open) state.openGroups.add(details.dataset.groupKey);
+      else state.openGroups.delete(details.dataset.groupKey);
+    }, true);
+
+    button.onclick = () => {
+      window.switchAdminTab('student-activity', button);
+      state.page = 1;
+      state.signature = '';
+      load(false);
+      startPolling();
+    };
+    document.getElementById('activityApply').onclick = () => { state.page = 1; state.signature = ''; load(false); };
     document.getElementById('activityReset').onclick = resetFilters;
     document.getElementById('activityMore').onclick = () => { state.page += 1; load(true); };
-    ['activityRange','activityBranch','activityClass','activityYear','activityCategory'].forEach(id => document.getElementById(id).onchange = () => { state.page = 1; load(false); });
-    document.getElementById('activityStudent').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); state.page = 1; load(false); } };
+    ['activityRange','activityBranch','activityClass','activityYear','activityCategory'].forEach(id => {
+      document.getElementById(id).onchange = () => { state.page = 1; state.signature = ''; load(false); };
+    });
+    document.getElementById('activityStudent').onkeydown = e => {
+      if (e.key === 'Enter') { e.preventDefault(); state.page = 1; state.signature = ''; load(false); }
+    };
     document.addEventListener('visibilitychange', () => document.hidden ? stopPolling() : (panel.classList.contains('active') && startPolling()));
   }
 
@@ -83,6 +115,8 @@
     document.getElementById('activityCategory').value = 'all';
     document.getElementById('activityStudent').value = '';
     state.page = 1;
+    state.signature = '';
+    state.openGroups.clear();
     load(false);
   }
 
@@ -107,7 +141,9 @@
     const feed = document.getElementById('activityFeed');
     if (!append && !silent) feed.innerHTML = '<div class="glass-card activity-empty">Loading activity…</div>';
     try {
-      const res = await fetch(`/api/admin/audit-logs/student-activity?${params()}`, { headers: { Authorization: `Bearer ${token()}` } });
+      const res = await fetch(`/api/admin/audit-logs/student-activity?${params()}&_=${Date.now()}`, {
+        cache: 'no-store', headers: { Authorization: `Bearer ${token()}` }
+      });
       if (res.status === 401 || res.status === 403) {
         stopPolling();
         if (!silent) feed.innerHTML = '<div class="glass-card activity-empty">Your administrator session has expired. Sign in again.</div>';
@@ -118,14 +154,43 @@
       render(json.data, append, silent);
     } catch (error) {
       if (!silent) feed.innerHTML = `<div class="glass-card activity-empty">${esc(error.message)}</div>`;
-    } finally { state.loading = false; }
+    } finally {
+      state.loading = false;
+    }
   }
 
   function fillSelect(id, values, label) {
     const select = document.getElementById(id);
+    if (!select) return;
     const current = select.value;
-    select.innerHTML = `<option value="all">${label}</option>` + (values || []).map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    const next = `<option value="all">${label}</option>` + (values || []).map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    if (select.innerHTML !== next) select.innerHTML = next;
     if ([...select.options].some(o => o.value === current)) select.value = current;
+  }
+
+  function signature(logs) {
+    return logs.map(log => `${log.id}:${log.created_at}:${log.action}:${(log.changed_fields || []).join(',')}`).join('|');
+  }
+
+  function visibleAnchor(feed) {
+    const items = [...feed.querySelectorAll('.activity-item[data-group-key]')];
+    const item = items.find(node => node.getBoundingClientRect().bottom > 0);
+    return item ? { key: item.dataset.groupKey, top: item.getBoundingClientRect().top } : null;
+  }
+
+  function restoreAnchor(feed, anchor, fallbackY) {
+    requestAnimationFrame(() => {
+      if (anchor?.key) {
+        const escapedKey = window.CSS?.escape ? CSS.escape(anchor.key) : anchor.key.replace(/["\\]/g, '\\$&');
+        const next = feed.querySelector(`.activity-item[data-group-key="${escapedKey}"]`);
+        if (next) {
+          const delta = next.getBoundingClientRect().top - anchor.top;
+          if (Math.abs(delta) > 1) window.scrollBy(0, delta);
+          return;
+        }
+      }
+      if (Number.isFinite(fallbackY) && Math.abs(window.scrollY - fallbackY) > 2) window.scrollTo(0, fallbackY);
+    });
   }
 
   function render(data, append, silent) {
@@ -133,25 +198,37 @@
     fillSelect('activityClass', data.options?.classes, 'All classes');
     fillSelect('activityYear', data.options?.years, 'All years');
     fillSelect('activityCategory', data.options?.categories, 'All activity');
-    document.getElementById('activityStudents').innerHTML = (data.options?.students || []).map(s => `<option value="${esc(s.prn || s.name)}">${esc(s.name)}${s.prn ? ` · ${esc(s.prn)}` : ''}</option>`).join('');
+    const datalist = document.getElementById('activityStudents');
+    if (datalist) datalist.innerHTML = (data.options?.students || []).map(s => `<option value="${esc(s.prn || s.name)}">${esc(s.name)}${s.prn ? ` · ${esc(s.prn)}` : ''}</option>`).join('');
 
     const incoming = data.logs || [];
-    const previousLatest = state.latestId;
     if (!append) state.logs = incoming;
     else {
       const seen = new Set(state.logs.map(log => log.id));
       state.logs = state.logs.concat(incoming.filter(log => !seen.has(log.id)));
     }
 
+    const nextSignature = signature(state.logs);
     const feed = document.getElementById('activityFeed');
-    if (!state.logs.length) {
-      feed.innerHTML = '<div class="glass-card activity-empty"><strong>No matching activity</strong><div>Nothing has been recorded for these filters yet.</div></div>';
-    } else {
-      const groups = groupLogs(state.logs);
-      feed.innerHTML = groups.map((group, index) => groupHtml(group, silent && previousLatest && index === 0 && group.logs[0]?.id !== previousLatest)).join('');
-    }
-    if (state.logs[0]) state.latestId = state.logs[0].id;
+    const shouldRender = append || !silent || nextSignature !== state.signature;
+    const fallbackY = window.scrollY;
+    const anchor = silent && shouldRender ? visibleAnchor(feed) : null;
 
+    if (shouldRender) {
+      if (!state.logs.length) {
+        feed.innerHTML = '<div class="glass-card activity-empty"><strong>No matching activity</strong><div>Nothing has been recorded for these filters yet.</div></div>';
+      } else {
+        const groups = groupLogs(state.logs);
+        feed.innerHTML = groups.map((group, index) => groupHtml(group, silent && index === 0)).join('');
+        feed.querySelectorAll('.activity-burst-details[data-group-key]').forEach(details => {
+          if (state.openGroups.has(details.dataset.groupKey)) details.open = true;
+        });
+      }
+      state.signature = nextSignature;
+      if (silent) restoreAnchor(feed, anchor, fallbackY);
+    }
+
+    if (state.logs[0]) state.latestId = state.logs[0].id;
     document.getElementById('activityCount').textContent = Number(data.count || 0).toLocaleString();
     document.getElementById('activityStudentCount').textContent = new Set(state.logs.map(log => log.student_id).filter(Boolean)).size;
     document.getElementById('activityLastTime').textContent = state.logs[0] ? shortTime(state.logs[0].created_at) : '—';
@@ -175,79 +252,186 @@
     return groups;
   }
 
+  function groupKey(group) {
+    const oldest = group.logs[group.logs.length - 1];
+    return `group:${group.studentId || 'unknown'}:${oldest?.id || oldest?.created_at || group.oldestTime}`;
+  }
+
+  function cardMeta(log, categories = null) {
+    const categoryList = categories || [log.category].filter(Boolean);
+    return `${categoryList.map(category => `<span class="activity-chip category">${esc(friendlyCategory(category))}</span>`).join('')}` +
+      `${log.branch ? `<span class="activity-chip">${esc(log.branch)}</span>` : ''}` +
+      `${log.year ? `<span class="activity-chip">${esc(log.year)}</span>` : ''}` +
+      `${log.class ? `<span class="activity-chip">${esc(log.class)}</span>` : ''}`;
+  }
+
   function groupHtml(group, flash) {
     const first = group.logs[0];
-    const initials = String(first.student_name || 'S').trim().split(/\s+/).slice(0,2).map(p => p[0]).join('').toUpperCase();
     if (group.logs.length === 1) return itemHtml(first, flash);
+    const key = groupKey(group);
+    const initials = initialsFor(first.student_name);
     const categories = [...new Set(group.logs.map(log => log.category).filter(Boolean))];
-    const destructive = group.logs.some(log => log.action === 'deleted');
-    const burstRows = group.logs.map(log => `<div class="activity-burst-row ${log.action === 'deleted' ? 'is-destructive' : ''}"><span class="activity-chip category">${esc(log.category)}</span><span>${esc(prettySummary(log))}</span><time datetime="${esc(log.created_at)}">${esc(shortTime(log.created_at))}</time>${changeHtml(log)}</div>`).join('');
-    return `<article class="glass-card activity-item activity-group ${flash ? 'activity-new-flash' : ''}" data-student-id="${esc(first.student_id)}">
+    const categoryText = categories.map(friendlyCategory).join(', ');
+    const burstRows = group.logs.map(log => `
+      <div class="activity-burst-row ${log.action === 'deleted' ? 'is-destructive' : ''}">
+        <div class="activity-burst-copy"><strong>${esc(prettySummary(log))}</strong>${changeHtml(log)}</div>
+        <time datetime="${esc(log.created_at)}">${esc(shortTime(log.created_at))}</time>
+      </div>`).join('');
+    return `<article class="glass-card activity-item activity-group ${flash ? 'activity-new-flash' : ''}" data-student-id="${esc(first.student_id)}" data-group-key="${esc(key)}">
       <div class="activity-avatar" aria-hidden="true">${esc(initials)}</div>
       <div class="activity-main">
         <div class="activity-topline"><strong>${esc(first.student_name)}</strong>${first.prn ? `<span class="activity-prn">${esc(first.prn)}</span>` : ''}<span class="activity-burst-count">${group.logs.length} updates</span></div>
-        <div class="activity-summary">Activity burst across ${categories.length} ${categories.length === 1 ? 'category' : 'categories'}${destructive ? ' · includes removal' : ''}</div>
-        <div class="activity-meta">${categories.map(category => `<span class="activity-chip category">${esc(category)}</span>`).join('')}${first.branch ? `<span class="activity-chip">${esc(first.branch)}</span>` : ''}${first.year ? `<span class="activity-chip">${esc(first.year)}</span>` : ''}${first.class ? `<span class="activity-chip">${esc(first.class)}</span>` : ''}</div>
-        <details class="activity-burst-details"><summary>View ${group.logs.length} actions</summary><div class="activity-burst-list">${burstRows}</div></details>
+        <div class="activity-summary">${group.logs.length} recent updates${categoryText ? ` · ${esc(categoryText)}` : ''}</div>
+        <div class="activity-meta">${cardMeta(first, categories)}</div>
+        <details class="activity-burst-details" data-group-key="${esc(key)}"><summary>${group.logs.length} updates · tap to view</summary><div class="activity-burst-list">${burstRows}</div></details>
       </div>
       <time class="activity-time" datetime="${esc(first.created_at)}" title="${esc(fullTime(first.created_at))}">${esc(relativeTime(first.created_at))}<br>${esc(shortTime(first.created_at))}</time>
     </article>`;
   }
 
   function itemHtml(log, flash) {
-    const initials = String(log.student_name || 'S').trim().split(/\s+/).slice(0,2).map(p => p[0]).join('').toUpperCase();
-    return `<article class="glass-card activity-item ${flash ? 'activity-new-flash' : ''}" data-student-id="${esc(log.student_id)}">
-      <div class="activity-avatar" aria-hidden="true">${esc(initials)}</div>
+    const key = `log:${log.id || log.created_at}`;
+    return `<article class="glass-card activity-item ${flash ? 'activity-new-flash' : ''}" data-student-id="${esc(log.student_id)}" data-group-key="${esc(key)}">
+      <div class="activity-avatar" aria-hidden="true">${esc(initialsFor(log.student_name))}</div>
       <div class="activity-main">
         <div class="activity-topline"><strong>${esc(log.student_name)}</strong>${log.prn ? `<span class="activity-prn">${esc(log.prn)}</span>` : ''}</div>
         <div class="activity-summary">${esc(prettySummary(log))}</div>
-        <div class="activity-meta"><span class="activity-chip category">${esc(log.category)}</span>${log.branch ? `<span class="activity-chip">${esc(log.branch)}</span>` : ''}${log.year ? `<span class="activity-chip">${esc(log.year)}</span>` : ''}${log.class ? `<span class="activity-chip">${esc(log.class)}</span>` : ''}</div>
+        <div class="activity-meta">${cardMeta(log)}</div>
         ${changeHtml(log)}
       </div>
       <time class="activity-time" datetime="${esc(log.created_at)}" title="${esc(fullTime(log.created_at))}">${esc(relativeTime(log.created_at))}<br>${esc(shortTime(log.created_at))}</time>
     </article>`;
   }
 
-  function prettySummary(log) {
-    const base = log.summary || `${log.category} ${log.action}`;
-    return base.replace(/_/g, ' ').replace(/\b\w/g, m => m.toUpperCase());
+  function initialsFor(name) {
+    return String(name || 'S').trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
   }
 
-  function displayValue(value) {
-    if (value === null || value === undefined || value === '') return 'Empty';
-    if (typeof value === 'object') return Array.isArray(value) ? `${value.length} items` : 'Updated';
+  function friendlyCategory(value) {
+    const raw = String(value || 'Profile').replace(/_/g, ' ').trim();
+    const map = {
+      certificates:'Certificates', certificate:'Certificates', internships:'Internships', internship:'Internships',
+      skills:'Skills', projects:'Projects', research:'Research', 'research papers':'Research', profile:'Profile', academics:'Academics', competitions:'Competitions'
+    };
+    return map[raw.toLowerCase()] || raw.replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  function singularCategory(value) {
+    const category = friendlyCategory(value).toLowerCase();
+    if (category === 'certificates') return 'certificate';
+    if (category === 'internships') return 'internship';
+    if (category === 'skills') return 'skills';
+    if (category === 'projects') return 'project';
+    if (category === 'competitions') return 'competition';
+    return category;
+  }
+
+  function prettySummary(log) {
+    const fields = Array.isArray(log.changed_fields) ? log.changed_fields : [];
+    const kind = singularCategory(log.category);
+    const proofChanged = fields.some(field => PROOF_FIELDS.has(field));
+    const verificationChanged = fields.some(field => ['verification_status','verified_by','verified_role','verified_at','verification_note'].includes(field));
+
+    if (verificationChanged) {
+      const status = String(log.new_values?.verification_status || '').toLowerCase();
+      const role = String(log.new_values?.verified_role || '').toLowerCase();
+      const reviewer = role === 'tpc' ? 'TPC' : role === 'tpo' ? 'TPO' : 'Placement team';
+      if (status === 'verified' || status === 'approved') return `${reviewer} verified this ${kind}`;
+      if (status === 'rejected') return `${reviewer} rejected this ${kind} proof`;
+      if (status === 'pending') return `${kind[0]?.toUpperCase() + kind.slice(1)} moved back to verification queue`;
+    }
+    if (proofChanged) {
+      const hadProof = Boolean(log.old_values?.evidence_path || log.old_values?.evidence_sha256 || log.old_values?.evidence_bytes);
+      return `${hadProof ? 'Replaced' : 'Uploaded'} ${kind} proof for verification`;
+    }
+    if (String(log.category || '').toLowerCase().includes('skill')) {
+      if (log.action === 'deleted') return 'Removed skills';
+      if (log.action === 'created') return 'Added skills';
+      return 'Updated skills';
+    }
+    if (log.action === 'created') return `Added ${articleFor(kind)} ${kind}`;
+    if (log.action === 'deleted') return `Removed ${articleFor(kind)} ${kind}`;
+    if (log.action === 'updated') return `Updated ${kind}`;
+    const base = String(log.summary || `${friendlyCategory(log.category)} activity`).replace(/_/g, ' ');
+    return base.replace(/\b\w/g, m => m.toUpperCase());
+  }
+
+  function articleFor(word) {
+    return /^[aeiou]/i.test(String(word || '')) ? 'an' : 'a';
+  }
+
+  function displayValue(value, field = '') {
+    if (value === null || value === undefined || value === '') return 'Not set';
+    if (Array.isArray(value)) return `${value.length} ${value.length === 1 ? 'item' : 'items'}`;
+    if (typeof value === 'object') return 'Updated';
+    if (field === 'verified_role') return String(value).toUpperCase();
+    if (field === 'verification_status') {
+      const status = String(value).toLowerCase();
+      return status === 'verified' || status === 'approved' ? 'Verified' : status.charAt(0).toUpperCase() + status.slice(1);
+    }
     const text = String(value);
-    return text.length > 48 ? `${text.slice(0,45)}…` : text;
+    if ((field.endsWith('_date') || field === 'date') && /^\d{4}-\d{2}-\d{2}/.test(text)) {
+      const d = new Date(`${text.slice(0,10)}T00:00:00`);
+      if (!Number.isNaN(d.getTime())) return new Intl.DateTimeFormat('en-IN', { day:'2-digit', month:'short', year:'numeric' }).format(d);
+    }
+    return text.length > 56 ? `${text.slice(0, 53)}…` : text;
   }
 
   function changeHtml(log) {
     if (log.action !== 'updated') return '';
-    const fields = (log.changed_fields || []).slice(0,4);
+    const changed = Array.isArray(log.changed_fields) ? log.changed_fields : [];
+    if (changed.some(field => PROOF_FIELDS.has(field)) && !changed.some(field => !INTERNAL_FIELDS.has(field) && !field.startsWith('verification_') && !field.startsWith('verified_'))) {
+      return '<div class="activity-friendly-note">Proof file saved. Waiting for TPO/TPC verification.</div>';
+    }
+    const fields = changed.filter(field => !INTERNAL_FIELDS.has(field) && !field.startsWith('evidence_')).slice(0, 4);
     if (!fields.length || fields.includes('profile')) return '';
-    const rows = fields.map(field => `<div class="activity-change"><b>${esc(field.replace(/_/g,' '))}</b><span>${esc(displayValue(log.old_values?.[field]))}</span><span class="arrow">→</span><span>${esc(displayValue(log.new_values?.[field]))}</span></div>`).join('');
-    return `<div class="activity-change-list">${rows}</div>`;
+    const rows = fields.map(field => {
+      const label = FIELD_LABELS[field] || field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      const oldValue = displayValue(log.old_values?.[field], field);
+      const newValue = displayValue(log.new_values?.[field], field);
+      return `<div class="activity-change"><b>${esc(label)}</b><span>${esc(oldValue)} <span class="arrow">→</span> ${esc(newValue)}</span></div>`;
+    }).join('');
+    return rows ? `<div class="activity-change-list">${rows}</div>` : '';
   }
 
-  function shortTime(value) { if (!value) return '—'; return new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', hour:'numeric', minute:'2-digit' }).format(new Date(value)); }
-  function fullTime(value) { return new Intl.DateTimeFormat('en-IN', { timeZone:'Asia/Kolkata', dateStyle:'medium', timeStyle:'medium' }).format(new Date(value)); }
+  function shortTime(value) {
+    if (!value) return '—';
+    try { return new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', hour:'numeric', minute:'2-digit' }).format(new Date(value)); }
+    catch (_) { return '—'; }
+  }
+
+  function fullTime(value) {
+    if (!value) return '';
+    try { return new Intl.DateTimeFormat('en-IN', { timeZone:'Asia/Kolkata', dateStyle:'medium', timeStyle:'short' }).format(new Date(value)); }
+    catch (_) { return String(value); }
+  }
+
   function relativeTime(value) {
-    const diff = Math.max(0, Date.now() - new Date(value).getTime());
-    const min = Math.floor(diff / 60000);
-    if (min < 1) return 'Just now';
-    if (min < 60) return `${min}m ago`;
-    const hr = Math.floor(min / 60);
-    if (hr < 24) return `${hr}h ago`;
-    return `${Math.floor(hr / 24)}d ago`;
+    const time = new Date(value).getTime();
+    if (!Number.isFinite(time)) return '';
+    const seconds = Math.max(0, Math.round((Date.now() - time) / 1000));
+    if (seconds < 45) return 'Just now';
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.round(hours / 24);
+    return `${days}d ago`;
   }
 
   function startPolling() {
     stopPolling();
     state.timer = setInterval(() => {
       const panel = document.getElementById('tab-student-activity');
-      if (panel?.classList.contains('active') && !document.hidden && state.page === 1) load(false, true);
-    }, 10000);
+      if (!document.hidden && panel?.classList.contains('active')) load(false, true);
+    }, POLL_MS);
   }
-  function stopPolling() { if (state.timer) clearInterval(state.timer); state.timer = null; }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once:true }); else install();
+  function stopPolling() {
+    if (state.timer) clearInterval(state.timer);
+    state.timer = null;
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true });
+  else install();
 })();
