@@ -41,288 +41,114 @@
     line-height: 1.12 !important;
   }
 
-  .observer-shell #observerTab-students .tpc-student-toggle {
-    width:100%;
-    padding:0;
-    border:0;
-    background:transparent;
-    color:inherit;
-    text-align:left;
-  }
-
-  .observer-shell #observerTab-students .tpc-student-chevron { display:none; }
-
-  .observer-shell #observerTab-students .tpc-student-identity {
-    gap: 8px;
-  }
-
-  .observer-shell #observerTab-students .tpc-student-initials {
-    width: 30px;
-    height: 30px;
-    flex-basis: 30px;
-    border-radius: 8px;
-    font-size: .64rem;
-  }
-
-  .observer-shell #observerTab-students .tpc-student-copy strong {
-    font-size: .82rem;
-    line-height: 1.08;
-  }
-
+  .observer-shell #observerTab-students .tpc-student-identity { gap: 8px; }
+  .observer-shell #observerTab-students .tpc-student-initials { width:30px;height:30px;flex-basis:30px;border-radius:8px;font-size:.64rem; }
+  .observer-shell #observerTab-students .tpc-student-copy strong { font-size:.82rem;line-height:1.08; }
   .observer-shell #observerTab-students .tpc-student-copy small,
   .observer-shell #observerTab-students .tpc-program-cell small,
   .observer-shell #observerTab-students .tpc-academic-cell small,
-  .observer-shell #observerTab-students .tpc-completion-cell > small {
-    margin-top: 2px !important;
-    font-size: .65rem !important;
-    line-height: 1.08 !important;
-  }
-
-  .observer-shell #observerTab-students .tpc-program-cell {
-    gap: 2px;
-  }
-
-  .observer-shell #observerTab-students .tpc-program-cell .branch-chip {
-    min-width: 35px;
-    padding: 3px 6px;
-    font-size: .64rem;
-  }
-
-  .observer-shell #observerTab-students .tpc-completion-head {
-    gap: 6px;
-    margin-bottom: 3px;
-  }
-
-  .observer-shell #observerTab-students .tpc-completion-head > strong {
-    font-size: .84rem;
-  }
-
-  .observer-shell #observerTab-students .tpc-completion-state {
-    padding: 2px 6px;
-    font-size: .56rem;
-  }
-
-  .observer-shell #observerTab-students .tpc-completion-track {
-    height: 4px;
-  }
-
-  .observer-shell #observerTab-students .tpc-academic-cell > strong {
-    font-size: .82rem;
-  }
-
-  .observer-shell #observerTab-students .tpc-academic-cell > span {
-    margin-top: 0;
-    font-size: .6rem;
-  }
-
-  .observer-shell #observerTab-students .tpc-evidence-strip {
-    gap: 3px;
-  }
-
-  .observer-shell #observerTab-students .tpc-evidence-item {
-    min-height: 29px;
-    padding: 3px 2px;
-    border-radius: 7px;
-  }
-
-  .observer-shell #observerTab-students .tpc-evidence-item small {
-    font-size: .48rem !important;
-    line-height: 1 !important;
-  }
-
-  .observer-shell #observerTab-students .tpc-evidence-item strong {
-    margin-top: 1px;
-    font-size: .69rem;
-    line-height: 1 !important;
-  }
-
-  .observer-shell #observerTab-students .tpc-row-actions {
-    gap: 5px;
-  }
-
+  .observer-shell #observerTab-students .tpc-completion-cell > small { margin-top:2px!important;font-size:.65rem!important;line-height:1.08!important; }
+  .observer-shell #observerTab-students .tpc-program-cell { gap:2px; }
+  .observer-shell #observerTab-students .tpc-program-cell .branch-chip { min-width:35px;padding:3px 6px;font-size:.64rem; }
+  .observer-shell #observerTab-students .tpc-completion-head { gap:6px;margin-bottom:3px; }
+  .observer-shell #observerTab-students .tpc-completion-head > strong { font-size:.84rem; }
+  .observer-shell #observerTab-students .tpc-completion-state { padding:2px 6px;font-size:.56rem; }
+  .observer-shell #observerTab-students .tpc-completion-track { height:4px; }
+  .observer-shell #observerTab-students .tpc-academic-cell > strong { font-size:.82rem; }
+  .observer-shell #observerTab-students .tpc-academic-cell > span { margin-top:0;font-size:.6rem; }
+  .observer-shell #observerTab-students .tpc-evidence-strip { gap:3px; }
+  .observer-shell #observerTab-students .tpc-evidence-item { min-height:29px;padding:3px 2px;border-radius:7px; }
+  .observer-shell #observerTab-students .tpc-evidence-item small { font-size:.48rem!important;line-height:1!important; }
+  .observer-shell #observerTab-students .tpc-evidence-item strong { margin-top:1px;font-size:.69rem;line-height:1!important; }
+  .observer-shell #observerTab-students .tpc-row-actions { gap:5px; }
   .observer-shell #observerTab-students .tpc-action-btn,
-  .observer-shell #observerTab-students .tpc-resume-missing {
-    min-height: 28px;
-    padding: 4px 7px;
-    border-radius: 7px;
-    font-size: .64rem;
-    line-height: 1;
-  }
-
-  .observer-shell #observerTab-students .pagination-bar {
-    min-height: 36px;
-    padding-top: 2px;
-  }
-
-  .observer-shell #observerTab-students .pagination-bar .btn {
-    min-height: 32px !important;
-    height: 32px;
-    padding: 4px 10px !important;
-    font-size: .72rem;
-  }
-
-  .observer-shell #observerTab-students .pagination-bar span {
-    font-size: .72rem;
-  }
+  .observer-shell #observerTab-students .tpc-resume-missing { min-height:28px;padding:4px 7px;border-radius:7px;font-size:.64rem;line-height:1; }
+  .observer-shell #observerTab-students .pagination-bar { min-height:36px;padding-top:2px; }
+  .observer-shell #observerTab-students .pagination-bar .btn { min-height:32px!important;height:32px;padding:4px 10px!important;font-size:.72rem; }
+  .observer-shell #observerTab-students .pagination-bar span { font-size:.72rem; }
 }
+
+.tpc-student-open{
+  border:0;background:transparent;color:inherit;width:100%;padding:0;margin:0;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;cursor:pointer;
+}
+.tpc-student-chevron{font-size:1.35rem;line-height:1;color:var(--text-muted);flex:0 0 auto;}
 
 @media (max-width: 899px) {
   html,
   body.observer-shell {
-    min-height: 100%;
-    height: auto !important;
-    overflow-y: auto !important;
-    overscroll-behavior-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-y;
+    min-height:100%;height:auto!important;overflow-y:auto!important;overscroll-behavior-y:auto!important;-webkit-overflow-scrolling:touch;touch-action:pan-y;
   }
 
   body.observer-shell .dashboard-wrapper,
   .observer-shell #observerTab-students.active {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow: visible !important;
-    touch-action: pan-y;
+    height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;touch-action:pan-y;
   }
 
+  /* Mobile navigation behaves like the student workspace: one horizontal strip, not a vertical wall. */
+  .observer-shell .dashboard-wrapper .observer-tabs,
+  .observer-shell .observer-tabs {
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    gap:6px!important;
+    padding:4px 2px 7px!important;
+    margin:0 0 8px!important;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x proximity;
+  }
+  .observer-shell .observer-tabs::-webkit-scrollbar{display:none;}
+  .observer-shell .observer-tabs .tab-btn{
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:max-content!important;
+    min-height:36px!important;
+    padding:7px 11px!important;
+    border-radius:9px!important;
+    font-size:.72rem!important;
+    white-space:nowrap!important;
+    scroll-snap-align:start;
+  }
+
+  /* Directory list: only a slim student row is visible. */
   .observer-shell #observerTab-students .table-shell {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow-x: hidden !important;
-    overflow-y: visible !important;
-    overscroll-behavior: auto !important;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-y;
-    background:transparent!important;
-    border:0!important;
-    box-shadow:none!important;
+    height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;border:0!important;background:transparent!important;box-shadow:none!important;padding:0!important;overscroll-behavior:auto!important;touch-action:pan-y;
   }
+  .observer-shell #observerTab-students .observer-table{
+    display:block!important;width:100%!important;min-width:0!important;border:0!important;background:transparent!important;
+  }
+  .observer-shell #observerTab-students .observer-table thead{display:none!important;}
+  .observer-shell #observerTab-students .observer-table tbody{display:grid!important;gap:6px!important;width:100%!important;}
+  .observer-shell #observerTab-students .tpc-directory-row{
+    display:block!important;width:100%!important;border:1px solid var(--border-color)!important;border-radius:11px!important;background:var(--bg-card)!important;overflow:hidden!important;box-shadow:none!important;
+  }
+  .observer-shell #observerTab-students .tpc-directory-row td{
+    display:none!important;border:0!important;padding:0!important;width:auto!important;
+  }
+  .observer-shell #observerTab-students .tpc-directory-row td:first-child{display:block!important;}
+  .observer-shell #observerTab-students .tpc-student-open{
+    min-height:46px!important;padding:7px 10px!important;
+  }
+  .observer-shell #observerTab-students .tpc-student-identity{gap:8px!important;min-width:0;}
+  .observer-shell #observerTab-students .tpc-student-initials{width:28px!important;height:28px!important;flex:0 0 28px!important;border-radius:8px!important;font-size:.61rem!important;}
+  .observer-shell #observerTab-students .tpc-student-copy{min-width:0;display:flex;flex-direction:column;}
+  .observer-shell #observerTab-students .tpc-student-copy strong{font-size:.82rem!important;line-height:1.15!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+  .observer-shell #observerTab-students .tpc-student-copy small{font-size:.61rem!important;line-height:1.1!important;color:var(--text-muted)!important;margin-top:2px!important;}
+  .observer-shell #observerTab-students .tpc-student-chevron{font-size:1.25rem!important;padding-left:6px;}
+  .observer-shell #observerTab-students .pagination-bar{position:static!important;margin:8px 0 18px!important;}
 
-  .observer-shell #observerTab-students .observer-table,
-  .observer-shell #observerTab-students .observer-table tbody {
-    display:block!important;
-    min-width:0!important;
-    width:100%!important;
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
+  /* Student detail uses the screen by itself, with a clear back action. */
+  .observer-shell #observerModal.tpc-mobile-profile-view{
+    position:fixed!important;inset:0!important;padding:0!important;background:var(--bg-main)!important;align-items:stretch!important;justify-content:stretch!important;z-index:9999!important;overflow:hidden!important;
   }
-
-  .observer-shell #observerTab-students .observer-table thead { display:none!important; }
-
-  .observer-shell #observerTab-students .tpc-directory-row {
-    display:block!important;
-    width:100%;
-    margin:0 0 6px!important;
-    border:1px solid var(--border-color);
-    border-radius:10px;
-    background:var(--bg-card);
-    overflow:hidden;
+  .observer-shell #observerModal.tpc-mobile-profile-view .observer-modal{
+    width:100%!important;max-width:none!important;height:100dvh!important;max-height:100dvh!important;margin:0!important;border:0!important;border-radius:0!important;padding:12px 12px 24px!important;overflow-y:auto!important;box-shadow:none!important;
   }
-
-  .observer-shell #observerTab-students .tpc-directory-row td {
-    display:none!important;
-    width:100%!important;
-    border:0!important;
-    padding:8px 10px!important;
+  .observer-shell #observerModal.tpc-mobile-profile-view .modal-header{
+    position:sticky;top:0;z-index:5;background:var(--bg-card);margin:-12px -12px 10px!important;padding:10px 12px!important;border-bottom:1px solid var(--border-color);align-items:center;
   }
-
-  .observer-shell #observerTab-students .tpc-directory-row td:first-child {
-    display:block!important;
-    padding:0!important;
-  }
-
-  .observer-shell #observerTab-students .tpc-directory-row.is-expanded td:not(:first-child) {
-    display:flex!important;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    border-top:1px solid color-mix(in srgb,var(--border-color) 78%,transparent)!important;
-  }
-
-  .observer-shell #observerTab-students .tpc-directory-row.is-expanded td:not(:first-child)::before {
-    content:attr(data-label);
-    flex:0 0 78px;
-    color:var(--text-muted);
-    font-size:.58rem;
-    font-weight:800;
-    letter-spacing:.06em;
-    text-transform:uppercase;
-  }
-
-  .observer-shell #observerTab-students .tpc-directory-row.is-expanded td:not(:first-child)>* {
-    flex:1 1 auto;
-    min-width:0;
-  }
-
-  .observer-shell #observerTab-students .tpc-student-toggle {
-    width:100%;
-    min-height:48px!important;
-    padding:7px 10px!important;
-    border:0!important;
-    border-radius:0!important;
-    background:transparent!important;
-    color:inherit!important;
-    display:flex!important;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    text-align:left;
-    cursor:pointer;
-  }
-
-  .observer-shell #observerTab-students .tpc-student-toggle:focus-visible {
-    outline:2px solid var(--workspace-accent,var(--primary));
-    outline-offset:-2px;
-  }
-
-  .observer-shell #observerTab-students .tpc-student-identity { gap:8px!important; }
-  .observer-shell #observerTab-students .tpc-student-initials {
-    width:28px!important;
-    height:28px!important;
-    flex:0 0 28px!important;
-    border-radius:8px!important;
-    font-size:.6rem!important;
-  }
-  .observer-shell #observerTab-students .tpc-student-copy strong {
-    font-size:.78rem!important;
-    line-height:1.08!important;
-    white-space:normal!important;
-  }
-  .observer-shell #observerTab-students .tpc-student-copy small {
-    margin-top:2px!important;
-    font-size:.58rem!important;
-    line-height:1!important;
-  }
-  .observer-shell #observerTab-students .tpc-student-chevron {
-    display:inline-grid;
-    place-items:center;
-    width:24px;
-    height:24px;
-    flex:0 0 24px;
-    color:var(--text-muted);
-    font-size:1rem;
-    transition:transform .18s ease;
-  }
-  .observer-shell #observerTab-students .tpc-directory-row.is-expanded .tpc-student-chevron { transform:rotate(180deg); }
-
-  .observer-shell #observerTab-students .tpc-program-cell,
-  .observer-shell #observerTab-students .tpc-academic-cell { align-items:flex-end!important; text-align:right; }
-  .observer-shell #observerTab-students .tpc-completion-cell { flex-wrap:wrap; }
-  .observer-shell #observerTab-students .tpc-completion-cell::before { align-self:flex-start; }
-  .observer-shell #observerTab-students .tpc-completion-head { margin-bottom:3px!important; }
-  .observer-shell #observerTab-students .tpc-completion-track { width:100%; height:4px!important; }
-  .observer-shell #observerTab-students .tpc-completion-cell>small { width:100%; text-align:right; font-size:.58rem!important; }
-  .observer-shell #observerTab-students .tpc-evidence-strip { max-width:190px; margin-left:auto; }
-  .observer-shell #observerTab-students .tpc-evidence-item { min-height:28px!important; padding:3px!important; }
-  .observer-shell #observerTab-students .tpc-row-actions { justify-content:flex-end!important; }
-  .observer-shell #observerTab-students .tpc-action-btn,
-  .observer-shell #observerTab-students .tpc-resume-missing { min-height:30px!important; padding:5px 8px!important; font-size:.64rem!important; }
-
-  .observer-shell #observerTab-students .pagination-bar {
-    position: static !important;
-    margin-bottom: 18px !important;
+  .observer-shell #observerModal .tpc-mobile-back{
+    order:-1!important;width:auto!important;min-width:0!important;min-height:34px!important;padding:5px 9px!important;border:1px solid var(--border-color)!important;border-radius:8px!important;font-size:.76rem!important;line-height:1!important;color:var(--text-heading)!important;background:var(--surface-muted)!important;
   }
 }
