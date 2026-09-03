@@ -13,6 +13,7 @@ require('dotenv').config();
 // Student Routes
 const authRoutes = require('./routes/auth');
 const studentRoutes = require('./routes/student');
+const certificateEvidenceRoutes = require('./routes/certificateEvidence');
 const competitionRoutes = require('./routes/competitions');
 const profileDeclarationRoutes = require('./routes/profileDeclarations');
 const profileLinksRoutes = require('./routes/profileLinks');
@@ -92,6 +93,8 @@ if (!isCloudflareWorker) app.use(express.static(path.join(process.cwd(), 'public
 app.use('/api/auth', authRoutes);
 app.use('/api/student', protectCollegeAcademics);
 app.use('/api/student/student-avatars', createStudentAvatarDirectory(authenticateStudent));
+// Certificate proof deletion shadows the legacy certificate DELETE route, so keep this before studentRoutes.
+app.use('/api/student', certificateEvidenceRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/student/competitions', competitionRoutes);
 app.use('/api/student/profile-declarations', profileDeclarationRoutes);
