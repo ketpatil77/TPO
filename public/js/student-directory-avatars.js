@@ -5,6 +5,37 @@
 
     const endpointFor = student => `${isAdmin ? '/api/admin/student-avatars/' : '/api/observer/student-avatars/'}${encodeURIComponent(student.id)}`;
 
+    function installAdminPageSize25() {
+        if (!isAdmin || window.__adminStudentPageSize25Installed) return;
+        const previousFetch = window.fetch.bind(window);
+        window.fetch = function adminStudentPageSizeFetch(input, init = {}) {
+            const raw = typeof input === 'string' ? input : input?.url || '';
+            const method = String(init.method || (typeof input !== 'string' && input?.method) || 'GET').toUpperCase();
+            if (method === 'GET' && raw) {
+                try {
+                    const url = new URL(raw, window.location.origin);
+                    if (url.origin === window.location.origin && url.pathname === '/api/admin/students') {
+                        url.searchParams.set('pageSize', '25');
+                        input = /^https?:\/\//i.test(raw) ? url.href : `${url.pathname}${url.search}`;
+                    }
+                } catch (_) {}
+            }
+            return previousFetch(input, init);
+        };
+        window.__adminStudentPageSize25Installed = true;
+    }
+
+    function enforceLoadedPageSize() {
+        if (!isAdmin || window.__adminStudentPageSize25Reloaded) return;
+        const renderedRows = document.querySelectorAll('#studentsTableBody tr').length;
+        if (renderedRows <= 25) return;
+        window.__adminStudentPageSize25Reloaded = true;
+        try { adminStudentPage = 1; } catch (_) {}
+        try {
+            if (typeof loadAdminStudents === 'function') loadAdminStudents();
+        } catch (_) {}
+    }
+
     function initials(name) {
         const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
         return `${parts[0]?.[0] || '?'}${parts.length > 1 ? parts[parts.length - 1][0] : ''}`.toUpperCase();
@@ -37,13 +68,13 @@
         if (!document.querySelector('link[data-admin-student-mobile-cards]')) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = '/css/admin-student-mobile-cards.css?v=20260903-4';
+            link.href = '/css/admin-student-mobile-cards.css?v=20260903-5';
             link.dataset.adminStudentMobileCards = 'true';
             document.head.appendChild(link);
         }
         if (!document.querySelector('script[data-admin-student-mobile-cards]')) {
             const script = document.createElement('script');
-            script.src = '/js/admin-student-mobile-cards.js?v=20260903-4';
+            script.src = '/js/admin-student-mobile-cards.js?v=20260903-5';
             script.defer = true;
             script.dataset.adminStudentMobileCards = 'true';
             document.body.appendChild(script);
@@ -62,6 +93,7 @@
 
     function enhanceAdminRows() {
         if (!isAdmin) return;
+        enforceLoadedPageSize();
         const students = adminStudents();
         if (!students.length) return;
         const byPrn = new Map(students.map(student => [String(student.prn), student]));
@@ -124,6 +156,7 @@
     }
 
     function boot() {
+        installAdminPageSize25();
         loadAdminMobileDirectory();
         refresh();
         ['studentsTableBody', 'observerStudents', 'modalContent', 'observerModalBody'].forEach(watch);
