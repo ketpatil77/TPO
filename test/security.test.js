@@ -66,6 +66,23 @@ test('students cannot change assigned class through profile API', async () => {
     assert.equal(response.body.success, false);
 });
 
+test('students cannot change roster-owned branch or year through profile API', async () => {
+    const suffix = String(Date.now()).slice(-8);
+    const prn = `987654${suffix}`;
+    const roster = await db.insert('roster', { prn, name: 'Assignment Lock Student', dob: '2004-01-15', branch: 'CT', class: 'BE-A', year: 'Final Year' });
+    const student = await db.insert('students', { prn, name: roster.name, branch: roster.branch, class: roster.class, year: roster.year, cgpa_overall: 0, cgpa_semesterwise: {}, backlogs_semesterwise: {} });
+    const token = jwt.sign({ role: 'student', studentId: student.id, prn, sessionVersion: 2 }, process.env.JWT_SECRET);
+    const csrf = 'assignment-lock';
+    await request(app).put('/api/student/profile')
+        .set({ Authorization: `Bearer ${token}`, Cookie: `csrfToken=${csrf}`, 'X-CSRF-Token': csrf })
+        .send({ branch: 'AIML', year: 'First Year' })
+        .expect(200);
+    const saved = await db.selectOne('students', { id: student.id });
+    assert.equal(saved.branch, 'CT');
+    assert.equal(saved.class, 'BE-A');
+    assert.equal(saved.year, 'Final Year');
+});
+
 test('health endpoint responds', async () => {
     const response = await request(app).get('/api/health').expect(200);
     assert.equal(response.body.data.status, 'ok');
@@ -242,7 +259,7 @@ test('bulk roster preview validates without writing data', async () => {
     const adminToken = jwt.sign({ role: 'admin', adminId: 'admin-test', sessionVersion: 2 }, process.env.JWT_SECRET);
     const response = await request(app).post('/api/admin/roster/preview')
         .set('Authorization', `Bearer ${adminToken}`)
-        .field('csvContent', 'prn,name,dob,branch,class,year\n123,Test Student,2004-01-15,E&C,BE-A,Final Year')
+        .field('csvContent', 'prn,name,dob,branch,class,year\n1234567890,Test Student,2004-01-15,E&C,BE-A,Final Year')
         .expect(200);
     assert.equal(response.body.data.summary.valid, 1);
     assert.equal(response.body.data.rows[0].branch, 'E&C');
@@ -250,10 +267,21 @@ test('bulk roster preview validates without writing data', async () => {
 
 test('formatted Excel roster template preserves full PRN and readable DOB during import', async () => {
     const adminToken = jwt.sign({ role: 'admin', adminId: 'admin-test', sessionVersion: 2 }, process.env.JWT_SECRET);
+    const ExcelJS = require('exceljs');
     const template = require('fs').readFileSync(require('path').join(__dirname, '..', 'public', 'templates', 'AIT-roster-template.xlsx'));
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(template);
+    const sheet = workbook.getWorksheet('Roster');
+    sheet.getCell('A2').value = '24000000000001';
+    sheet.getCell('B2').value = 'Template Student';
+    sheet.getCell('C2').value = '15-01-2004';
+    sheet.getCell('D2').value = 'E&C';
+    sheet.getCell('E2').value = 'BE-A';
+    sheet.getCell('F2').value = 'Final Year';
+    const populatedTemplate = await workbook.xlsx.writeBuffer();
     const preview = await request(app).post('/api/admin/roster/preview')
         .set('Authorization', `Bearer ${adminToken}`)
-        .attach('file', template, { filename: 'AIT-roster-template.xlsx', contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+        .attach('file', Buffer.from(populatedTemplate), { filename: 'AIT-roster-template.xlsx', contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
         .expect(200);
     assert.equal(preview.body.data.rows[0].prn, '24000000000001');
     assert.equal(preview.body.data.rows[0].dob, '2004-01-15');

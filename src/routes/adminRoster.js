@@ -11,7 +11,7 @@ const crypto = require('crypto');
 const adminStudentsRouter = require('./adminStudents');
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 1, fields: 2, parts: 4, fieldNestingDepth: 0, fieldArrayIndexLimit: 0 } });
 const MAX_IMPORT_ROWS = 10000;
 const PRN_PATTERN = /^\d{10,20}$/;
 const CLASS_PATTERN = /^[A-Za-z0-9 -]{1,20}$/;

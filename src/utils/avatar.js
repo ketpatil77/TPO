@@ -8,7 +8,7 @@ const upload = multer({
         fileSize: MAX_AVATAR_BYTES,
         files: 1,
         fields: 0,
-        parts: 1,
+        parts: 2,
         fieldNestingDepth: 0,
         fieldArrayIndexLimit: 0
     }

@@ -45,7 +45,7 @@ router.post('/push/subscriptions', validate(pushSubscriptionSchema), async (req,
     res.status(existing ? 200 : 201).json({ success: true, data: { id: saved.id, subscribed: true } });
 });
 
-const resumeUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_RESUME_BYTES, files: 1 } });
+const resumeUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_RESUME_BYTES, files: 1, fields: 1, parts: 2, fieldNestingDepth: 0, fieldArrayIndexLimit: 0 } });
 function acceptResume(req, res, next) {
     resumeUpload.single('resume')(req, res, err => {
         if (err?.code === 'LIMIT_FILE_SIZE') {
@@ -146,8 +146,8 @@ router.post('/resume/skills/extract', acceptResume, async (req, res) => {
  */
 router.post('/resume/ats-score', acceptResume, async (req, res) => {
     try {
-        if (!req.file || !req.file.buffer) {
-            return res.status(400).json({ success: false, error: { code: 'INVALID_INPUT', message: 'No valid resume file provided.' } });
+        if (!req.file || !req.file.buffer || req.file.mimetype !== 'application/pdf' || req.file.buffer.subarray(0, 5).toString() !== '%PDF-') {
+            return res.status(400).json({ success: false, error: { code: 'INVALID_PDF', message: 'Valid PDF file required.' } });
         }
         
         const profile = req.body.profile || 'software';
@@ -266,8 +266,14 @@ router.put('/profile', validate(profileSchema), async (req, res) => {
         if (name !== undefined) updateData.name = name;
         if (email !== undefined) updateData.email = email.toLowerCase();
         if (phone !== undefined) updateData.phone = phone;
-        if (branch !== undefined) updateData.branch = branch;
-        if (year !== undefined) updateData.year = year;
+        // Branch, class and academic year are college-owned roster assignments.
+        // Student payload values are accepted for backward compatibility but never trusted.
+        const rosterAssignment = await db.selectOne('roster', { prn: currentStudent.prn });
+        if (rosterAssignment) {
+            updateData.branch = rosterAssignment.branch;
+            updateData.class = rosterAssignment.class;
+            updateData.year = rosterAssignment.year;
+        }
         if (ssc_marks !== undefined) updateData.ssc_marks = ssc_marks === null || ssc_marks === "" || Number.isNaN(parseFloat(ssc_marks)) ? null : parseFloat(ssc_marks);
         if (hsc_marks !== undefined) updateData.hsc_marks = hsc_marks === null || hsc_marks === "" || Number.isNaN(parseFloat(hsc_marks)) ? null : parseFloat(hsc_marks);
         if (is_employed !== undefined) {
