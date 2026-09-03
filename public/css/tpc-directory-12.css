@@ -156,11 +156,45 @@
 }
 
 @media (max-width: 899px) {
+  html,
+  body.observer-shell {
+    min-height: 100%;
+    height: auto !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  body.observer-shell .dashboard-wrapper,
+  .observer-shell #observerTab-students.active {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    touch-action: pan-y;
+  }
+
   .observer-shell #observerTab-students .table-shell {
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
-    overflow-x: auto !important;
+    overflow-x: hidden !important;
     overflow-y: visible !important;
+    overscroll-behavior: auto !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  .observer-shell #observerTab-students .observer-table,
+  .observer-shell #observerTab-students .observer-table tbody {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .observer-shell #observerTab-students .pagination-bar {
+    position: static !important;
+    margin-bottom: 18px !important;
   }
 }
