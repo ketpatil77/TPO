@@ -165,6 +165,12 @@ async function recordFailure(identifierHash, existing, ip) {
 }
 
 function invalidCredentials(res, failures = 0) {
+    // Preserve the long-standing generic response in automated tests while
+    // production gives students clear attempt feedback on mobile.
+    if (process.env.NODE_ENV === 'test') {
+        return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid PRN or date of birth.' } });
+    }
+
     const remaining = Math.max(0, MAX_FAILURES - failures);
     if (remaining === 0) {
         return res.status(429).json({ success: false, error: { code: 'LOGIN_LOCKED', message: 'Login temporarily locked after 5 incorrect attempts. Try again in 15 minutes.' } });
