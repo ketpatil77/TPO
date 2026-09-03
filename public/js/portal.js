@@ -31,7 +31,8 @@ function renderTurnstile(role) {
             state.token = token;
             state.recoveryAttempts = 0;
             showTurnstileRecovery(role, '');
-            showPortalAlert('');
+            // Do not clear login feedback here. Turnstile resets after a failed login,
+            // and clearing the alert made the useful error disappear almost instantly.
         },
         'expired-callback': () => recoverTurnstile(role, 'Security verification expired. Refreshing…', true),
         'timeout-callback': () => recoverTurnstile(role, 'Security verification timed out. Refreshing…', true),
@@ -174,9 +175,6 @@ async function login(event, role) {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error?.message || result.error || 'Unable to sign in.');
 
-        // Old builds stored JWTs in localStorage. A stale Bearer token can override the
-        // newly issued secure cookie on the dashboard, causing a successful login to
-        // bounce straight back to this page. Remove those legacy tokens globally.
         clearLegacyAuthTokens();
         await verifyFreshSession(config);
 
@@ -197,14 +195,47 @@ async function login(event, role) {
 function value(id, trim = true) { const current = document.getElementById(id).value; return trim ? current.trim() : current; }
 function showPortalAlert(message, type = 'error') {
     const box = document.getElementById('unifiedAlert');
+    if (!box) return;
+
     box.textContent = message;
     box.hidden = !message;
-    if (message) {
-        box.className = type === 'success' ? 'alert alert-success' : 'alert alert-error';
-        box.tabIndex = -1;
-        box.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        box.focus({ preventScroll: true });
+
+    if (!message) {
+        box.removeAttribute('style');
+        return;
     }
+
+    const isSuccess = type === 'success';
+    box.className = isSuccess ? 'alert alert-success' : 'alert alert-error';
+    box.tabIndex = -1;
+
+    if (window.matchMedia('(max-width: 760px)').matches) {
+        box.style.cssText = [
+            'position:fixed',
+            'top:max(12px, env(safe-area-inset-top))',
+            'left:12px',
+            'right:12px',
+            'z-index:10000',
+            'max-width:680px',
+            'margin:0 auto',
+            'padding:16px 18px',
+            'border-radius:14px',
+            'font-size:16px',
+            'font-weight:700',
+            'line-height:1.45',
+            'text-align:left',
+            `color:${isSuccess ? '#d1fae5' : '#fee2e2'}`,
+            `background:${isSuccess ? '#064e3b' : '#7f1d1d'}`,
+            `border:2px solid ${isSuccess ? '#34d399' : '#f87171'}`,
+            'box-shadow:0 16px 40px rgba(0,0,0,.45)'
+        ].join(';');
+        box.focus({ preventScroll: true });
+        return;
+    }
+
+    box.removeAttribute('style');
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    box.focus({ preventScroll: true });
 }
 
 // DOB Correction Modal Controller
