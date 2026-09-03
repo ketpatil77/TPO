@@ -86,7 +86,7 @@
       </div>`;
     dashboard.appendChild(panel);
 
-    rankingButton.addEventListener('click', () => { switchTab('ranking', rankingButton); ensureSnapshot(); });
+    rankingButton.addEventListener('click', () => { switchTab('ranking', rankingButton); ensureSnapshot(true); });
     document.getElementById('rankingBranch').addEventListener('change', filterChanged);
     document.getElementById('rankingYear').addEventListener('change', filterChanged);
     document.getElementById('rankingRefresh').addEventListener('click', () => ensureSnapshot(true));
@@ -97,8 +97,15 @@
     loadOverviewSpotlight();
     if (new URLSearchParams(location.search).get('tab') === 'ranking') {
       switchTab('ranking', rankingButton);
-      ensureSnapshot();
+      ensureSnapshot(true);
     }
+
+    window.addEventListener('focus', () => {
+      if (document.getElementById('tab-ranking')?.classList.contains('active')) ensureSnapshot(true);
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && document.getElementById('tab-ranking')?.classList.contains('active')) ensureSnapshot(true);
+    });
   }
 
   function filterChanged() {
@@ -129,18 +136,21 @@
     const card = document.createElement('section');
     card.id = 'overviewRankSpotlight';
     card.className = 'glass-card overview-rank-spotlight';
-    card.innerHTML = `<div class="overview-rank-copy"><span class="eyebrow">Profile standing</span><h2 id="overviewRankHeadline">Calculating your standing…</h2><p id="overviewRankSubline">Your Profile Points update automatically as you build your profile.</p><div id="overviewRankTrust" class="overview-rank-trust"></div></div><div class="overview-rank-score"><span>Profile Points</span><strong id="overviewRankPoints">—</strong><small id="overviewRankEvidence">Loading competition status</small></div><button id="overviewRankOpen" class="btn btn-secondary btn-sm" type="button">Open leaderboard</button>`;
+    card.innerHTML = `<div class="overview-rank-copy"><span class="eyebrow">Profile standing</span><h2 id="overviewRankHeadline">Calculating your standing…</h2><p id="overviewRankSubline">Your Profile Points update from verified evidence.</p><div id="overviewRankTrust" class="overview-rank-trust"></div></div><div class="overview-rank-score"><span>Profile Points</span><strong id="overviewRankPoints">—</strong><small id="overviewRankEvidence">Loading verification status</small></div><button id="overviewRankOpen" class="btn btn-secondary btn-sm" type="button">Open leaderboard</button>`;
     overview.prepend(card);
     document.getElementById('overviewRankOpen').addEventListener('click', () => {
       if (!rankingButton) return;
       switchTab('ranking', rankingButton);
       rankingButton.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
-      ensureSnapshot();
+      ensureSnapshot(true);
     });
   }
 
   async function fetchRanking(params = '') {
-    const response = await fetch(`/api/student/rankings-view/profile${params}`, { headers: { Authorization: `Bearer ${token()}` } });
+    const response = await fetch(`/api/student/rankings-view/profile${params}`, {
+      cache: 'no-store',
+      headers: { Authorization: `Bearer ${token()}`, 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+    });
     const json = await response.json();
     if (!response.ok || !json.success) throw new Error(json.error?.message || json.error || 'Could not calculate ranking.');
     return json.data;
@@ -161,8 +171,8 @@
       headline.textContent = me.rank === 1 ? `You’re #1 in ${branchLabel}${yearLabel}` : me.rank <= 3 ? `You’re Top 3 in ${branchLabel}${yearLabel}` : `You’re in the Top ${percentile}% of ${branchLabel}${yearLabel}`;
       document.getElementById('overviewRankSubline').textContent = collegeMe ? `Cohort rank #${me.rank} of ${cohort.rows.length} · College-wide rank #${collegeMe.rank} of ${college.rows.length}` : `Cohort rank #${me.rank} of ${cohort.rows.length}`;
       document.getElementById('overviewRankPoints').textContent = fmt(me.points);
-      const pending = me.competition_counts?.pending || 0;
-      document.getElementById('overviewRankEvidence').textContent = pending ? `${pending} competition${pending === 1 ? '' : 's'} awaiting verification · +${fmt(me.pending_points)} possible` : 'All current competition points settled';
+      const pending = me.evidence_counts?.pending || 0;
+      document.getElementById('overviewRankEvidence').textContent = pending ? `${pending} verification item${pending === 1 ? '' : 's'} pending · +${fmt(me.pending_points)} possible after verification` : 'All verification-gated points settled';
     } catch (error) {
       headline.textContent = 'Profile standing temporarily unavailable';
       document.getElementById('overviewRankSubline').textContent = error.message;
@@ -235,37 +245,40 @@
     return (item.links || []).map((href, index) => `<a href="${esc(href)}" target="_blank" rel="noopener">${index ? 'Evidence link' : 'Open evidence'}</a>`).join('');
   }
 
-  function evidenceItem(item, pendingCompetition = false) {
+  function evidenceItem(item, pendingEvidence = false) {
     const links = linksHtml(item);
-    return `<div class="ranking-evidence-item ${pendingCompetition ? 'ranking-evidence-pending' : ''}"><div><div class="ranking-evidence-title"><strong>${esc(item.label)}</strong>${pendingCompetition ? '<span class="pending-point-pill">Competition pending</span>' : ''}</div><small>${esc(item.reason || '')}</small>${links ? `<div class="ranking-evidence-links">${links}</div>` : ''}</div><div class="ranking-evidence-points ${pendingCompetition ? 'pending' : ''}">+${fmt(item.points)}${pendingCompetition ? '<small> after verification</small>' : ''}</div></div>`;
+    return `<div class="ranking-evidence-item ${pendingEvidence ? 'ranking-evidence-pending' : ''}"><div><div class="ranking-evidence-title"><strong>${esc(item.label)}</strong>${pendingEvidence ? '<span class="pending-point-pill">Verification pending</span>' : ''}</div><small>${esc(item.reason || '')}</small>${links ? `<div class="ranking-evidence-links">${links}</div>` : ''}</div><div class="ranking-evidence-points ${pendingEvidence ? 'pending' : ''}">+${fmt(item.points)}${pendingEvidence ? '<small> after verification</small>' : ''}</div></div>`;
   }
 
   function groupHtml(row, key) {
     const earned = Number(row.breakdown?.[key] || 0);
-    const waiting = key === 'competitions' ? Number(row.pending_breakdown?.competitions || 0) : 0;
+    const verificationGated = key === 'competitions' || key === 'certificates';
+    const waiting = verificationGated ? Number(row.pending_breakdown?.[key] || 0) : 0;
     const earnedItems = row.explanations?.[key] || [];
-    const pendingItems = key === 'competitions' ? (row.pending_explanations?.competitions || []) : [];
+    const pendingItems = verificationGated ? (row.pending_explanations?.[key] || []) : [];
     const earnedBody = earnedItems.length ? earnedItems.map(item => evidenceItem(item, false)).join('') : '';
-    const pendingBody = pendingItems.length ? `<div class="pending-evidence-divider"><span>Competitions waiting for verification</span><strong>+${fmt(waiting)} possible</strong></div>${pendingItems.map(item => evidenceItem(item, true)).join('')}` : '';
+    const label = key === 'certificates' ? 'Certificates waiting for verification' : 'Competitions waiting for verification';
+    const pendingBody = pendingItems.length ? `<div class="pending-evidence-divider"><span>${label}</span><strong>+${fmt(waiting)} possible</strong></div>${pendingItems.map(item => evidenceItem(item, true)).join('')}` : '';
     const empty = !earnedItems.length && !pendingItems.length ? '<p class="ranking-empty-reason">No records in this category yet.</p>' : '';
-    return `<section class="ranking-reason-group ${waiting ? 'has-pending' : ''}"><div class="ranking-reason-head"><strong>${esc(key.replace(/_/g,' '))}</strong><div><span>${fmt(earned)} pts</span>${waiting ? `<em>+${fmt(waiting)} competition pending</em>` : ''}</div></div>${earnedBody}${pendingBody}${empty}</section>`;
+    return `<section class="ranking-reason-group ${waiting ? 'has-pending' : ''}"><div class="ranking-reason-head"><strong>${esc(key.replace(/_/g,' '))}</strong><div><span>${fmt(earned)} pts</span>${waiting ? `<em>+${fmt(waiting)} pending verification</em>` : ''}</div></div>${earnedBody}${pendingBody}${empty}</section>`;
   }
 
   function categoryGrid(row) {
     return categoryOrder.map(key => {
       const earned = Number(row.breakdown?.[key] || 0);
-      const waiting = key === 'competitions' ? Number(row.pending_breakdown?.competitions || 0) : 0;
+      const verificationGated = key === 'competitions' || key === 'certificates';
+      const waiting = verificationGated ? Number(row.pending_breakdown?.[key] || 0) : 0;
       return `<span class="ranking-category-score ${waiting ? 'has-pending' : ''}"><small>${esc(key)}</small><strong>${fmt(earned)}</strong>${waiting ? `<em>+${fmt(waiting)} pending</em>` : '<em>counted</em>'}</span>`;
     }).join('');
   }
 
   function detailsHtml(row) {
-    return `<details class="leaderboard-entry-details"><summary>Why this score?</summary><div class="ranking-score-explainer"><strong>${fmt(row.points)} points</strong><span>Everything here counts automatically except unverified competitions.</span>${row.pending_points ? `<strong class="potential">+${fmt(row.pending_points)} competition pending</strong><span>${fmt(row.potential_points)} if verified</span>` : ''}</div><div class="ranking-breakdown-grid ranking-breakdown-grid-v3">${categoryGrid(row)}</div><div class="ranking-explanation-list">${categoryOrder.map(key => groupHtml(row, key)).join('')}</div></details>`;
+    return `<details class="leaderboard-entry-details"><summary>Why this score?</summary><div class="ranking-score-explainer"><strong>${fmt(row.points)} points</strong><span>Certificate and competition points count only after verification.</span>${row.pending_points ? `<strong class="potential">+${fmt(row.pending_points)} pending verification</strong><span>${fmt(row.potential_points)} if all pending evidence is verified</span>` : ''}</div><div class="ranking-breakdown-grid ranking-breakdown-grid-v3">${categoryGrid(row)}</div><div class="ranking-explanation-list">${categoryOrder.map(key => groupHtml(row, key)).join('')}</div></details>`;
   }
 
   function entryHtml(row) {
-    const pending = row.competition_counts?.pending || 0;
-    return `<article class="leaderboard-entry ${row.is_me ? 'is-me' : ''}"><div class="leaderboard-entry-main"><div class="leaderboard-rankno">#${row.rank}</div><div class="leaderboard-student">${avatarHtml(row)}<div class="leaderboard-student-copy"><strong>${esc(row.name)}${row.is_me ? ' · You' : ''}</strong><small>${esc(row.branch)} · ${esc(row.year || '—')}${pending ? ` · ${pending} competition pending` : ''}</small></div></div><div class="leaderboard-cell branch">${esc(row.branch)}</div><div class="leaderboard-cell year">${esc(row.year || '—')}</div><div class="leaderboard-points-cell">${fmt(row.points)} pts</div></div>${detailsHtml(row)}</article>`;
+    const pending = row.evidence_counts?.pending || 0;
+    return `<article class="leaderboard-entry ${row.is_me ? 'is-me' : ''}"><div class="leaderboard-entry-main"><div class="leaderboard-rankno">#${row.rank}</div><div class="leaderboard-student">${avatarHtml(row)}<div class="leaderboard-student-copy"><strong>${esc(row.name)}${row.is_me ? ' · You' : ''}</strong><small>${esc(row.branch)} · ${esc(row.year || '—')}${pending ? ` · ${pending} verification pending` : ''}</small></div></div><div class="leaderboard-cell branch">${esc(row.branch)}</div><div class="leaderboard-cell year">${esc(row.year || '—')}</div><div class="leaderboard-points-cell">${fmt(row.points)} pts</div></div>${detailsHtml(row)}</article>`;
   }
 
   function podiumCard(row, place) {
