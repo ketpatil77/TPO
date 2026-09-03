@@ -44,7 +44,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     panel.className = 'tab-content'; panel.setAttribute('role', 'tabpanel');
     button.setAttribute('aria-controls', panel.id);
     const rosterButton = document.querySelector(`[aria-controls="${anchor.id}"]`);
-    rosterButton.after(button); anchor.after(panel);
+    rosterButton.after(button);
+    if (observer) document.querySelector('.observer-tabs')?.after(panel);
+    else anchor.after(panel);
     panel.innerHTML = `<div class="glass-card"><h3>Student registration</h3><p>Add one student without uploading a roster. Existing PRNs cannot be overwritten.</p>
       <form id="studentRegistrationForm" class="student-registration-form">
       <div><label class="form-label" for="registrationPrn">PRN</label><input class="form-input" id="registrationPrn" name="prn" type="text" inputmode="numeric" pattern="[0-9]{10,20}" minlength="10" maxlength="20" required aria-describedby="registrationPrnHelp"><small id="registrationPrnHelp">Exact digits. Never rounded or converted to a number.</small></div>
