@@ -75,25 +75,42 @@ test('missing-proof notice triggered with entry name and exact deadline timestam
     const isoMatches = notice.message.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g) || [];
     assert.equal(isoMatches.length, 1, 'Notice must contain the exact ISO deadline timestamp.');
     assert.ok(new Date(isoMatches[0]).getTime() > Date.now() + 47 * 60 * 60 * 1000);
+    const stored = await db.selectOne('internships', { id: response.body.internship.id });
+    assert.ok(stored.proof_notice_sent_at, 'Entry must record that the required deadline notice was sent.');
     assert.equal(response.body.internship.verification_status, 'pending');
+});
+
+test('legacy missing-proof record gets a fresh notice and 48hr deadline before any deletion', async () => {
+    const studentId = `proof-legacy-student-${Date.now()}`;
+    await db.insert('students', { id: studentId, prn: `PL-${Date.now()}`, name: 'Legacy Proof Student', branch: 'CE' });
+    const entry = await db.insert('certificates', { student_id: studentId, name: 'Legacy Certificate', issuer: 'Issuer', date: '2026-01-01', mode: 'online', created_at: oldIso(72), proof_deadline: oldIso(1), evidence_path: null, proof_notice_sent_at: null });
+    const now = new Date();
+    const result = await runProofExpiryCleanup({ now });
+    assert.equal(await db.selectOne('certificates', { id: entry.id }) !== null, true, 'Legacy entry must survive its first expired scan when no notice was previously sent.');
+    assert.ok(result.notices_sent >= 1);
+    const refreshed = await db.selectOne('certificates', { id: entry.id });
+    assert.ok(refreshed.proof_notice_sent_at);
+    assert.ok(new Date(refreshed.proof_deadline).getTime() >= now.getTime() + (47 * 60 * 60 * 1000));
+    const notifications = await db.select('notifications', { student_id: studentId });
+    assert.ok(notifications.some(item => /Legacy Certificate/.test(item.message || '')));
 });
 
 test('48hr auto-delete fires only when no proof is attached', async () => {
     const studentId = `proof-expiry-student-${Date.now()}`;
     const prn = `PX-${Date.now()}`;
     await db.insert('students', { id: studentId, prn, name: 'Expiry Student', branch: 'CT' });
-    const missing = await db.insert('internships', { student_id: studentId, company: 'No Proof Co', role: 'Intern', start_date: '2026-01-01', mode: 'offline', created_at: oldIso(), proof_missing_since: oldIso(), proof_deadline: oldIso(1), evidence_path: null });
-    const protectedPending = await db.insert('internships', { student_id: studentId, company: 'Has Proof Co', role: 'Intern', start_date: '2026-01-01', mode: 'offline', created_at: oldIso(), proof_missing_since: oldIso(), proof_deadline: oldIso(1), evidence_path: 'internships/proof.jpg', verification_status: 'pending' });
+    const missing = await db.insert('internships', { student_id: studentId, company: 'No Proof Co', role: 'Intern', start_date: '2026-01-01', mode: 'offline', created_at: oldIso(), proof_missing_since: oldIso(), proof_deadline: oldIso(1), proof_notice_sent_at: oldIso(49), evidence_path: null });
+    const protectedPending = await db.insert('internships', { student_id: studentId, company: 'Has Proof Co', role: 'Intern', start_date: '2026-01-01', mode: 'offline', created_at: oldIso(), proof_missing_since: oldIso(), proof_deadline: oldIso(1), proof_notice_sent_at: oldIso(49), evidence_path: 'internships/proof.jpg', verification_status: 'pending' });
     const result = await runProofExpiryCleanup({ now: new Date() });
     assert.ok(result.deleted >= 1);
-    assert.equal(await db.selectOne('internships', { id: missing.id }), null, 'Missing-proof record must be deleted after deadline.');
+    assert.equal(await db.selectOne('internships', { id: missing.id }), null, 'Missing-proof record must be deleted after its notified deadline.');
     assert.ok(await db.selectOne('internships', { id: protectedPending.id }), 'Proof-attached pending record must never be deleted for verification delay.');
 });
 
 test('48hr auto-delete does NOT fire when proof attached but still unverified', async () => {
     const studentId = `proof-pending-student-${Date.now()}`;
     await db.insert('students', { id: studentId, prn: `PP-${Date.now()}`, name: 'Pending Review Student', branch: 'ME' });
-    const entry = await db.insert('certificates', { student_id: studentId, name: 'Pending Certificate', issuer: 'Issuer', date: '2026-01-01', mode: 'online', created_at: oldIso(72), proof_deadline: oldIso(24), evidence_path: 'certificates/pending.jpg', verification_status: 'pending' });
+    const entry = await db.insert('certificates', { student_id: studentId, name: 'Pending Certificate', issuer: 'Issuer', date: '2026-01-01', mode: 'online', created_at: oldIso(72), proof_deadline: oldIso(24), proof_notice_sent_at: oldIso(72), evidence_path: 'certificates/pending.jpg', verification_status: 'pending' });
     await runProofExpiryCleanup({ now: new Date() });
     assert.ok(await db.selectOne('certificates', { id: entry.id }));
 });
@@ -134,7 +151,7 @@ test('audit_log records both verification status changes and automatic proof del
         .set(writeHeaders(token('admin', { adminId })))
         .send({ status: 'approved', note: 'Valid' })
         .expect(200);
-    const expiryEntry = await db.insert('certificates', { student_id: studentId, name: 'Old Missing Proof', issuer: 'Issuer', date: '2026-01-01', mode: 'online', created_at: oldIso(), proof_deadline: oldIso(1), evidence_path: null });
+    const expiryEntry = await db.insert('certificates', { student_id: studentId, name: 'Old Missing Proof', issuer: 'Issuer', date: '2026-01-01', mode: 'online', created_at: oldIso(), proof_deadline: oldIso(1), proof_notice_sent_at: oldIso(49), evidence_path: null });
     await runProofExpiryCleanup({ now: new Date() });
     const logs = await db.select('audit_log');
     const reviewLog = logs.find(item => item.action === 'proof_verification_status_change' && item.target_id === reviewEntry.id);
@@ -146,4 +163,5 @@ test('audit_log records both verification status changes and automatic proof del
     assert.ok(deleteLog);
     assert.equal(deleteLog.details.student_prn, prn);
     assert.equal(deleteLog.details.reason, 'no proof attached within 48hrs');
+    assert.ok(deleteLog.details.proof_notice_sent_at);
 });
