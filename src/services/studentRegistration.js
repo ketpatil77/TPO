@@ -1,9 +1,8 @@
 const db = require('../config/database');
 const { normalizeBranch } = require('../config/branches');
+const { YEARS, normalizeYear } = require('../config/years');
 const { normalizeStudentDob } = require('../utils/dateHelper');
 const { clearStudentCache } = require('../routes/adminStudents');
-
-const YEARS = ['First Year', 'Second Year', 'Third Year', 'Final Year'];
 
 async function registerStudent(req, res) {
     const input = req.body || {};
@@ -11,9 +10,9 @@ async function registerStudent(req, res) {
     const name = typeof input.name === 'string' ? input.name.trim().replace(/\s+/g, ' ') : '';
     const branch = normalizeBranch(input.branch);
     const dob = normalizeStudentDob(input.dob);
-    const year = input.year;
-    const className = typeof input.class === 'string' ? input.class.trim() : '';
-    if (!/^\d{10,20}$/.test(prn) || name.length < 2 || name.length > 150 || !branch || !dob || new Date(dob) >= new Date() || !YEARS.includes(year) || !/^[A-Za-z0-9 -]{1,20}$/.test(className)) {
+    const year = normalizeYear(input.year);
+    const className = typeof input.class === 'string' ? input.class.trim().replace(/\s+/g, ' ') : '';
+    if (!/^\d{10,20}$/.test(prn) || name.length < 2 || name.length > 150 || !branch || !dob || new Date(dob) >= new Date() || !year || !YEARS.includes(year) || !/^[A-Za-z0-9 -]{1,20}$/.test(className)) {
         return res.status(400).json({ success: false, error: 'Enter a text PRN (10–20 digits), full name, valid past DOB, branch, class, and year.' });
     }
     if (req.observer) {
