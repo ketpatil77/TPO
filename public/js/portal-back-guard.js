@@ -4,13 +4,15 @@
             bodyClass: 'student-dashboard-page',
             homeTrigger: () => document.querySelector('.tabs-nav [aria-controls="tab-overview"]'),
             logoutButton: () => document.getElementById('logoutBtn'),
-            prepareHome: () => {}
+            prepareHome: () => {},
+            allowBackLogout: true
         },
         {
             bodyClass: 'admin-dashboard-page',
             homeTrigger: () => document.querySelector('.admin-tabs [aria-controls="tab-analytics"]'),
             logoutButton: () => document.getElementById('adminLogoutBtn'),
-            prepareHome: () => {}
+            prepareHome: () => {},
+            allowBackLogout: true
         },
         {
             bodyClass: 'observer-shell',
@@ -19,7 +21,8 @@
             prepareHome: () => {
                 const overview = document.querySelector('.observer-overview-disclosure');
                 if (overview) overview.open = true;
-            }
+            },
+            allowBackLogout: false
         }
     ];
 
@@ -86,7 +89,7 @@
         hint.hidden = true;
         hint.setAttribute('role', 'status');
         hint.setAttribute('aria-live', 'polite');
-        hint.textContent = 'Press back again to sign out';
+        hint.textContent = config?.allowBackLogout === false ? 'Use Sign out to leave TPC workspace' : 'Press back again to sign out';
         document.body.appendChild(hint);
 
         document.getElementById('portalLogoutNo').addEventListener('click', closeConfirm);
@@ -165,7 +168,16 @@
 
         if (!isHome()) {
             goHome();
-            backStage = 1;
+            backStage = 0;
+            if (config?.allowBackLogout !== false) {
+                backStage = 1;
+                showHint();
+            }
+            return;
+        }
+
+        if (config?.allowBackLogout === false) {
+            backStage = 0;
             showHint();
             return;
         }
