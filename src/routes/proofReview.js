@@ -3,6 +3,7 @@ const { z } = require('zod');
 const db = require('../config/database');
 const { authenticateAdmin, authenticateObserver } = require('../middleware/auth');
 const { validate } = require('../middleware/security');
+const { createStudentNotification } = require('../services/incompleteProfilePush');
 
 const reviewSchema = z.object({
     status: z.enum(['pending', 'approved', 'rejected']),
@@ -28,6 +29,11 @@ function normalizeStoredStatus(type, status) {
 function statusForDatabase(type, status) {
     if (type === 'certificate' && status === 'approved') return 'verified';
     return status;
+}
+
+function entryLabel(type, entry) {
+    if (type === 'internship') return `${entry.company || 'Internship'}${entry.role ? ` - ${entry.role}` : ''}`;
+    return entry.name || 'Certificate';
 }
 
 async function studentMap() {
@@ -67,6 +73,26 @@ async function clearStudentCache() {
         const adminStudentsRouter = require('./adminStudents');
         await adminStudentsRouter.clearStudentCache?.();
     } catch (_) {}
+}
+
+async function notifyVerifiedStudent({ type, entry, actorRole }) {
+    const reviewer = actorRole === 'tpc' ? 'TPC' : 'TPO';
+    const label = entryLabel(type, entry);
+    const kind = type === 'internship' ? 'Internship proof' : 'Certificate';
+    try {
+        const result = await createStudentNotification({
+            student_id: entry.student_id,
+            audience: 'student',
+            title: `${kind} verified`,
+            message: `Your ${kind.toLowerCase()} “${label}” has been verified by ${reviewer}.`,
+            priority: 'important',
+            action_url: '/dashboard?tab=edit-profile'
+        });
+        return result?.delivery || null;
+    } catch (error) {
+        console.error('Proof verification student notification failed:', error.message);
+        return null;
+    }
 }
 
 function createRouter(role) {
@@ -136,7 +162,6 @@ function createRouter(role) {
                 verified_role: req.body.status === 'pending' ? null : actorRole
             });
 
-            // Never tell the UI "approved" unless the database actually persisted it.
             if (!updated) throw new Error('Proof review update matched no record.');
             const persisted = await db.selectOne(table, { id: entry.id });
             const persistedStatus = normalizeStoredStatus(type, persisted?.verification_status);
@@ -157,8 +182,18 @@ function createRouter(role) {
                 changed_at: now
             });
 
+            let notificationDelivery = null;
+            if (req.body.status === 'approved' && oldStatus !== 'approved') {
+                notificationDelivery = await notifyVerifiedStudent({ type, entry: persisted, actorRole });
+            }
+
             res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
-            return res.json({ success: true, data: { ...persisted, verification_status: persistedStatus }, message: `${type === 'internship' ? 'Internship' : 'Certificate'} ${req.body.status}.` });
+            return res.json({
+                success: true,
+                data: { ...persisted, verification_status: persistedStatus },
+                notification_delivery: notificationDelivery,
+                message: `${type === 'internship' ? 'Internship' : 'Certificate'} ${req.body.status}.`
+            });
         } catch (error) {
             console.error('Proof review update failed:', error.message);
             return res.status(500).json({ success: false, error: { code: 'PROOF_REVIEW_FAILED', message: 'Could not persist proof verification. Please retry.' } });
@@ -168,4 +203,4 @@ function createRouter(role) {
     return router;
 }
 
-module.exports = { admin: createRouter('admin'), observer: createRouter('observer'), normalizeStoredStatus, statusForDatabase };
+module.exports = { admin: createRouter('admin'), observer: createRouter('observer'), normalizeStoredStatus, statusForDatabase, notifyVerifiedStudent };
