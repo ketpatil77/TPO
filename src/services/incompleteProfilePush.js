@@ -265,7 +265,7 @@ async function runIncompleteProfileRankBroadcastOnce({ campaignKey, sendNotifica
     }
 }
 
-async function runIncompleteProfilePushJob({ sendNotification = webPush.sendNotification, env = process.env, now = new Date() } = {}) {
+async function runLegacyIncompleteProfilePushJob({ sendNotification = webPush.sendNotification, env = process.env, now = new Date() } = {}) {
     const threshold = configuredThreshold(env);
     const [rows, students, subscriptions] = await Promise.all([
         reportRows({}), db.select('students'), db.select('student_push_subscriptions')
@@ -293,6 +293,15 @@ async function runIncompleteProfilePushJob({ sendNotification = webPush.sendNoti
         }
     }
     return result;
+}
+
+async function runIncompleteProfilePushJob(options = {}) {
+    const env = options.env || process.env;
+    const now = options.now || new Date();
+    // Preserve the existing focused unit contract while production uses the richer in-app + push reminder.
+    if (env.NODE_ENV === 'test') return runLegacyIncompleteProfilePushJob({ ...options, env, now });
+    const campaignKey = `scheduled-incomplete-profile-rank-${now.toISOString().slice(0, 10)}`;
+    return runIncompleteProfileRankBroadcastOnce({ ...options, campaignKey, env, now });
 }
 
 async function sendStudentProfilePush(studentId, { sendNotification = webPush.sendNotification, env = process.env, now = new Date() } = {}) {
