@@ -36,8 +36,9 @@ function entryLabel(type, entry) {
     return entry.name || 'Certificate';
 }
 
-async function studentMap() {
-    return new Map((await db.select('students')).map(student => [student.id, student]));
+async function studentForId(studentId) {
+    if (!studentId) return null;
+    return db.selectOne('students', { id: studentId });
 }
 
 async function pendingRows({ branch = null } = {}) {
@@ -121,9 +122,10 @@ function createRouter(role) {
         if (!evidenceStorage) return res.status(503).json({ success: false, error: { code: 'VAULT_NOT_CONFIGURED', message: 'Proof storage is not configured.' } });
         const entry = await db.selectOne(table, { id: req.params.id });
         if (!entry?.evidence_path) return res.status(404).json({ success: false, error: { code: 'NO_EVIDENCE', message: 'No proof uploaded.' } });
-        const students = await studentMap();
-        const student = students.get(entry.student_id);
-        if (isObserver && student?.branch !== req.observer.department) return res.status(403).json({ success: false, error: { code: 'OUT_OF_SCOPE', message: 'This entry belongs to another department.' } });
+        if (isObserver) {
+            const student = await studentForId(entry.student_id);
+            if (student?.branch !== req.observer.department) return res.status(403).json({ success: false, error: { code: 'OUT_OF_SCOPE', message: 'This entry belongs to another department.' } });
+        }
         const { data, error } = await evidenceStorage.download(entry.evidence_path);
         if (error || !data) return res.status(404).json({ success: false, error: { code: 'EVIDENCE_MISSING', message: 'Proof file is unavailable.' } });
         const bytes = Buffer.from(await data.arrayBuffer());
@@ -144,8 +146,7 @@ function createRouter(role) {
             if (!entry) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Entry not found.' } });
             if (!entry.evidence_path && req.body.status === 'approved') return res.status(400).json({ success: false, error: { code: 'PROOF_REQUIRED', message: 'Proof must be attached before approval.' } });
 
-            const students = await studentMap();
-            const student = students.get(entry.student_id);
+            const student = await studentForId(entry.student_id);
             if (isObserver && student?.branch !== req.observer.department) return res.status(403).json({ success: false, error: { code: 'OUT_OF_SCOPE', message: 'TPC reviewers can only review their own department.' } });
 
             const oldStatus = normalizeStoredStatus(type, entry.verification_status);
@@ -169,8 +170,7 @@ function createRouter(role) {
                 throw new Error(`Proof review persistence check failed: expected ${req.body.status}, got ${persistedStatus}.`);
             }
 
-            await clearStudentCache();
-            await db.logAudit('proof_verification_status_change', table, entry.id, {
+            const auditPromise = db.logAudit('proof_verification_status_change', table, entry.id, {
                 entry_type: type,
                 student_id: entry.student_id,
                 student_prn: student?.prn || null,
@@ -181,11 +181,19 @@ function createRouter(role) {
                 note: req.body.note || '',
                 changed_at: now
             });
+            const notificationPromise = req.body.status === 'approved' && oldStatus !== 'approved'
+                ? notifyVerifiedStudent({ type, entry: persisted, actorRole })
+                : Promise.resolve(null);
 
-            let notificationDelivery = null;
-            if (req.body.status === 'approved' && oldStatus !== 'approved') {
-                notificationDelivery = await notifyVerifiedStudent({ type, entry: persisted, actorRole });
-            }
+            const [cacheResult, auditResult, notificationResult] = await Promise.allSettled([
+                clearStudentCache(),
+                auditPromise,
+                notificationPromise
+            ]);
+            if (cacheResult.status === 'rejected') console.error('Proof review cache clear failed:', cacheResult.reason?.message || cacheResult.reason);
+            if (auditResult.status === 'rejected') console.error('Proof review audit log failed:', auditResult.reason?.message || auditResult.reason);
+            const notificationDelivery = notificationResult.status === 'fulfilled' ? notificationResult.value : null;
+            if (notificationResult.status === 'rejected') console.error('Proof review notification failed:', notificationResult.reason?.message || notificationResult.reason);
 
             res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
             return res.json({
