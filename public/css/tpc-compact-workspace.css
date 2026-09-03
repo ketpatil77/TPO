@@ -11,11 +11,16 @@ body.observer-shell{overflow-x:hidden}
 .observer-shell .observer-overview-disclosure>summary strong{font-size:.88rem;line-height:1.2}
 .observer-shell .observer-overview-disclosure[open]>summary{margin-bottom:.4rem}
 
+/* Navigation must always stay above whichever TPC panel is active, including panels injected by JS. */
+body.observer-shell #observerDashboard>.observer-tabs{order:1!important}
+body.observer-shell #observerDashboard>[id^="observerTab-"]{order:2!important}
+body.observer-shell #observerDashboard>.observer-overview-disclosure{order:3!important}
+
 .observer-shell .observer-tabs{margin:.6rem 0 .7rem}
 .observer-shell .observer-toolbar{margin-bottom:.65rem}
 .observer-shell .table-shell{max-width:100%;overflow-x:auto}
 
-@media(max-width:760px){
+@media(max-width:899px){
   .observer-shell .observer-nav{position:relative}
   .observer-shell .observer-nav .navbar-inner{
     display:grid!important;
@@ -54,39 +59,48 @@ body.observer-shell{overflow-x:hidden}
   }
   .observer-shell #observerLogout{height:34px!important;min-height:34px!important;padding:0 .65rem!important;font-size:.7rem!important;white-space:nowrap}
 
-  .observer-shell .dashboard-wrapper{
+  body.observer-shell #observerDashboard.dashboard-wrapper{
     display:flex!important;
-    flex-direction:column;
+    flex-direction:column!important;
     width:100%;
     max-width:100%!important;
     padding:.45rem .6rem 1rem!important;
-    overflow-x:hidden;
+    overflow-x:hidden!important;
   }
-  .observer-shell .observer-tabs{
-    order:1;
-    width:100%;
+
+  /* Override the older horizontal-scroll tab strip. Four TPC tools always fit in one row. */
+  body.observer-shell #observerDashboard>.observer-tabs{
+    order:1!important;
+    width:100%!important;
     display:grid!important;
-    grid-template-columns:repeat(3,minmax(0,1fr));
-    gap:.35rem!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    flex-direction:initial!important;
+    flex-wrap:initial!important;
+    align-items:stretch!important;
+    justify-content:stretch!important;
+    gap:.3rem!important;
     margin:.15rem 0 .55rem!important;
     padding:.28rem!important;
     overflow:visible!important;
+    scroll-snap-type:none!important;
   }
-  .observer-shell .observer-tabs .tab-btn{
+  body.observer-shell #observerDashboard>.observer-tabs .tab-btn{
+    flex:initial!important;
     min-width:0!important;
     width:100%!important;
-    min-height:38px!important;
-    padding:.42rem .3rem!important;
-    font-size:.68rem!important;
-    line-height:1.15!important;
+    min-height:42px!important;
+    padding:.38rem .16rem!important;
+    margin:0!important;
+    font-size:.61rem!important;
+    line-height:1.08!important;
     white-space:normal!important;
-    text-align:center;
+    overflow-wrap:anywhere!important;
+    text-align:center!important;
     border-radius:9px!important;
+    scroll-snap-align:none!important;
   }
-  .observer-shell #observerTab-students{order:2}
-  .observer-shell #observerTab-drives{order:3}
-  .observer-shell #observerTab-dob{order:4}
-  .observer-shell .observer-overview-disclosure{order:5;margin:.7rem 0 0!important}
+  body.observer-shell #observerDashboard>[id^="observerTab-"]{order:2!important}
+  body.observer-shell #observerDashboard>.observer-overview-disclosure{order:3!important;margin:.7rem 0 0!important}
 
   .observer-shell .observer-toolbar{
     display:grid!important;
@@ -118,6 +132,7 @@ body.observer-shell{overflow-x:hidden}
 @media(max-width:420px){
   .observer-shell .observer-nav .navbar-inner{padding:.45rem .55rem!important}
   .observer-shell .dashboard-wrapper{padding:.4rem .45rem .9rem!important}
-  .observer-shell .observer-tabs .tab-btn{font-size:.64rem!important;padding:.38rem .2rem!important}
+  body.observer-shell #observerDashboard>.observer-tabs{gap:.22rem!important;padding:.22rem!important}
+  body.observer-shell #observerDashboard>.observer-tabs .tab-btn{font-size:.57rem!important;padding:.34rem .1rem!important;min-height:40px!important}
   .observer-shell .observer-toolbar{gap:.38rem!important;padding:.48rem!important}
 }
