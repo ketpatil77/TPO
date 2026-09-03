@@ -88,7 +88,10 @@
   .observer-shell .dashboard-wrapper .observer-tabs,
   .observer-shell .observer-tabs {
     display:flex!important;
+    flex-direction:row!important;
     flex-wrap:nowrap!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
     overflow-x:auto!important;
     overflow-y:hidden!important;
     gap:6px!important;
@@ -105,8 +108,10 @@
     min-width:max-content!important;
     min-height:36px!important;
     padding:7px 11px!important;
+    margin:0!important;
     border-radius:9px!important;
     font-size:.72rem!important;
+    line-height:1.15!important;
     white-space:nowrap!important;
     scroll-snap-align:start;
   }
