@@ -122,7 +122,11 @@
             loadScript('/js/certificate-vault-ui.js?v=20260903-1', 'certificate-vault-ui-js');
         }
 
-        if (document.body.classList.contains('admin-dashboard-page')) loadScript('/js/calendar-polish.js?v=20260901-1', 'calendar-polish');
+        if (document.body.classList.contains('admin-dashboard-page')) {
+            loadScript('/js/calendar-polish.js?v=20260901-1', 'calendar-polish');
+            loadStylesheet('/css/tpo-certificate-review.css?v=20260903-1', 'tpo-certificate-review');
+            loadScript('/js/tpo-certificate-review.js?v=20260903-1', 'tpo-certificate-review-js');
+        }
         if (document.body.classList.contains('observer-shell')) {
             loadStylesheet('/css/tpc-layout-v2.css?v=20260902-4', 'tpc-layout-v2');
             loadStylesheet('/css/tpc-directory-12.css?v=20260902-1', 'tpc-directory-12');
