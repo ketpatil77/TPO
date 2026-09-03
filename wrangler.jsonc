@@ -28,6 +28,12 @@
       "id": "3ce7e386abc24eceb2c09f9538243b48"
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "CERTIFICATE_VAULT",
+      "bucket_name": "ait-certificate-vault"
+    }
+  ],
   "triggers": {
     "crons": ["*/5 * * * *", "0 4 */3 * *"]
   },
