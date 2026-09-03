@@ -2,7 +2,17 @@ const multer = require('multer');
 const db = require('../config/database');
 
 const MAX_AVATAR_BYTES = 1024 * 1024;
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_AVATAR_BYTES, files: 1 } });
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: MAX_AVATAR_BYTES,
+        files: 1,
+        fields: 0,
+        parts: 1,
+        fieldNestingDepth: 0,
+        fieldArrayIndexLimit: 0
+    }
+});
 
 function acceptAvatar(req, res, next) {
     upload.single('avatar')(req, res, err => {
