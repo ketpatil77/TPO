@@ -14,7 +14,8 @@
     "VAPID_PUBLIC_KEY": "BFkWk7IB0kGMCb-QcL6QUL0g4uX4dq50tXnFQ3vfpu6NV6Hh4-29vJa4oop-UYEqj6mj4G7yun5f-RyS5aBB-Tg",
     "VAPID_SUBJECT": "mailto:ket.patil77@gmail.com",
     "PUSH_COMPLETION_THRESHOLD": "80",
-    "PUSH_REMINDER_CRON": "0 4 */3 * *"
+    "PUSH_REMINDER_CRON": "0 4 */3 * *",
+    "PROOF_EXPIRY_CRON": "0 * * * *"
   },
   "assets": {
     "directory": "./public",
@@ -35,7 +36,7 @@
     }
   ],
   "triggers": {
-    "crons": ["*/5 * * * *", "0 4 */3 * *"]
+    "crons": ["*/5 * * * *", "0 * * * *", "0 4 */3 * *"]
   },
   "observability": { "enabled": true, "head_sampling_rate": 1 }
 }

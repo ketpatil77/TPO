@@ -40,7 +40,7 @@ export default {
             if (['/dashboard.html', '/admin-dashboard.html', '/observer-dashboard.html'].includes(assetPath)) {
                 let html = await response.text();
                 if (assetPath === '/dashboard.html') {
-                    html = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260902-ranking-compact1');
+                    html = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260903-proof-workflow1');
                 }
                 if (assetPath === '/admin-dashboard.html') {
                     html = html.replace(/\/js\/admin-dashboard\.js\?v=[^"']+/g, '/js/admin-dashboard.js?v=20260902-student-activity1');
@@ -144,6 +144,11 @@ window.addEventListener('load', function () {
                 const { error } = await db.supabaseClient().from('roster').select('id').limit(1);
                 if (error) throw error;
                 console.log('Supabase keep-alive ping successful.');
+            }
+            if (event.cron === (env.PROOF_EXPIRY_CRON || '0 * * * *')) {
+                const { default: proofExpiry } = await import('../src/services/proofExpiry.js');
+                const result = await proofExpiry.runProofExpiryCleanup();
+                console.log('Proof expiry cleanup complete:', JSON.stringify(result));
             }
             if (event.cron === (env.PUSH_REMINDER_CRON || '0 4 */3 * *')) {
                 const { default: pushService } = await import('../src/services/incompleteProfilePush.js');
