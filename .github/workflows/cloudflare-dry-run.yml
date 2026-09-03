@@ -1,6 +1,5 @@
 name: Cloudflare Dry Run
 
-# Production rebuild trigger after CGPA editability + ranking verification fix.
 on:
   push:
     branches: [master]
@@ -14,29 +13,22 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Full Cloudflare build gate
+      - name: Dependency security gate
+        run: npm audit --audit-level=high
+      - name: Full test suite
         run: npm run check
-      - name: Syntax checks
+      - name: Syntax check all application JavaScript
         run: |
-          node --check worker/index.mjs
-          node --check src/server.js
-          node --check src/routes/profileRankingView.js
-          node --check src/routes/profileDeclarations.js
-          node --check src/utils/profileCompletionModel.js
-          node --check public/js/profile-ranking.js
-          node --check public/js/portal-responsive.js
-          node --check public/js/portal-back-guard.js
-          node --check public/js/student-engagement-v2.js
-          node --check public/js/profile-declarations-ui.js
-          node --check public/js/tpc-layout-v2.js
-          node --check public/js/dob-view-controls.js
+          find src worker public/js scripts test -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) -print0 \
+            | sort -z \
+            | xargs -0 -n1 node --check
       - name: Cloudflare dry run
         run: npm run deploy:dry-run
