@@ -7,7 +7,7 @@
     let rows = [];
 
     function esc(value) {
-        return String(value ?? '').replace(/[&<>'"]/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[ch]);
+        return String(value ?? '').replace(/[&<>'\"]/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '\"':'&quot;' })[ch]);
     }
 
     function makeSection() {
@@ -69,10 +69,10 @@
     }
 
     function sectionMarkup(showBranch) {
-        return `<div class="section-header"><div><span class="eyebrow">Evidence review</span><h2>Pending certificate & internship proofs</h2><p class="section-note">Approve or reject uploaded proof. Missing proof is handled separately by the 48-hour expiry rule.</p></div><button type="button" class="btn btn-secondary btn-sm" data-proof-refresh>Refresh</button></div>
-        <div class="glass-card" style="padding:1rem">
+        return `<div class="section-header proof-review-header"><div><span class="eyebrow">Evidence review</span><h2>Proof verification</h2><p class="section-note">Review certificate and internship proofs. Only uploaded proofs appear here; the 48-hour missing-proof rule is handled separately.</p></div><button type="button" class="btn btn-secondary btn-sm" data-proof-refresh>Refresh</button></div>
+        <div class="glass-card proof-review-panel">
             <div class="proof-review-toolbar">
-                <div class="form-group"><label class="form-label">Type</label><select class="form-select" data-proof-type><option value="all">All</option><option value="internship">Internships</option><option value="certificate">Certificates</option></select></div>
+                <div class="form-group"><label class="form-label">Type</label><select class="form-select" data-proof-type><option value="all">All proofs</option><option value="internship">Internships</option><option value="certificate">Certificates</option></select></div>
                 ${showBranch ? '<div class="form-group"><label class="form-label">Branch</label><select class="form-select" data-proof-branch><option value="all">All branches</option><option>AIML</option><option>CT</option><option>EE</option><option>ME</option><option>CE</option><option>E&amp;C</option></select></div>' : ''}
                 <span class="proof-review-count" data-proof-count>0 pending</span>
             </div>
@@ -153,7 +153,14 @@
             body.innerHTML = '<tr><td colspan="6" class="proof-review-empty">No pending uploaded proofs in this scope.</td></tr>';
             return;
         }
-        body.innerHTML = rows.map(row => `<tr><td><strong>${esc(row.student_name)}</strong><br><small>${esc(row.student_prn)}</small></td><td>${esc(row.branch)}${row.class ? `<br><small>${esc(row.class)}</small>` : ''}</td><td>${esc(row.type)}</td><td><strong>${esc(row.entry_name)}</strong><br><small>${esc(row.details || '')}</small></td><td>${row.evidence_uploaded_at ? esc(new Date(row.evidence_uploaded_at).toLocaleString()) : '—'}</td><td><div class="proof-review-actions"><button class="btn btn-secondary btn-sm" data-proof-action="view" data-type="${esc(row.type)}" data-id="${esc(row.id)}">View</button><button class="btn btn-primary btn-sm" data-proof-action="approved" data-type="${esc(row.type)}" data-id="${esc(row.id)}">Approve</button><button class="btn btn-danger btn-sm" data-proof-action="rejected" data-type="${esc(row.type)}" data-id="${esc(row.id)}">Reject</button></div></td></tr>`).join('');
+        body.innerHTML = rows.map(row => `<tr>
+            <td data-label="Student"><strong>${esc(row.student_name)}</strong><small>${esc(row.student_prn)}</small></td>
+            <td data-label="Branch"><strong>${esc(row.branch)}</strong>${row.class ? `<small>${esc(row.class)}</small>` : ''}</td>
+            <td data-label="Type"><span class="proof-review-type">${esc(row.type)}</span></td>
+            <td data-label="Entry"><strong>${esc(row.entry_name)}</strong>${row.details ? `<small>${esc(row.details)}</small>` : ''}</td>
+            <td data-label="Uploaded">${row.evidence_uploaded_at ? esc(new Date(row.evidence_uploaded_at).toLocaleString()) : '—'}</td>
+            <td data-label="Action"><div class="proof-review-actions"><button class="btn btn-secondary btn-sm" data-proof-action="view" data-type="${esc(row.type)}" data-id="${esc(row.id)}">View</button><button class="btn btn-primary btn-sm" data-proof-action="approved" data-type="${esc(row.type)}" data-id="${esc(row.id)}">Approve</button><button class="btn btn-danger btn-sm" data-proof-action="rejected" data-type="${esc(row.type)}" data-id="${esc(row.id)}">Reject</button></div></td>
+        </tr>`).join('');
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', makeSection, { once: true });
