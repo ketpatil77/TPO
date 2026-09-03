@@ -13,6 +13,20 @@
     <link rel="stylesheet" href="/css/portal-responsive.css?v=20260901-staff-accents1">
     <script src="/js/portal-responsive.js?v=20260901-mobile-nav1" defer></script>
     <script src="/js/portal-sections.js?v=20260831" defer></script>
+    <style>
+        /* Uploaded roster is intentionally only a roster-name view for TPC. */
+        #observerTab-roster .observer-table { min-width:0 !important; width:100%; }
+        #observerTab-roster .observer-table th:not(:nth-child(2)),
+        #observerTab-roster .observer-table td:not(:nth-child(2)) { display:none !important; }
+        #observerTab-roster #observerRoster td:nth-child(2) { display:table-cell !important; width:100% !important; }
+        #observerTab-roster #observerRoster .empty-cell { display:table-cell !important; }
+        @media (max-width:760px) {
+            #observerTab-roster .observer-table,
+            #observerTab-roster .observer-table tbody,
+            #observerTab-roster .observer-table tr,
+            #observerTab-roster #observerRoster td:nth-child(2) { width:100% !important; min-width:0 !important; }
+        }
+    </style>
 </head>
 <body class="observer-shell">
     <a class="skip-link" href="#observerDashboard">Skip to dashboard</a>
@@ -67,8 +81,8 @@
         </section>
 
         <section id="observerTab-roster" class="tab-content" role="tabpanel">
-            <div class="observer-toolbar glass-card"><div><label class="form-label" for="rosterBranch">Branch</label><select id="rosterBranch" class="form-select"><option value="all">All branches</option><option value="AIML">AIML</option><option value="CT">CT</option><option value="EE">EE</option><option value="ME">ME</option><option value="CE">CE</option><option value="E&amp;C">E&amp;C</option></select></div><div class="search-wide"><label class="form-label" for="rosterSearch">Search uploaded roster</label><input id="rosterSearch" class="form-input" placeholder="Name or PRN"></div><button id="refreshRoster" class="btn btn-secondary">Refresh</button></div>
-            <div class="glass-card table-shell"><table class="observer-table"><thead><tr><th>PRN</th><th>Name</th><th>Branch</th><th>Class</th><th>Year</th><th>Profile status</th></tr></thead><tbody id="observerRoster"><tr><td colspan="6">Loading roster…</td></tr></tbody></table></div>
+            <div class="observer-toolbar glass-card"><div><label class="form-label" for="rosterBranch">Branch</label><select id="rosterBranch" class="form-select"><option value="all">All branches</option><option value="AIML">AIML</option><option value="CT">CT</option><option value="EE">EE</option><option value="ME">ME</option><option value="CE">CE</option><option value="E&amp;C">E&amp;C</option></select></div><div class="search-wide"><label class="form-label" for="rosterSearch">Search uploaded roster</label><input id="rosterSearch" class="form-input" placeholder="Student name"></div><button id="refreshRoster" class="btn btn-secondary">Refresh</button></div>
+            <div class="glass-card table-shell"><table class="observer-table"><thead><tr><th hidden>PRN</th><th>Name</th><th hidden>Branch</th><th hidden>Class</th><th hidden>Year</th><th hidden>Profile status</th></tr></thead><tbody id="observerRoster"><tr><td hidden></td><td>Loading roster…</td><td hidden></td><td hidden></td><td hidden></td><td hidden></td></tr></tbody></table></div>
             <div id="rosterPagination" class="pagination-bar"></div>
         </section>
 
