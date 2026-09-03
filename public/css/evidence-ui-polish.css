@@ -1,0 +1,147 @@
+/* Student certificate + internship cards: compact, readable, verification-first. */
+#certificatesList .item-card.evidence-polished-card,
+#internshipsList .item-card.evidence-polished-card{
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+  text-align:left!important;
+}
+#certificatesList .evidence-polished-card .item-details,
+#internshipsList .evidence-polished-card .item-details{
+  width:100%;
+  min-width:0;
+  text-align:left!important;
+}
+#certificatesList .evidence-polished-card h4,
+#internshipsList .evidence-polished-card h4{
+  margin:0!important;
+  line-height:1.25!important;
+  text-align:left!important;
+  overflow-wrap:anywhere;
+}
+#certificatesList .evidence-polished-card .item-details>p,
+#internshipsList .evidence-polished-card .item-details>p{
+  margin:.32rem 0 0!important;
+  line-height:1.35!important;
+  text-align:left!important;
+  color:var(--text-muted);
+}
+#certificatesList .evidence-polished-card .item-details>p strong,
+#internshipsList .evidence-polished-card .item-details>p strong{
+  color:var(--text-heading);
+}
+.evidence-state-chip{
+  display:inline-flex!important;
+  align-items:center;
+  width:auto!important;
+  max-width:100%;
+  margin:.58rem 0 0!important;
+  padding:.3rem .58rem!important;
+  border-radius:999px!important;
+  font-size:.73rem!important;
+  line-height:1.25!important;
+  font-weight:700!important;
+  white-space:normal!important;
+  text-align:left!important;
+  box-sizing:border-box;
+}
+.evidence-state-chip.is-pending{
+  color:#e5c982!important;
+  background:rgba(217,185,110,.09)!important;
+  border:1px solid rgba(217,185,110,.22)!important;
+}
+.evidence-state-chip.is-verified{
+  color:#8ce0b2!important;
+  background:rgba(55,180,110,.11)!important;
+  border:1px solid rgba(80,205,135,.24)!important;
+}
+.evidence-state-chip.is-rejected{
+  color:#ff9b9b!important;
+  background:rgba(239,68,68,.07)!important;
+  border:1px solid rgba(239,68,68,.24)!important;
+}
+.evidence-state-chip.is-missing{
+  color:var(--text-muted)!important;
+  background:rgba(148,163,184,.07)!important;
+  border:1px solid var(--border-color)!important;
+}
+
+@media(max-width:760px){
+  #certificatesList,
+  #internshipsList{gap:.72rem!important;}
+  #certificatesList .item-card.evidence-polished-card,
+  #internshipsList .item-card.evidence-polished-card{
+    display:block!important;
+    padding:.9rem!important;
+    border-radius:16px!important;
+    min-height:0!important;
+  }
+  #certificatesList .certificate-vault-title{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    align-items:start!important;
+    gap:.55rem!important;
+  }
+  #certificatesList .certificate-vault-title h4,
+  #internshipsList .evidence-polished-card h4{
+    font-size:1.08rem!important;
+    line-height:1.22!important;
+  }
+  #certificatesList .certificate-vault-title .badge,
+  #internshipsList .evidence-polished-card .badge{
+    flex:0 0 auto!important;
+    font-size:.66rem!important;
+    line-height:1!important;
+    padding:.38rem .52rem!important;
+    white-space:nowrap!important;
+  }
+  #certificatesList .evidence-polished-card .item-details>p,
+  #internshipsList .evidence-polished-card .item-details>p{
+    font-size:.82rem!important;
+  }
+  #certificatesList .certificate-vault-actions,
+  #internshipsList .evidence-polished-card .item-actions{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    align-items:stretch!important;
+    width:100%!important;
+    gap:.42rem!important;
+    margin:.72rem 0 0!important;
+  }
+  #certificatesList .certificate-vault-actions .btn,
+  #internshipsList .evidence-polished-card .item-actions .btn{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:42px!important;
+    margin:0!important;
+    padding:.5rem .25rem!important;
+    border-radius:11px!important;
+    font-size:.73rem!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  #internshipsList .evidence-polished-card .item-details{
+    display:block!important;
+    padding:0!important;
+  }
+  #internshipsList .evidence-polished-card .item-details>*{
+    text-align:left!important;
+  }
+}
+
+@media(max-width:420px){
+  #certificatesList .item-card.evidence-polished-card,
+  #internshipsList .item-card.evidence-polished-card{padding:.78rem!important;}
+  #certificatesList .certificate-vault-title h4,
+  #internshipsList .evidence-polished-card h4{font-size:1rem!important;}
+  #certificatesList .certificate-vault-actions,
+  #internshipsList .evidence-polished-card .item-actions{gap:.32rem!important;}
+  #certificatesList .certificate-vault-actions .btn,
+  #internshipsList .evidence-polished-card .item-actions .btn{font-size:.69rem!important;min-height:40px!important;}
+  .evidence-state-chip{font-size:.69rem!important;padding:.28rem .48rem!important;}
+}
