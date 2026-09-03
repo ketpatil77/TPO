@@ -26,7 +26,7 @@ const studentLoginLimit = rateLimit({
     validate: false,
     message: { success: false, error: { code: 'RATE_LIMIT', message: 'Too many attempts. Try again later.' } }
 });
-const MAX_FAILURES = 6;
+const MAX_FAILURES = 5;
 const LOCK_MS = 15 * 60 * 1000;
 
 router.post('/login', studentLoginLimit, verifyTurnstile, validate(studentLoginSchema), async (req, res) => {
@@ -39,7 +39,7 @@ router.post('/login', studentLoginLimit, verifyTurnstile, validate(studentLoginS
         const attempt = await db.selectOne('login_attempts', { identifier_hash: loginKey });
         if (attempt?.locked_until && new Date(attempt.locked_until) > new Date()) {
             const minutesLeft = Math.ceil((new Date(attempt.locked_until) - new Date()) / 60000);
-            return res.status(429).json({ success: false, error: { code: 'LOGIN_LOCKED', message: `Too many attempts. Account locked. Try again in ${minutesLeft} minute(s).` } });
+            return res.status(429).json({ success: false, error: { code: 'LOGIN_LOCKED', message: `Login temporarily locked. Try again in ${minutesLeft} minute(s).` } });
         }
 
         // 1. Look up student entry in Roster table (bypass cache for critical auth checks)
@@ -53,15 +53,15 @@ router.post('/login', studentLoginLimit, verifyTurnstile, validate(studentLoginS
         }
 
         if (!rosterEntry) {
-            await recordFailure(loginKey, attempt, req.ip);
-            return invalidCredentials(res);
+            const failures = await recordFailure(loginKey, attempt, req.ip);
+            return invalidCredentials(res, failures);
         }
 
         // 2. Verify Date of Birth against Roster DOB
         const isMatch = verifyDob(cleanDob, rosterEntry.dob);
         if (!isMatch) {
-            await recordFailure(loginKey, attempt, req.ip);
-            return invalidCredentials(res);
+            const failures = await recordFailure(loginKey, attempt, req.ip);
+            return invalidCredentials(res, failures);
         }
 
         // 3. Check if student profile already exists in `students` table
@@ -96,8 +96,8 @@ router.post('/login', studentLoginLimit, verifyTurnstile, validate(studentLoginS
             name: studentRecord.name,
             branch: studentRecord.branch,
             class: studentRecord.class,
-            year: studentRecord.year
-            ,sessionVersion: SESSION_VERSION
+            year: studentRecord.year,
+            sessionVersion: SESSION_VERSION
         };
 
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
@@ -161,10 +161,16 @@ async function recordFailure(identifierHash, existing, ip) {
         updated_at: new Date().toISOString()
     };
     await db.upsert('login_attempts', data, 'identifier_hash');
+    return failures;
 }
 
-function invalidCredentials(res) {
-    return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid PRN or date of birth.' } });
+function invalidCredentials(res, failures = 0) {
+    const remaining = Math.max(0, MAX_FAILURES - failures);
+    if (remaining === 0) {
+        return res.status(429).json({ success: false, error: { code: 'LOGIN_LOCKED', message: 'Login temporarily locked after 5 incorrect attempts. Try again in 15 minutes.' } });
+    }
+    const attemptWord = remaining === 1 ? 'attempt' : 'attempts';
+    return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: `Incorrect PRN or Date of Birth. ${remaining} ${attemptWord} remaining.` } });
 }
 
 const { z } = require('zod');
@@ -201,9 +207,9 @@ function getSimilarity(s1, s2) {
         for (let i = 1; i <= a.length; i += 1) {
             const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
             track[j][i] = Math.min(
-                track[j][i - 1] + 1, // deletion
-                track[j - 1][i] + 1, // insertion
-                track[j - 1][i - 1] + indicator // substitution
+                track[j][i - 1] + 1,
+                track[j - 1][i] + 1,
+                track[j - 1][i - 1] + indicator
             );
         }
     }
