@@ -96,9 +96,12 @@
             ? `<a class="tpc-action-btn tpc-action-resume" href="/api/observer/students/${encodeURIComponent(student.id)}/resume/open" target="_blank" rel="noopener" aria-label="Open ${escapeHtml(student.name)} resume">Resume</a>`
             : '<span class="tpc-resume-missing">No resume</span>';
 
-        return `<tr class="tpc-directory-row">
+        return `<tr class="tpc-directory-row" data-student-card="${escapeHtml(student.id)}">
             <td data-label="Student">
-                <div class="tpc-student-identity"><span class="tpc-student-initials" aria-hidden="true">${escapeHtml(initials(student.name).toUpperCase())}</span><span class="tpc-student-copy"><strong>${escapeHtml(student.name)}</strong><small>${escapeHtml(student.prn)}</small></span></div>
+                <button class="tpc-student-toggle" type="button" aria-expanded="false" aria-label="Show details for ${escapeHtml(student.name)}">
+                    <span class="tpc-student-identity"><span class="tpc-student-initials" aria-hidden="true">${escapeHtml(initials(student.name).toUpperCase())}</span><span class="tpc-student-copy"><strong>${escapeHtml(student.name)}</strong><small>${escapeHtml(student.prn)}</small></span></span>
+                    <span class="tpc-student-chevron" aria-hidden="true">⌄</span>
+                </button>
             </td>
             <td data-label="Program"><div class="tpc-program-cell"><span class="branch-chip">${escapeHtml(student.branch)}</span><small>${escapeHtml(student.year || '—')} · ${escapeHtml(student.class || '—')}</small></div></td>
             <td data-label="Completion" class="tpc-completion-cell" title="${escapeHtml(missingTitle)}">
@@ -117,6 +120,21 @@
         if (!table) return;
         const top = table.getBoundingClientRect().top + window.scrollY - 8;
         window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }
+
+    function bindMobileCardToggles() {
+        const body = document.getElementById('observerStudents');
+        if (!body || body.dataset.mobileToggleBound === 'true') return;
+        body.dataset.mobileToggleBound = 'true';
+        body.addEventListener('click', event => {
+            const toggle = event.target.closest('.tpc-student-toggle');
+            if (!toggle || window.innerWidth >= 900) return;
+            const row = toggle.closest('.tpc-directory-row');
+            if (!row) return;
+            const expanded = row.classList.toggle('is-expanded');
+            toggle.setAttribute('aria-expanded', String(expanded));
+            toggle.setAttribute('aria-label', `${expanded ? 'Hide' : 'Show'} details for ${toggle.querySelector('.tpc-student-copy strong')?.textContent || 'student'}`);
+        });
     }
 
     async function enhancedLoadStudents({ returnToTop = false } = {}) {
@@ -164,6 +182,7 @@
         table.classList.add('tpc-readiness-table');
         const header = table.querySelector('thead tr');
         if (header) header.innerHTML = '<th>Student</th><th>Program</th><th>Profile completion</th><th>Academic</th><th>Evidence</th><th>Actions</th>';
+        bindMobileCardToggles();
 
         try { loadStudents = enhancedLoadStudents; } catch (_) { window.loadStudents = enhancedLoadStudents; }
 
