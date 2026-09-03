@@ -7,6 +7,7 @@ const roleConfig = {
 const TURNSTILE_SITEKEY = '1x00000000000000000000AA';
 const turnstileState = Object.fromEntries(['student', 'admin', 'observer', 'correction'].map(role => [role, { widgetId: null, token: '', recoveryAttempts: 0 }]));
 const turnstileTargets = { student: 'studentTurnstile', admin: 'adminTurnstile', observer: 'observerTurnstile', correction: 'correctionTurnstile' };
+let portalAlertTimer = null;
 
 window.initTurnstile = function initTurnstile() {
     renderTurnstile('student');
@@ -31,8 +32,6 @@ function renderTurnstile(role) {
             state.token = token;
             state.recoveryAttempts = 0;
             showTurnstileRecovery(role, '');
-            // Do not clear login feedback here. Turnstile resets after a failed login,
-            // and clearing the alert made the useful error disappear almost instantly.
         },
         'expired-callback': () => recoverTurnstile(role, 'Security verification expired. Refreshing…', true),
         'timeout-callback': () => recoverTurnstile(role, 'Security verification timed out. Refreshing…', true),
@@ -197,6 +196,11 @@ function showPortalAlert(message, type = 'error') {
     const box = document.getElementById('unifiedAlert');
     if (!box) return;
 
+    if (portalAlertTimer) {
+        window.clearTimeout(portalAlertTimer);
+        portalAlertTimer = null;
+    }
+
     box.textContent = message;
     box.hidden = !message;
 
@@ -212,30 +216,40 @@ function showPortalAlert(message, type = 'error') {
     if (window.matchMedia('(max-width: 760px)').matches) {
         box.style.cssText = [
             'position:fixed',
-            'top:max(12px, env(safe-area-inset-top))',
-            'left:12px',
-            'right:12px',
+            'top:max(14px, env(safe-area-inset-top))',
+            'left:50%',
+            'transform:translateX(-50%)',
             'z-index:10000',
-            'max-width:680px',
-            'margin:0 auto',
-            'padding:16px 18px',
-            'border-radius:14px',
-            'font-size:16px',
-            'font-weight:700',
-            'line-height:1.45',
+            'width:calc(100% - 28px)',
+            'max-width:520px',
+            'margin:0',
+            'padding:11px 14px',
+            'border-radius:10px',
+            'font-size:15px',
+            'font-weight:600',
+            'line-height:1.4',
             'text-align:left',
-            `color:${isSuccess ? '#d1fae5' : '#fee2e2'}`,
-            `background:${isSuccess ? '#064e3b' : '#7f1d1d'}`,
-            `border:2px solid ${isSuccess ? '#34d399' : '#f87171'}`,
-            'box-shadow:0 16px 40px rgba(0,0,0,.45)'
+            `color:${isSuccess ? '#d1fae5' : '#f8fafc'}`,
+            'background:rgba(30,41,59,.96)',
+            `border:1px solid ${isSuccess ? 'rgba(52,211,153,.55)' : 'rgba(248,113,113,.45)'}`,
+            `border-left:4px solid ${isSuccess ? '#34d399' : '#f87171'}`,
+            'box-shadow:0 8px 24px rgba(0,0,0,.28)',
+            'backdrop-filter:blur(10px)',
+            '-webkit-backdrop-filter:blur(10px)',
+            'transition:opacity .25s ease, transform .25s ease'
         ].join(';');
         box.focus({ preventScroll: true });
-        return;
+    } else {
+        box.removeAttribute('style');
+        box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        box.focus({ preventScroll: true });
     }
 
-    box.removeAttribute('style');
-    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    box.focus({ preventScroll: true });
+    portalAlertTimer = window.setTimeout(() => {
+        box.style.opacity = '0';
+        if (window.matchMedia('(max-width: 760px)').matches) box.style.transform = 'translate(-50%, -6px)';
+        window.setTimeout(() => showPortalAlert(''), 260);
+    }, 4500);
 }
 
 // DOB Correction Modal Controller
