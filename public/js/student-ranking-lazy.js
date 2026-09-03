@@ -4,6 +4,22 @@
   let loaded = false;
   let loading = false;
 
+  function realRankingButton() {
+    return document.querySelector('.tabs-nav .tab-btn[aria-controls="tab-ranking"]');
+  }
+
+  function removeLazyDuplicateIfRealRankingExists() {
+    const realButton = realRankingButton();
+    const realPanel = document.getElementById('tab-ranking');
+    if (!realButton || !realPanel) return null;
+
+    document.querySelectorAll('.tabs-nav .tab-btn[aria-controls="tab-ranking-lazy"]').forEach(node => node.remove());
+    document.querySelectorAll('#tab-ranking-lazy').forEach(node => node.remove());
+    loaded = true;
+    loading = false;
+    return realButton;
+  }
+
   function addScript(src, marker) {
     return new Promise((resolve, reject) => {
       const existing = document.querySelector(`script[data-${marker}]`);
@@ -24,6 +40,8 @@
   }
 
   function installPlaceholder() {
+    const authoritative = removeLazyDuplicateIfRealRankingExists();
+    if (authoritative) return authoritative;
     if (document.getElementById('tab-ranking-lazy')) return document.querySelector('[aria-controls="tab-ranking-lazy"]');
     const tabs = document.querySelector('.tabs-nav');
     const dashboard = document.getElementById('dashboardContent');
@@ -55,6 +73,11 @@
   }
 
   async function loadRanking(placeholderButton, placeholderPanel) {
+    const authoritative = removeLazyDuplicateIfRealRankingExists();
+    if (authoritative) {
+      authoritative.click();
+      return;
+    }
     if (loaded || loading) return;
     loading = true;
     placeholderButton.disabled = true;
@@ -94,7 +117,7 @@
     loaded = true;
     loading = false;
 
-    const realButton = [...document.querySelectorAll('.tabs-nav .tab-btn')].find(btn => btn.getAttribute('aria-controls') === 'tab-ranking');
+    const realButton = realRankingButton();
     placeholderPanel.remove();
     placeholderButton.remove();
     document.getElementById('overviewRankSpotlight')?.setAttribute('hidden', '');
@@ -121,6 +144,12 @@
     }
     if (new URLSearchParams(location.search).get('tab') === 'ranking') button.click();
   }
+
+  const authoritativeRankingObserver = new MutationObserver(() => {
+    if (removeLazyDuplicateIfRealRankingExists()) authoritativeRankingObserver.disconnect();
+  });
+  authoritativeRankingObserver.observe(document.documentElement, { childList:true, subtree:true });
+  setTimeout(() => authoritativeRankingObserver.disconnect(), 15000);
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once:true });
   else boot();
