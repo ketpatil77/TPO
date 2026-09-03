@@ -12,10 +12,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  update-multer:
+  finalize-audit:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
         with:
@@ -25,35 +25,74 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install multer@2.3.0 --save
-      - name: Harden multipart limits
+      - name: Apply final audit fixes
         run: |
           node <<'NODE'
           const fs = require('fs');
           function replaceOne(file, before, after) {
             const source = fs.readFileSync(file, 'utf8');
-            if (!source.includes(before)) throw new Error(`Expected multipart configuration not found in ${file}`);
+            if (!source.includes(before)) throw new Error(`Expected pattern not found in ${file}: ${before.slice(0, 80)}`);
             fs.writeFileSync(file, source.replace(before, after));
           }
+
           replaceOne(
             'src/routes/adminRoster.js',
             "const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });",
-            "const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 1, fields: 2, parts: 3, fieldNestingDepth: 0, fieldArrayIndexLimit: 0 } });"
+            "const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 1, fields: 2, parts: 4, fieldNestingDepth: 0, fieldArrayIndexLimit: 0 } });"
           );
+
           replaceOne(
             'src/routes/student.js',
             "const resumeUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_RESUME_BYTES, files: 1 } });",
-            "const resumeUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_RESUME_BYTES, files: 1, fields: 0, parts: 1, fieldNestingDepth: 0, fieldArrayIndexLimit: 0 } });"
+            "const resumeUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_RESUME_BYTES, files: 1, fields: 1, parts: 2, fieldNestingDepth: 0, fieldArrayIndexLimit: 0 } });"
           );
+
+          replaceOne(
+            'src/utils/avatar.js',
+            "        parts: 1,",
+            "        parts: 2,"
+          );
+
+          replaceOne(
+            'src/routes/student.js',
+            "        if (branch !== undefined) updateData.branch = branch;\n        if (year !== undefined) updateData.year = year;",
+            "        // Branch, class and academic year are college-owned roster assignments.\n        // Student payload values are accepted for backward compatibility but never trusted.\n        const rosterAssignment = await db.selectOne('roster', { prn: currentStudent.prn });\n        if (rosterAssignment) {\n            updateData.branch = rosterAssignment.branch;\n            updateData.class = rosterAssignment.class;\n            updateData.year = rosterAssignment.year;\n        }"
+          );
+
+          replaceOne(
+            'src/routes/student.js',
+            "        if (!req.file || !req.file.buffer) {\n            return res.status(400).json({ success: false, error: { code: 'INVALID_INPUT', message: 'No valid resume file provided.' } });\n        }",
+            "        if (!req.file || !req.file.buffer || req.file.mimetype !== 'application/pdf' || req.file.buffer.subarray(0, 5).toString() !== '%PDF-') {\n            return res.status(400).json({ success: false, error: { code: 'INVALID_PDF', message: 'Valid PDF file required.' } });\n        }"
+          );
+
+          replaceOne(
+            'test/security.test.js',
+            ".field('csvContent', 'prn,name,dob,branch,class,year\\n123,Test Student,2004-01-15,E&C,BE-A,Final Year')",
+            ".field('csvContent', 'prn,name,dob,branch,class,year\\n1234567890,Test Student,2004-01-15,E&C,BE-A,Final Year')"
+          );
+
+          const oldTemplateTest = `test('formatted Excel roster template preserves full PRN and readable DOB during import', async () => {\n    const adminToken = jwt.sign({ role: 'admin', adminId: 'admin-test', sessionVersion: 2 }, process.env.JWT_SECRET);\n    const template = require('fs').readFileSync(require('path').join(__dirname, '..', 'public', 'templates', 'AIT-roster-template.xlsx'));\n    const preview = await request(app).post('/api/admin/roster/preview')\n        .set('Authorization', \`Bearer \${adminToken}\`)\n        .attach('file', template, { filename: 'AIT-roster-template.xlsx', contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })\n        .expect(200);\n    assert.equal(preview.body.data.rows[0].prn, '24000000000001');\n    assert.equal(preview.body.data.rows[0].dob, '2004-01-15');\n    assert.equal(preview.body.data.rows[0].branch, 'E&C');\n});`;
+          const newTemplateTest = `test('formatted Excel roster template preserves full PRN and readable DOB during import', async () => {\n    const adminToken = jwt.sign({ role: 'admin', adminId: 'admin-test', sessionVersion: 2 }, process.env.JWT_SECRET);\n    const ExcelJS = require('exceljs');\n    const template = require('fs').readFileSync(require('path').join(__dirname, '..', 'public', 'templates', 'AIT-roster-template.xlsx'));\n    const workbook = new ExcelJS.Workbook();\n    await workbook.xlsx.load(template);\n    const sheet = workbook.getWorksheet('Roster');\n    sheet.getCell('A2').value = '24000000000001';\n    sheet.getCell('B2').value = 'Template Student';\n    sheet.getCell('C2').value = '15-01-2004';\n    sheet.getCell('D2').value = 'E&C';\n    sheet.getCell('E2').value = 'BE-A';\n    sheet.getCell('F2').value = 'Final Year';\n    const populatedTemplate = await workbook.xlsx.writeBuffer();\n    const preview = await request(app).post('/api/admin/roster/preview')\n        .set('Authorization', \`Bearer \${adminToken}\`)\n        .attach('file', Buffer.from(populatedTemplate), { filename: 'AIT-roster-template.xlsx', contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })\n        .expect(200);\n    assert.equal(preview.body.data.rows[0].prn, '24000000000001');\n    assert.equal(preview.body.data.rows[0].dob, '2004-01-15');\n    assert.equal(preview.body.data.rows[0].branch, 'E&C');\n});`;
+          replaceOne('test/security.test.js', oldTemplateTest, newTemplateTest);
+
+          const source = fs.readFileSync('test/security.test.js', 'utf8');
+          const anchor = "test('health endpoint responds', async () => {";
+          if (!source.includes("students cannot change roster-owned branch or year through profile API")) {
+            const added = `test('students cannot change roster-owned branch or year through profile API', async () => {\n    const suffix = String(Date.now()).slice(-8);\n    const prn = \`987654\${suffix}\`;\n    const roster = await db.insert('roster', { prn, name: 'Assignment Lock Student', dob: '2004-01-15', branch: 'CT', class: 'BE-A', year: 'Final Year' });\n    const student = await db.insert('students', { prn, name: roster.name, branch: roster.branch, class: roster.class, year: roster.year, cgpa_overall: 0, cgpa_semesterwise: {}, backlogs_semesterwise: {} });\n    const token = jwt.sign({ role: 'student', studentId: student.id, prn, sessionVersion: 2 }, process.env.JWT_SECRET);\n    const csrf = 'assignment-lock';\n    await request(app).put('/api/student/profile')\n        .set({ Authorization: \`Bearer \${token}\`, Cookie: \`csrfToken=\${csrf}\`, 'X-CSRF-Token': csrf })\n        .send({ branch: 'AIML', year: 'First Year' })\n        .expect(200);\n    const saved = await db.selectOne('students', { id: student.id });\n    assert.equal(saved.branch, 'CT');\n    assert.equal(saved.class, 'BE-A');\n    assert.equal(saved.year, 'Final Year');\n});\n\n`;
+            fs.writeFileSync('test/security.test.js', source.replace(anchor, added + anchor));
+          }
           NODE
       - run: node scripts/generate-roster-template.js
       - run: npm audit --audit-level=high
       - run: npm test
-      - name: Commit generated dependency, security, and template files
+      - run: npm run check
+      - run: npm run deploy:dry-run
+      - name: Commit finalized audit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json src/routes/adminRoster.js src/routes/student.js public/templates/AIT-roster-template.xlsx
+          git add package.json package-lock.json src/routes/adminRoster.js src/routes/student.js src/utils/avatar.js test/security.test.js public/templates/AIT-roster-template.xlsx
           if ! git diff --cached --quiet; then
-            git commit -m "Upgrade Multer and harden multipart uploads"
+            git commit -m "Finalize system audit fixes"
             git push origin HEAD:system-audit-20260903
           fi
