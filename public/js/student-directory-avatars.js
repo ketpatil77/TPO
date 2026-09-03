@@ -37,13 +37,13 @@
         if (!document.querySelector('link[data-admin-student-mobile-cards]')) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = '/css/admin-student-mobile-cards.css?v=20260903-1';
+            link.href = '/css/admin-student-mobile-cards.css?v=20260903-2';
             link.dataset.adminStudentMobileCards = 'true';
             document.head.appendChild(link);
         }
         if (!document.querySelector('script[data-admin-student-mobile-cards]')) {
             const script = document.createElement('script');
-            script.src = '/js/admin-student-mobile-cards.js?v=20260903-1';
+            script.src = '/js/admin-student-mobile-cards.js?v=20260903-2';
             script.defer = true;
             script.dataset.adminStudentMobileCards = 'true';
             document.body.appendChild(script);
