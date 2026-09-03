@@ -21,13 +21,13 @@ function tableFor(type) {
     return null;
 }
 
-function normalizeStoredStatus(type, status) {
-    if (type === 'certificate' && status === 'verified') return 'approved';
+function normalizeStoredStatus(_type, status) {
+    if (status === 'verified') return 'approved';
     return status || 'pending';
 }
 
-function statusForDatabase(type, status) {
-    if (type === 'certificate' && status === 'approved') return 'verified';
+function statusForDatabase(_type, status) {
+    if (status === 'approved') return 'verified';
     return status;
 }
 
