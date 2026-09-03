@@ -32,6 +32,24 @@
         return holder;
     }
 
+    function loadAdminMobileDirectory() {
+        if (!isAdmin) return;
+        if (!document.querySelector('link[data-admin-student-mobile-cards]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = '/css/admin-student-mobile-cards.css?v=20260903-1';
+            link.dataset.adminStudentMobileCards = 'true';
+            document.head.appendChild(link);
+        }
+        if (!document.querySelector('script[data-admin-student-mobile-cards]')) {
+            const script = document.createElement('script');
+            script.src = '/js/admin-student-mobile-cards.js?v=20260903-1';
+            script.defer = true;
+            script.dataset.adminStudentMobileCards = 'true';
+            document.body.appendChild(script);
+        }
+    }
+
     function adminStudents() {
         try { return Array.isArray(allStudentsData) ? allStudentsData : []; }
         catch (_) { return []; }
@@ -106,6 +124,7 @@
     }
 
     function boot() {
+        loadAdminMobileDirectory();
         refresh();
         ['studentsTableBody', 'observerStudents', 'modalContent', 'observerModalBody'].forEach(watch);
         document.addEventListener('click', event => {
