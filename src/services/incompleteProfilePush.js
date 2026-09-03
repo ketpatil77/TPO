@@ -11,6 +11,11 @@ function configuredThreshold(env = process.env) {
     return Number.isFinite(value) && value >= 0 && value <= 100 ? value : DEFAULT_THRESHOLD;
 }
 
+function pushOptions(env = process.env) {
+    const timeout = Number(env.PUSH_REQUEST_TIMEOUT_MS || 7000);
+    return { vapidDetails: vapidDetails(env), TTL: 86400, timeout: Number.isFinite(timeout) && timeout >= 1000 ? timeout : 7000 };
+}
+
 function buildReminderPayload(row) {
     const missing = row.missing.slice(0, 3);
     return {
@@ -63,7 +68,7 @@ async function deliverPushRecords(records, payload, { sendNotification = webPush
     const result = { checked: records.length, sent: 0, deleted: 0, failed: 0 };
     await Promise.all(records.map(async record => {
         try {
-            await sendNotification(record.subscription, JSON.stringify(payload), { vapidDetails: vapidDetails(env), TTL: 86400 });
+            await sendNotification(record.subscription, JSON.stringify(payload), pushOptions(env));
             await db.update('student_push_subscriptions', { id: record.id }, { last_notified_at: now.toISOString(), last_error: null, updated_at: now.toISOString() });
             result.sent += 1;
         } catch (error) {
@@ -153,9 +158,7 @@ async function deliverCampaignPush({ campaignKey, subscription, notification, se
         updated_at: now.toISOString()
     };
     try {
-        await sendNotification(subscription.subscription, JSON.stringify(buildPortalNotificationPayload(notification)), {
-            vapidDetails: vapidDetails(env), TTL: 86400
-        });
+        await sendNotification(subscription.subscription, JSON.stringify(buildPortalNotificationPayload(notification)), pushOptions(env));
         await Promise.all([
             db.update('student_push_subscriptions', { id: subscription.id }, { last_notified_at: now.toISOString(), last_error: null, updated_at: now.toISOString() }),
             upsertBroadcastDelivery({ ...base, status: 'sent', attempts: 1, last_error: null })
@@ -331,7 +334,7 @@ async function runLegacyIncompleteProfilePushJob({ sendNotification = webPush.se
         if (!row || row.completion >= threshold) continue;
         result.eligible += 1;
         try {
-            await sendNotification(record.subscription, JSON.stringify(buildReminderPayload(row)), { vapidDetails: vapidDetails(env), TTL: 86400 });
+            await sendNotification(record.subscription, JSON.stringify(buildReminderPayload(row)), pushOptions(env));
             await db.update('student_push_subscriptions', { id: record.id }, { last_notified_at: now.toISOString(), last_error: null, updated_at: now.toISOString() });
             result.sent += 1;
         } catch (error) {
@@ -366,7 +369,7 @@ async function sendStudentProfilePush(studentId, { sendNotification = webPush.se
     const result = { completion: row.completion, missing: row.missing, checked: subscriptions.length, sent: 0, deleted: 0, failed: 0 };
     for (const record of subscriptions) {
         try {
-            await sendNotification(record.subscription, JSON.stringify(buildReminderPayload(row)), { vapidDetails: vapidDetails(env), TTL: 86400 });
+            await sendNotification(record.subscription, JSON.stringify(buildReminderPayload(row)), pushOptions(env));
             await db.update('student_push_subscriptions', { id: record.id }, { last_notified_at: now.toISOString(), last_error: null, updated_at: now.toISOString() });
             result.sent += 1;
         } catch (error) {
