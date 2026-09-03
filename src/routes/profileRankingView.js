@@ -5,7 +5,7 @@ const { authenticateStudent } = require('../middleware/auth');
 const router = express.Router();
 router.use(authenticateStudent);
 
-const RULE_VERSION = '2026-27 v3.0';
+const RULE_VERSION = '2026-27 v3.1';
 const LEVEL_POINTS = {
   'Department': 1,
   'Institute / College': 2,
@@ -77,7 +77,8 @@ function groupByStudent(rows) {
 }
 
 function statusOf(item) {
-  return item?.verification_status || 'pending';
+  const status = item?.verification_status || 'pending';
+  return status === 'approved' ? 'verified' : status;
 }
 
 function money(value) {
@@ -86,6 +87,14 @@ function money(value) {
 
 function emptyExplanationSet() {
   return { academics: [], certificates: [], projects: [], research: [], competitions: [], internships: [], skills: [], profile: [] };
+}
+
+function statusCounts(rows) {
+  return (rows || []).reduce((acc, item) => {
+    const state = statusOf(item);
+    acc[state] = (acc[state] || 0) + 1;
+    return acc;
+  }, { pending: 0, verified: 0, rejected: 0 });
 }
 
 function scoreStudent(profile, related) {
@@ -111,15 +120,29 @@ function scoreStudent(profile, related) {
     reason: 'Profile CGPA counts automatically from the published CGPA band; no verification step is required.'
   });
 
-  const certificates = [...all.certificates].sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
-  certificates.forEach((item, index) => {
+  const certificateSort = (a, b) => String(a.name || '').localeCompare(String(b.name || ''));
+  const verifiedCertificates = all.certificates.filter(item => statusOf(item) === 'verified').sort(certificateSort);
+  const pendingCertificates = all.certificates.filter(item => statusOf(item) === 'pending').sort(certificateSort);
+
+  verifiedCertificates.forEach((item, index) => {
     const points = certificatePointAt(index);
     earned.certificates += points;
     explanations.certificates.push({
       label: item.name || 'Certificate',
       points,
-      status: 'auto-counted',
-      reason: `${item.issuer || 'Issuer'} · certificate #${index + 1} counted automatically.`
+      status: 'verified',
+      reason: `${item.issuer || 'Issuer'} · verified certificate #${index + 1}.`
+    });
+  });
+
+  pendingCertificates.forEach((item, index) => {
+    const points = certificatePointAt(verifiedCertificates.length + index);
+    pending.certificates += points;
+    pendingExplanations.certificates.push({
+      label: item.name || 'Certificate',
+      points,
+      status: 'pending',
+      reason: `${item.issuer || 'Issuer'} · no points until TPO/TPC verification is completed.`
     });
   });
 
@@ -201,14 +224,16 @@ function scoreStudent(profile, related) {
 
   Object.keys(earned).forEach(key => { earned[key] = money(earned[key]); pending[key] = money(pending[key]); });
   const points = money(Object.values(earned).reduce((sum, value) => sum + value, 0));
-  const pendingPoints = money(pending.competitions);
+  const pendingPoints = money(Object.values(pending).reduce((sum, value) => sum + value, 0));
   const potentialPoints = money(points + pendingPoints);
 
-  const competitionCounts = all.competitions.reduce((acc, item) => {
-    const state = statusOf(item);
-    acc[state] = (acc[state] || 0) + 1;
-    return acc;
-  }, { pending: 0, verified: 0, rejected: 0 });
+  const certificateCounts = statusCounts(all.certificates);
+  const competitionCounts = statusCounts(all.competitions);
+  const evidenceCounts = {
+    pending: certificateCounts.pending + competitionCounts.pending,
+    verified: certificateCounts.verified + competitionCounts.verified,
+    rejected: certificateCounts.rejected + competitionCounts.rejected
+  };
 
   return {
     points,
@@ -218,7 +243,8 @@ function scoreStudent(profile, related) {
     pending_breakdown: pending,
     explanations,
     pending_explanations: pendingExplanations,
-    evidence_counts: competitionCounts,
+    evidence_counts: evidenceCounts,
+    certificate_counts: certificateCounts,
     competition_counts: competitionCounts
   };
 }
@@ -287,9 +313,9 @@ async function buildLeaderboard(currentStudentId, branchQuery, yearQuery) {
     current: rows.find(row => row.student_id === currentStudentId) || null,
     rules: {
       version: RULE_VERSION,
-      note: 'CGPA and student profile records count automatically using fixed rules. Only competition points require TPO/TPC verification.',
+      note: 'Certificate and competition points are verification-gated. Pending or rejected evidence earns zero points. Verified evidence is counted immediately on the next ranking calculation.',
       academics: 'Profile CGPA: <5 = 0, 5–5.99 = 5, 6–6.99 = 10, 7–7.99 = 15, 8–8.99 = 20, 9+ = 25. No verification step.',
-      certificates: 'Certificates count automatically: first 5 = 2 each, next 5 = 1.5 each, later certificates = 0.75 each.',
+      certificates: 'Verified certificates only: first 5 verified certificates = 2 points each, next 5 = 1.5 each, later verified certificates = 0.75 each. Pending/rejected certificates = 0.',
       projects: 'Project = 4 base + 2 repository + 2 live project URL.',
       research: 'Publication = 8 + 2 valid DOI + 1 paper link.',
       competitions: 'Competition points count only after TPO/TPC verification: published level points + result points.',
@@ -305,6 +331,8 @@ router.get('/profile', async (req, res) => {
     const branch = typeof req.query.branch === 'string' ? req.query.branch : '';
     const year = typeof req.query.year === 'string' ? req.query.year : '';
     const data = await buildLeaderboard(req.student.studentId, branch, year);
+    res.setHeader('Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
     return res.json({ success: true, data });
   } catch (error) {
     console.error('Transparent ranking view failed:', error.message);
