@@ -94,6 +94,177 @@ async function createStudentNotification(data, options = {}) {
     return { notification, delivery };
 }
 
+function groupByStudent(rows) {
+    return (rows || []).reduce((map, row) => {
+        const list = map.get(row.student_id) || [];
+        list.push(row);
+        map.set(row.student_id, list);
+        return map;
+    }, new Map());
+}
+
+function cohortKey(student) {
+    return `${String(student.branch || '').toUpperCase()}|${String(student.year || '').toLowerCase()}`;
+}
+
+function buildCohortRanks(students, related, scoreStudent) {
+    const cohorts = new Map();
+    students.filter(student => student.status !== 'inactive').forEach(student => {
+        const score = scoreStudent(student, related);
+        const key = cohortKey(student);
+        const list = cohorts.get(key) || [];
+        list.push({ student_id: student.id, name: student.name || '', points: score.total });
+        cohorts.set(key, list);
+    });
+
+    const ranks = new Map();
+    for (const list of cohorts.values()) {
+        list.sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
+        let previousPoints = null;
+        let previousRank = 0;
+        list.forEach((item, index) => {
+            if (previousPoints === null || item.points !== previousPoints) previousRank = index + 1;
+            ranks.set(item.student_id, { rank: previousRank, total: list.length, points: item.points });
+            previousPoints = item.points;
+        });
+    }
+    return ranks;
+}
+
+function incompleteProfileMessage(row, student, rankInfo) {
+    const shownMissing = row.missing.slice(0, 5);
+    const extra = Math.max(0, row.missing.length - shownMissing.length);
+    const missingText = `${shownMissing.join(', ')}${extra ? ` +${extra} more` : ''}`;
+    const cohort = [student.branch, student.year].filter(Boolean).join(' ');
+    const rankText = rankInfo ? ` Current ${cohort || 'cohort'} rank: #${rankInfo.rank} of ${rankInfo.total}.` : '';
+    return `Profile ${row.completion}% complete. Missing: ${missingText}.${rankText} Complete the missing items and get evidence verified; unverified evidence earns 0 Profile Points.`;
+}
+
+async function runIncompleteProfileRankBroadcast({ sendNotification = webPush.sendNotification, env = process.env, now = new Date() } = {}) {
+    // Required lazily to avoid the profileRanking -> incompleteProfilePush dependency during module initialization.
+    const { scoreStudent } = require('../routes/profileRanking');
+    const [rows, students, subscriptions, internships, certificates, projects, research, competitions, skills] = await Promise.all([
+        reportRows({}),
+        db.select('students'),
+        db.select('student_push_subscriptions'),
+        db.select('internships'),
+        db.select('certificates'),
+        db.select('student_projects'),
+        db.select('research_papers'),
+        db.select('student_competitions'),
+        db.select('student_skills')
+    ]);
+
+    const related = {
+        internships: groupByStudent(internships),
+        certificates: groupByStudent(certificates),
+        projects: groupByStudent(projects),
+        research: groupByStudent(research),
+        competitions: groupByStudent(competitions),
+        skills: groupByStudent(skills)
+    };
+    const ranks = buildCohortRanks(students, related, scoreStudent);
+    const studentByPrn = new Map(students.map(student => [String(student.prn), student]));
+    const subscriptionsByStudent = groupByStudent(subscriptions);
+    const targets = rows.map(row => ({ row, student: studentByPrn.get(String(row.prn)) }))
+        .filter(({ row, student }) => row.profile_active && row.completion < 100 && student && student.status !== 'inactive');
+
+    const result = {
+        checked: rows.length,
+        incomplete: targets.length,
+        notifications_created: 0,
+        notification_failed: 0,
+        subscriptions_checked: 0,
+        push_sent: 0,
+        push_deleted: 0,
+        push_failed: 0
+    };
+
+    const batchSize = 10;
+    for (let offset = 0; offset < targets.length; offset += batchSize) {
+        const batch = targets.slice(offset, offset + batchSize);
+        const outcomes = await Promise.all(batch.map(async ({ row, student }) => {
+            try {
+                const rankInfo = ranks.get(student.id) || null;
+                const notification = await db.insert('notifications', {
+                    student_id: student.id,
+                    audience: 'student',
+                    branches: [],
+                    title: rankInfo ? `Complete your profile · Rank #${rankInfo.rank}` : 'Complete your placement profile',
+                    message: incompleteProfileMessage(row, student, rankInfo),
+                    priority: 'important',
+                    action_url: '/dashboard?tab=edit-profile',
+                    created_at: now.toISOString()
+                });
+                const delivery = await deliverPushRecords(
+                    subscriptionsByStudent.get(student.id) || [],
+                    buildPortalNotificationPayload(notification),
+                    { sendNotification, env, now }
+                );
+                return { created: 1, delivery };
+            } catch (error) {
+                console.error(`Incomplete profile notification failed for ${student.prn}:`, error.message);
+                return { created: 0, failed: 1, delivery: { checked: 0, sent: 0, deleted: 0, failed: 0 } };
+            }
+        }));
+        outcomes.forEach(outcome => {
+            result.notifications_created += outcome.created || 0;
+            result.notification_failed += outcome.failed || 0;
+            result.subscriptions_checked += outcome.delivery.checked || 0;
+            result.push_sent += outcome.delivery.sent || 0;
+            result.push_deleted += outcome.delivery.deleted || 0;
+            result.push_failed += outcome.delivery.failed || 0;
+        });
+    }
+    return result;
+}
+
+async function runIncompleteProfileRankBroadcastOnce({ campaignKey, sendNotification = webPush.sendNotification, env = process.env, now = new Date() } = {}) {
+    const key = String(campaignKey || '').trim();
+    if (!key) throw new Error('A campaign key is required for a one-time profile broadcast.');
+
+    let job = await db.selectOne('notification_broadcasts', { campaign_key: key });
+    if (job?.status === 'completed' || job?.status === 'running') {
+        return { skipped: true, campaign_key: key, status: job.status, result: job.result || null };
+    }
+
+    if (job?.status === 'failed') {
+        job = await db.update('notification_broadcasts', { id: job.id }, { status: 'running', result: null, completed_at: null });
+    } else {
+        try {
+            job = await db.insert('notification_broadcasts', {
+                campaign_key: key,
+                status: 'running',
+                created_at: now.toISOString()
+            });
+        } catch (error) {
+            if (String(error.code || '') === '23505') {
+                const existing = await db.selectOne('notification_broadcasts', { campaign_key: key });
+                return { skipped: true, campaign_key: key, status: existing?.status || 'running', result: existing?.result || null };
+            }
+            throw error;
+        }
+    }
+
+    try {
+        const result = await runIncompleteProfileRankBroadcast({ sendNotification, env, now });
+        await db.update('notification_broadcasts', { id: job.id }, {
+            status: 'completed',
+            result,
+            completed_at: new Date().toISOString()
+        });
+        await db.logAudit('incomplete_profile_rank_broadcast', 'notifications', null, { campaign_key: key, ...result });
+        return { skipped: false, campaign_key: key, status: 'completed', result };
+    } catch (error) {
+        await db.update('notification_broadcasts', { id: job.id }, {
+            status: 'failed',
+            result: { error: String(error.message || error).slice(0, 1000) },
+            completed_at: new Date().toISOString()
+        });
+        throw error;
+    }
+}
+
 async function runIncompleteProfilePushJob({ sendNotification = webPush.sendNotification, env = process.env, now = new Date() } = {}) {
     const threshold = configuredThreshold(env);
     const [rows, students, subscriptions] = await Promise.all([
@@ -171,4 +342,19 @@ async function runProfileCompletionBroadcast(options = {}) {
     return result;
 }
 
-module.exports = { DEFAULT_THRESHOLD, configuredThreshold, buildReminderPayload, buildPortalNotificationPayload, normalizeBase64Url, vapidDetails, deliverPushRecords, sendPortalNotification, createStudentNotification, runIncompleteProfilePushJob, sendStudentProfilePush, runProfileCompletionBroadcast };
+module.exports = {
+    DEFAULT_THRESHOLD,
+    configuredThreshold,
+    buildReminderPayload,
+    buildPortalNotificationPayload,
+    normalizeBase64Url,
+    vapidDetails,
+    deliverPushRecords,
+    sendPortalNotification,
+    createStudentNotification,
+    runIncompleteProfileRankBroadcast,
+    runIncompleteProfileRankBroadcastOnce,
+    runIncompleteProfilePushJob,
+    sendStudentProfilePush,
+    runProfileCompletionBroadcast
+};
