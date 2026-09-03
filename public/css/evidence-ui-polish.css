@@ -76,24 +76,36 @@
     border-radius:16px!important;
     min-height:0!important;
   }
-  #certificatesList .certificate-vault-title{
+  #certificatesList .certificate-vault-title,
+  #internshipsList .evidence-polished-card .item-details>div:first-child{
     display:grid!important;
     grid-template-columns:minmax(0,1fr) auto!important;
     align-items:start!important;
+    justify-content:stretch!important;
     gap:.55rem!important;
+    width:100%!important;
   }
   #certificatesList .certificate-vault-title h4,
-  #internshipsList .evidence-polished-card h4{
+  #internshipsList .evidence-polished-card .item-details>div:first-child h4{
+    grid-column:1!important;
+    grid-row:1!important;
+    justify-self:start!important;
+    width:100%!important;
     font-size:1.08rem!important;
     line-height:1.22!important;
   }
   #certificatesList .certificate-vault-title .badge,
-  #internshipsList .evidence-polished-card .badge{
+  #internshipsList .evidence-polished-card .item-details>div:first-child .badge{
+    grid-column:2!important;
+    grid-row:1!important;
+    justify-self:end!important;
+    align-self:start!important;
     flex:0 0 auto!important;
     font-size:.66rem!important;
     line-height:1!important;
     padding:.38rem .52rem!important;
     white-space:nowrap!important;
+    margin:0!important;
   }
   #certificatesList .evidence-polished-card .item-details>p,
   #internshipsList .evidence-polished-card .item-details>p{
@@ -138,7 +150,7 @@
   #certificatesList .item-card.evidence-polished-card,
   #internshipsList .item-card.evidence-polished-card{padding:.78rem!important;}
   #certificatesList .certificate-vault-title h4,
-  #internshipsList .evidence-polished-card h4{font-size:1rem!important;}
+  #internshipsList .evidence-polished-card .item-details>div:first-child h4{font-size:1rem!important;}
   #certificatesList .certificate-vault-actions,
   #internshipsList .evidence-polished-card .item-actions{gap:.32rem!important;}
   #certificatesList .certificate-vault-actions .btn,
