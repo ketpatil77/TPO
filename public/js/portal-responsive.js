@@ -94,6 +94,7 @@
         if (authenticatedWorkspace) {
             loadStylesheet('/css/portal-back-guard.css?v=20260901-1', 'portal-back-guard');
             loadScript('/js/portal-back-guard.js?v=20260901-1', 'portal-back-guard-js');
+            loadStylesheet('/css/proof-workflow.css?v=20260903-1', 'proof-workflow');
         }
 
         document.getElementById('notificationGateSignOut')?.addEventListener('click', () => document.getElementById('logoutBtn')?.click());
@@ -120,6 +121,7 @@
             loadScript('/js/free-learning.js?v=20260902-3', 'free-learning-js');
             loadStylesheet('/css/certificate-vault.css?v=20260903-1', 'certificate-vault-css');
             loadScript('/js/certificate-vault-ui.js?v=20260903-1', 'certificate-vault-ui-js');
+            loadScript('/js/internship-proof-ui.js?v=20260903-1', 'internship-proof-ui-js');
         }
 
         if (document.body.classList.contains('admin-dashboard-page')) {
@@ -139,6 +141,7 @@
             loadScript('/js/student-directory-avatars.js?v=20260903-1', 'student-directory-avatars-js');
             loadScript('/js/candidate-profile-v2.js?v=20260901-2', 'candidate-profile-v2-js');
             loadScript('/js/competition-review.js?v=20260901-1', 'competition-review-module');
+            loadScript('/js/proof-review-ui.js?v=20260903-1', 'proof-review-ui-js');
         }
     });
 })();
