@@ -2,9 +2,12 @@
     if (window.PortalOperationFeedback) return;
 
     const previousFetch = window.fetch.bind(window);
+    const BACKGROUND_PUSH_TIMEOUT_MS = 13000;
+    const FEEDBACK_FAILSAFE_MS = 20000;
     let activeCount = 0;
     let hideTimer = null;
     let slowTimer = null;
+    let failsafeTimer = null;
     let currentMessage = 'Working…';
 
     function ensureUi() {
@@ -39,9 +42,18 @@
         host.querySelector('.portal-operation-detail').textContent = detail || '';
     }
 
+    function forceHide() {
+        activeCount = 0;
+        clearTimeout(hideTimer);
+        clearTimeout(slowTimer);
+        clearTimeout(failsafeTimer);
+        ensureUi().classList.remove('is-visible');
+    }
+
     function show(message) {
         clearTimeout(hideTimer);
         clearTimeout(slowTimer);
+        clearTimeout(failsafeTimer);
         currentMessage = message || 'Working…';
         activeCount += 1;
         const host = ensureUi();
@@ -50,12 +62,16 @@
         slowTimer = setTimeout(() => {
             if (activeCount > 0) setCopy(currentMessage, 'Still working. Slow connections can take a few seconds.');
         }, 1800);
+        // A UI status indicator must never become a permanent overlay just because a browser/network
+        // promise stopped settling. The underlying request may continue; the dashboard stays usable.
+        failsafeTimer = setTimeout(forceHide, FEEDBACK_FAILSAFE_MS);
     }
 
     function hide() {
         activeCount = Math.max(0, activeCount - 1);
         if (activeCount > 0) return;
         clearTimeout(slowTimer);
+        clearTimeout(failsafeTimer);
         hideTimer = setTimeout(() => {
             if (activeCount === 0) ensureUi().classList.remove('is-visible');
         }, 160);
@@ -66,15 +82,27 @@
         if (activeCount > 0) setCopy(currentMessage, detail);
     }
 
-    function classify(input, init = {}) {
+    function requestMeta(input, init = {}) {
         const raw = typeof input === 'string' ? input : input?.url || '';
         if (!raw) return null;
         let url;
         try { url = new URL(raw, location.origin); } catch (_) { return null; }
         if (url.origin !== location.origin || !url.pathname.startsWith('/api/')) return null;
+        return {
+            path: url.pathname,
+            method: String(init.method || (typeof input !== 'string' && input?.method) || 'GET').toUpperCase()
+        };
+    }
 
-        const path = url.pathname;
-        const method = String(init.method || (typeof input !== 'string' && input?.method) || 'GET').toUpperCase();
+    function classify(meta, init = {}) {
+        if (!meta) return null;
+        const { path, method } = meta;
+
+        // Push subscription sync is background housekeeping and already has its own status/retry UI.
+        // Treating it as a user save caused the global "Saving…" indicator to appear forever when
+        // Chrome left the request pending after the caller's timeout.
+        if (/^\/api\/student\/push(?:\/|$)/.test(path)) return null;
+
         if (method === 'POST' && /^\/api\/student\/certificate-evidence\/[^/]+$/.test(path)) return 'Uploading certificate proof…';
         if (method === 'GET' && /^\/api\/student\/certificate-evidence\/[^/]+$/.test(path)) return 'Loading certificate proof…';
         if ((method === 'POST' || method === 'PUT') && /^\/api\/student\/certificates(?:\/[^/]+)?$/.test(path)) return 'Saving certificate…';
@@ -96,8 +124,24 @@
         return null;
     }
 
+    async function fetchBackgroundPush(input, init = {}) {
+        if (typeof AbortController === 'undefined' || init.signal) return previousFetch(input, init);
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), BACKGROUND_PUSH_TIMEOUT_MS);
+        try {
+            return await previousFetch(input, { ...init, signal: controller.signal });
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
     window.fetch = async function portalFeedbackFetch(input, init = {}) {
-        const message = classify(input, init);
+        const meta = requestMeta(input, init);
+        if (meta && /^\/api\/student\/push(?:\/|$)/.test(meta.path)) {
+            return fetchBackgroundPush(input, init);
+        }
+
+        const message = classify(meta, init);
         if (!message) return previousFetch(input, init);
         show(message);
         try {
@@ -107,5 +151,5 @@
         }
     };
 
-    window.PortalOperationFeedback = { show, hide, update };
+    window.PortalOperationFeedback = { show, hide, update, forceHide };
 })();
