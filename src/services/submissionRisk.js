@@ -16,11 +16,14 @@ function validHttps(value) {
   catch (_) { return false; }
 }
 function githubLike(value) {
-  try { const url = new URL(text(value)); return url.protocol === 'https:' && /(^|\.)github\.com$/i.test(url.hostname); }
-  catch (_) { return false; }
+  try {
+    const url = new URL(text(value));
+    const parts = url.pathname.split('/').filter(Boolean);
+    return url.protocol === 'https:' && /(^|\.)github\.com$/i.test(url.hostname) && parts.length >= 2;
+  } catch (_) { return false; }
 }
 function doiLike(value) {
-  try { const url = new URL(text(value)); return url.protocol === 'https:' && /(^|\.)doi\.org$/i.test(url.hostname); }
+  try { const url = new URL(text(value)); return url.protocol === 'https:' && /(^|\.)doi\.org$/i.test(url.hostname) && url.pathname.length > 2; }
   catch (_) { return false; }
 }
 function repeatedContent(values) {
@@ -32,7 +35,7 @@ function auditSample(item = {}) {
   if (!key) return false;
   let hash = 0;
   for (let i = 0; i < key.length; i += 1) hash = ((hash * 31) + key.charCodeAt(i)) >>> 0;
-  return hash % 20 === 0; // stable ~5% sample; no recurring random churn between page loads
+  return hash % 20 === 0; // stable ~5% sample; avoids random changes between page loads
 }
 
 function classify(score,reasons,item) {
@@ -54,8 +57,8 @@ function projectRisk(item = {}) {
   if (text(item.summary).length < 40 || tokens(item.summary).length < 7) { score += 35; reasons.push('Project description is too thin to establish real work.'); }
   if (isJunk(item.summary)) { score += 50; reasons.push('Project description looks like junk text.'); }
   if (text(item.technologies) && isJunk(item.technologies)) { score += 20; reasons.push('Technology list looks invalid.'); }
-  if (!validHttps(item.project_url) && !validHttps(item.repository_url)) { score += 20; reasons.push('No valid HTTPS project or repository URL.'); }
-  if (item.repository_url && !githubLike(item.repository_url)) { score += 10; reasons.push('Repository URL is not a standard GitHub URL.'); }
+  if (!validHttps(item.project_url) && !validHttps(item.repository_url)) { score += 35; reasons.push('A valid HTTPS live project or repository URL is required for automatic scoring.'); }
+  if (item.repository_url && !githubLike(item.repository_url)) { score += 20; reasons.push('Repository URL must point to a GitHub owner/repository path.'); }
   if (repeatedContent([item.title,item.summary,item.technologies])) { score += 30; reasons.push('Repeated placeholder content across fields.'); }
   return classify(score,reasons,item);
 }
@@ -66,8 +69,8 @@ function researchRisk(item = {}) {
   if (isJunk(item.publication)) { score += 45; reasons.push('Publication/journal looks invalid.'); }
   if (text(item.abstract).length < 80 || tokens(item.abstract).length < 12) { score += 35; reasons.push('Abstract/contribution is too short.'); }
   if (isJunk(item.abstract)) { score += 60; reasons.push('Abstract looks like junk text.'); }
-  if (!validHttps(item.doi_url) && !validHttps(item.paper_url)) { score += 25; reasons.push('No valid DOI or paper URL.'); }
-  if (item.doi_url && !doiLike(item.doi_url)) { score += 20; reasons.push('DOI URL is not on doi.org.'); }
+  if (!validHttps(item.doi_url) && !validHttps(item.paper_url)) { score += 35; reasons.push('A valid DOI or paper URL is required for automatic scoring.'); }
+  if (item.doi_url && !doiLike(item.doi_url)) { score += 30; reasons.push('DOI URL is not a valid doi.org path.'); }
   if (repeatedContent([item.title,item.publication,item.abstract])) { score += 35; reasons.push('Repeated placeholder content across fields.'); }
   return classify(score,reasons,item);
 }
@@ -78,6 +81,7 @@ function internshipRisk(item = {}) {
   if (isJunk(item.role)) { score += 45; reasons.push('Role looks invalid.'); }
   if (text(item.company).length < 3) score += 15;
   if (text(item.role).length < 3) score += 15;
+  if (!item.evidence_path) { score += 35; reasons.push('Internship proof is required for automatic scoring.'); }
   return classify(score,reasons,item);
 }
 
@@ -87,7 +91,7 @@ function certificateRisk(item = {}) {
   if (isJunk(item.issuer)) { score += 45; reasons.push('Issuer looks invalid.'); }
   if (text(item.name).length < 4) score += 10;
   if (text(item.issuer).length < 3) score += 10;
-  if (!item.evidence_path) { score += 30; reasons.push('Certificate has no uploaded proof.'); }
+  if (!item.evidence_path) { score += 30; reasons.push('Certificate proof is required for automatic scoring.'); }
   return classify(score,reasons,item);
 }
 
