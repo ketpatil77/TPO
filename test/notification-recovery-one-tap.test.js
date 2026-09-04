@@ -12,6 +12,11 @@ test('notification recovery uses direct native permission flow instead of long i
   assert.match(recovery, /Allow notifications/);
 });
 
+test('notification recovery owns both setup buttons including the iPhone gate button', () => {
+  assert.match(recovery, /#retryNotificationSetup, #enableMandatoryNotifications/);
+  assert.match(recovery, /stopImmediatePropagation/);
+});
+
 test('notification recovery provides platform-native shortcuts for iPhone and Chromium', () => {
   assert.match(recovery, /display-mode: standalone/);
   assert.match(recovery, /navigator\.share/);

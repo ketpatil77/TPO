@@ -11,7 +11,6 @@
   };
 
   const ua = () => navigator.userAgent || '';
-  const isAndroid = () => /Android/i.test(ua());
   const isIOS = () => /iPhone|iPad|iPod/i.test(ua()) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isStandalone = () => window.matchMedia?.('(display-mode: standalone)')?.matches || navigator.standalone === true;
   const supportsPush = () => 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
@@ -183,11 +182,15 @@
   function tryOpenBrowserSiteSettings() {
     const state = document.getElementById('notificationSettingsRecoveryState');
     const settingsUrl = `chrome://settings/content/siteDetails?site=${encodeURIComponent(location.origin)}`;
-    let opened = null;
-    try { opened = window.open(settingsUrl, '_blank', 'noopener'); } catch (_) { opened = null; }
-    if (state) state.textContent = opened
-      ? 'Site settings opened. Set Notifications to Allow, then return here.'
-      : 'Chrome blocked automatic settings opening. Tap the site controls beside the address and set Notifications to Allow.';
+    let leftPage = false;
+    const markLeft = () => { leftPage = true; };
+    window.addEventListener('blur', markLeft, { once: true });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) leftPage = true; }, { once: true });
+    try { window.open(settingsUrl, '_blank', 'noopener'); } catch (_) { /* fallback below */ }
+    setTimeout(() => {
+      if (!leftPage && state) state.textContent = 'Chrome blocked automatic settings opening. Tap the site controls beside the address and set Notifications to Allow.';
+      else if (state) state.textContent = 'Set Notifications to Allow, then return here.';
+    }, 700);
   }
 
   function tryOpenIosSettings() {
@@ -240,8 +243,10 @@
     return false;
   }
 
+  // Own both notification setup buttons so iPhone never falls into the old unsupported
+  // Notification API path and default permission always stays inside the original click gesture.
   document.addEventListener('click', event => {
-    const button = event.target.closest?.('#retryNotificationSetup');
+    const button = event.target.closest?.('#retryNotificationSetup, #enableMandatoryNotifications');
     if (!button) return;
     event.preventDefault();
     event.stopImmediatePropagation();
