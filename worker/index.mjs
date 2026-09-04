@@ -31,7 +31,6 @@ async function ensureExpress(env) {
 
 function patchDashboardHtml(html, assetPath) {
     let patched = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260903-global-integrity1');
-    patched = patched.replace('</head>', '<script src="/js/request-budget.js?v=20260904-free-tier2"></script></head>');
     if (assetPath === '/admin-dashboard.html') {
         patched = patched.replace(/\/js\/admin-dashboard\.js\?v=[^"']+/g, '/js/admin-dashboard.js?v=20260902-student-activity1');
         patched = patched.replace('</head>', '<link rel="stylesheet" href="/css/admin-alignment-20260814.css"><link rel="stylesheet" href="/css/student-activity-feed.css?v=20260902-live1"><script src="/js/student-activity-feed.js?v=20260902-live1" defer></script></head>');
@@ -42,6 +41,9 @@ function patchDashboardHtml(html, assetPath) {
     if (assetPath === '/dashboard.html') {
         patched = patched.replace('</head>', '<link rel="stylesheet" href="/css/profile-requirements-20260814.css"><link rel="stylesheet" href="/css/student-projects-pro.css?v=20260904-projects2"><link rel="stylesheet" href="/css/student-feature-status.css?v=20260904-feature1"><script src="/js/notification-settings-recovery.js?v=20260904-settings2" defer></script><script src="/js/notification-inbox-experience.js?v=20260904-inbox1" defer></script><script src="/js/student-projects-pro.js?v=20260904-projects2" defer></script><script src="/js/student-feature-status.js?v=20260904-feature1" defer></script></head>');
     }
+    // Responsive foundation is intentionally injected last so feature CSS can keep
+    // its visual identity while the shared viewport safety rules have final say.
+    patched = patched.replace('</head>', '<link rel="stylesheet" href="/css/responsive-foundation-v1.css?v=20260904-rf1"><script src="/js/request-budget.js?v=20260904-free-tier2"></script><script src="/js/responsive-viewport-guard.js?v=20260904-rf1" defer></script></head>');
     return patched;
 }
 
