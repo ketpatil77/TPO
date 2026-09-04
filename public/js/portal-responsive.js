@@ -100,7 +100,7 @@
         const authenticatedWorkspace = document.body.classList.contains('student-dashboard-page') || document.body.classList.contains('admin-dashboard-page') || document.body.classList.contains('observer-shell');
         if (authenticatedWorkspace) {
             loadStylesheet('/css/portal-back-guard.css?v=20260901-1', 'portal-back-guard');
-            loadStylesheet('/css/proof-workflow.css?v=20260903-2', 'proof-workflow');
+            loadStylesheet('/css/proof-workflow.css?v=20260904-fit1', 'proof-workflow');
             loadScript('/js/portal-back-guard.js?v=20260901-1', 'portal-back-guard-js');
             loadScript('/js/operation-feedback.js?v=20260903-global2', 'operation-feedback');
             loadScript('/js/portal-integrity.js?v=20260903-global1', 'portal-integrity');
