@@ -6,20 +6,12 @@
         const gate = document.getElementById('mandatoryNotificationGate');
         const dashboard = document.getElementById('studentDashboard');
         if (gate && !gate.hidden) gate.hidden = true;
-        if (document.body?.classList?.contains?.('notifications-blocked')) document.body.classList.remove('notifications-blocked');
+        document.body?.classList?.remove?.('notifications-blocked');
         if (dashboard) {
-            if (dashboard.inert) dashboard.inert = false;
-            if (dashboard.hasAttribute('inert')) dashboard.removeAttribute('inert');
-            if (dashboard.hasAttribute('aria-hidden')) dashboard.removeAttribute('aria-hidden');
-        }
-    }
-
-    function startWorkspace() {
-        unlockWorkspace();
-        try {
-            if (typeof startStudentWorkspace === 'function') startStudentWorkspace();
-        } catch (error) {
-            console.error('Student workspace bootstrap failed:', error);
+            dashboard.inert = false;
+            dashboard.removeAttribute('inert');
+            dashboard.removeAttribute('aria-hidden');
+            dashboard.style.pointerEvents = '';
         }
     }
 
@@ -27,42 +19,24 @@
         const feedback = document.getElementById('portalOperationFeedback');
         if (!feedback?.classList.contains('is-visible')) return;
         const text = feedback.querySelector('.portal-operation-message')?.textContent || '';
-        // Background notification setup must never impersonate a student save operation.
         if (/^Saving…?$|notification/i.test(text)) {
             try { window.PortalOperationFeedback?.forceHide?.(); }
             catch (_) { feedback.classList.remove('is-visible'); }
         }
     }
 
+    // The dashboard's own script owns initialization. Calling startStudentWorkspace() again here
+    // duplicated listeners and network work and could leave Chrome in a permanent busy state.
     function boot() {
-        startWorkspace();
+        unlockWorkspace();
         recoverStaleFeedback();
-        setTimeout(startWorkspace, 0);
         setTimeout(() => {
             unlockWorkspace();
             recoverStaleFeedback();
-        }, 750);
+        }, 500);
     }
 
-    const observer = new MutationObserver(() => {
-        unlockWorkspace();
-        recoverStaleFeedback();
-    });
-
-    function observe() {
-        if (!document.body) return;
-        observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['hidden', 'inert', 'aria-hidden'], childList: true });
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            boot();
-            observe();
-        }, { once: true });
-    } else {
-        boot();
-        observe();
-    }
-
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+    else boot();
     window.addEventListener('pageshow', boot);
 })();
