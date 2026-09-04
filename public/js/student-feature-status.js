@@ -35,11 +35,13 @@
     if (badge.textContent !== label) badge.textContent = label;
     badge.classList.remove('is-fresh', 'is-new', 'is-hot');
     badge.classList.add(normalized === 'hot' ? 'is-hot' : 'is-new');
-    badge.dataset.featureBadge = key;
-    badge.setAttribute('aria-label', normalized === 'hot' ? 'Hot feature' : 'New feature');
+    if (badge.dataset.featureBadge !== key) badge.dataset.featureBadge = key;
+    if (badge.getAttribute('aria-label') !== (normalized === 'hot' ? 'Hot feature' : 'New feature')) {
+      badge.setAttribute('aria-label', normalized === 'hot' ? 'Hot feature' : 'New feature');
+    }
 
-    button.dataset.featureKey = key;
-    button.dataset.featureStatus = normalized;
+    if (button.dataset.featureKey !== key) button.dataset.featureKey = key;
+    if (button.dataset.featureStatus !== normalized) button.dataset.featureStatus = normalized;
   }
 
   function applyRegistry() {
