@@ -207,11 +207,22 @@ function certificateRisk(item = {}) {
   if(!item.evidence_path){score+=40;reasons.push('Certificate proof is required for automatic verification. Unverified certificates earn 0 points.');}
   return classify(score,reasons,item);
 }
-function evaluate(type,item,context = {}) {
-  if(type==='project')return projectRisk(item,context);
-  if(type==='research')return researchRisk(item,context);
-  if(type==='internship')return internshipRisk(item,context);
-  if(type==='certificate')return certificateRisk(item,context);
-  return classify(100,['Unsupported submission type.'],item);
+function applyStoredVerification(risk, item = {}, context = {}) {
+  if (context.ignoreStoredStatus) return risk;
+  const raw = String(item.verification_status || '').toLowerCase();
+  if (!raw) return risk;
+  const status = raw === 'approved' ? 'verified' : raw;
+  if (status === 'verified') return { ...risk, auto_approved:true, needs_review:false, verification_status:'verified' };
+  if (status === 'rejected') return { ...risk, score:Math.max(60,risk.score), level:'high', auto_approved:false, needs_review:false, audit_sample:false, verification_status:'rejected', reasons:['Rejected records earn 0 Profile Points.', ...(risk.reasons || [])] };
+  return { ...risk, score:Math.max(30,risk.score), level:risk.level === 'high' ? 'high' : 'medium', auto_approved:false, needs_review:true, audit_sample:false, verification_status:'pending', reasons:['Pending verification: 0 Profile Points until auto-verification or staff approval.', ...(risk.reasons || [])] };
 }
-module.exports={ evaluate,projectRisk,researchRisk,internshipRisk,certificateRisk,auditSample,isJunk,validHttps,githubLike,githubOwner,normalizedUrl,safePublicHttpsUrl,checkReachableUrl,checkReachableUrls,canonicalSubmissionKey,submissionKeys,duplicateConflict,duplicateIds,markDuplicate };
+function evaluate(type,item,context = {}) {
+  let risk;
+  if(type==='project')risk=projectRisk(item,context);
+  else if(type==='research')risk=researchRisk(item,context);
+  else if(type==='internship')risk=internshipRisk(item,context);
+  else if(type==='certificate')risk=certificateRisk(item,context);
+  else risk=classify(100,['Unsupported submission type.'],item);
+  return applyStoredVerification(risk,item,context);
+}
+module.exports={ evaluate,applyStoredVerification,projectRisk,researchRisk,internshipRisk,certificateRisk,auditSample,isJunk,validHttps,githubLike,githubOwner,normalizedUrl,safePublicHttpsUrl,checkReachableUrl,checkReachableUrls,canonicalSubmissionKey,submissionKeys,duplicateConflict,duplicateIds,markDuplicate };

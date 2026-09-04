@@ -56,7 +56,7 @@ function installEvidenceVerificationInterceptor(req, res, type, id) {
     used = true;
     const record = type === 'certificate' ? payload?.data?.certificate : payload?.data?.internship;
     if (!payload?.success || !record?.id) return originalJson(payload);
-    const risk = evaluate(type, record);
+    const risk = evaluate(type, record, { ignoreStoredStatus:true });
     const status = risk.auto_approved ? 'verified' : 'pending';
     const now = new Date().toISOString();
     Promise.resolve(db.update(TABLES[type], { id:id || record.id, student_id:req.student.studentId }, {

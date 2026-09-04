@@ -48,3 +48,11 @@ test('TPO moderation UI does not call pending content auto-verified and supports
   assert.match(admin,/review_student_submission/);
   assert.match(admin,/verification_status:stored/);
 });
+
+test('stored verification status controls ranking-facing auto approval', () => {
+  const base = {id:'p-status',title:'Verified project',summary:'A substantive project description with enough technical detail and implementation context for verification.',repository_url:'https://github.com/me/repo'};
+  assert.equal(risk.evaluate('project',{...base,verification_status:'pending'}).auto_approved,false);
+  assert.equal(risk.evaluate('project',{...base,verification_status:'rejected'}).auto_approved,false);
+  assert.equal(risk.evaluate('project',{...base,verification_status:'verified'}).auto_approved,true);
+  assert.equal(risk.evaluate('project',{...base,verification_status:'pending'},{ignoreStoredStatus:true}).auto_approved,true);
+});
