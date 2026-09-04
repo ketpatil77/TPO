@@ -6,6 +6,7 @@ const path = require('node:path');
 const lazy = fs.readFileSync(path.join(__dirname, '../public/js/student-ranking-lazy.js'), 'utf8');
 const ux = fs.readFileSync(path.join(__dirname, '../public/js/ranking-experience-v2.js'), 'utf8');
 const css = fs.readFileSync(path.join(__dirname, '../public/css/ranking-experience-v2.css'), 'utf8');
+const stable = fs.readFileSync(path.join(__dirname, '../public/js/ranking-stable-v4.js'), 'utf8');
 
 test('ranking is placed directly after Profile and CGPA without changing other tab order', () => {
   assert.match(lazy, /tab-edit-profile/);
@@ -13,32 +14,28 @@ test('ranking is placed directly after Profile and CGPA without changing other t
   assert.doesNotMatch(lazy, /competitionTab|researchTab/);
 });
 
-test('ranking modules preload while full profile ranking data stays deferred until open', () => {
+test('ranking modules preload while full all-student profile scoring stays deferred', () => {
   assert.match(lazy, /requestIdleCallback/);
-  assert.match(lazy, /Ranking data deferred until the leaderboard opens/);
+  assert.match(lazy, /Ranking detail calculation is deferred until score breakdown is opened/);
   assert.match(lazy, /profile-ranking\.js/);
   assert.match(lazy, /ranking-experience-v2\.js\?v=20260904-v3/);
+  assert.match(lazy, /ranking-stable-v4\.js\?v=20260904-v5/);
 });
 
-test('quick competition snapshot stays visible while detailed scoring loads', () => {
+test('legacy experience still supplies competition cards without owning v5 standings', () => {
   assert.match(ux, /rankings-view\/competition/);
   assert.match(ux, /renderQuickPreview/);
-  assert.match(ux, /Detailed score breakdowns are loading in the background/);
-  assert.match(ux, /keepFastRowsVisible/);
-  assert.match(ux, /slice\(0,15\)/);
   assert.doesNotMatch(ux, /MutationObserver/);
   assert.doesNotMatch(ux, /window\.fetch\s*=/);
+  assert.match(stable, /rankings-view\/fast/);
+  assert.match(stable, /rankingStableListV4/);
 });
 
-test('movement arrows and momentum meter render in fast and detailed rows', () => {
-  assert.match(ux, /ranking-move-pill/);
-  assert.match(ux, /ranking-meter-pill/);
-  assert.match(ux, /↑\$\{n\}/);
-  assert.match(ux, /↓\$\{Math\.abs\(n\)\}/);
-  assert.match(ux, /annotateDetailedRows/);
-  assert.match(css, /\.ranking-move-pill\.up/);
-  assert.match(css, /\.ranking-move-pill\.down/);
-  assert.match(css, /\.ranking-meter-pill\.stable/);
+test('movement arrows and momentum meter render in the stable v5 standings', () => {
+  assert.match(stable, /ranking-v5-move/);
+  assert.match(stable, /ranking-v5-momentum/);
+  assert.match(stable, /↑\$\{n\}/);
+  assert.match(stable, /↓\$\{Math\.abs\(n\)\}/);
 });
 
 test('defense leaderboard visibility is local UI state only', () => {
@@ -55,7 +52,7 @@ test('personalized badge model includes rank, momentum, growth and existing prof
   assert.match(ux, /c\.badges/);
 });
 
-test('dark and light themes have explicit readable card contrast and mobile layouts', () => {
+test('dark and light themes have explicit readable competition-card contrast and mobile layouts', () => {
   assert.match(css, /var\(--text-heading\) !important/);
   assert.match(css, /var\(--text-muted\) !important/);
   assert.match(css, /:root\[data-theme="light"\]/);
