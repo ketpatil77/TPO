@@ -61,11 +61,7 @@
     document.documentElement.dataset.rfOverflowCount = String(offenders.length);
 
     window.dispatchEvent(new CustomEvent('ait:responsive-audit', {
-      detail: {
-        width,
-        documentOverflow,
-        offenderCount: offenders.length
-      }
+      detail: { width, documentOverflow, offenderCount: offenders.length }
     }));
   }
 
@@ -86,9 +82,28 @@
     });
   }
 
+  function loadStudentExperienceSuite() {
+    if (!document.body.classList.contains('student-dashboard-page')) return;
+    if (!document.querySelector('link[data-student-experience-suite]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/student-experience-suite-v1.css?v=20260904-suite1';
+      link.dataset.studentExperienceSuite = 'true';
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[data-student-experience-suite]')) {
+      const script = document.createElement('script');
+      script.src = '/js/student-experience-suite-v1.js?v=20260904-suite1';
+      script.defer = true;
+      script.dataset.studentExperienceSuite = 'true';
+      document.body.appendChild(script);
+    }
+  }
+
   function install() {
     document.documentElement.classList.add('rf-foundation-v1');
     installObserver();
+    loadStudentExperienceSuite();
     scheduleAudit();
 
     window.addEventListener('resize', scheduleAudit, { passive: true });
