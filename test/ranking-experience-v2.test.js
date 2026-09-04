@@ -17,21 +17,33 @@ test('ranking modules preload while full profile ranking data stays deferred unt
   assert.match(lazy, /requestIdleCallback/);
   assert.match(lazy, /Ranking data deferred until the leaderboard opens/);
   assert.match(lazy, /profile-ranking\.js/);
-  assert.match(lazy, /ranking-experience-v2\.js/);
+  assert.match(lazy, /ranking-experience-v2\.js\?v=20260904-v3/);
 });
 
-test('quick competition snapshot gives immediate rank and student rows', () => {
+test('quick competition snapshot stays visible while detailed scoring loads', () => {
   assert.match(ux, /rankings-view\/competition/);
   assert.match(ux, /renderQuickPreview/);
-  assert.match(ux, /updating full leaderboard/);
+  assert.match(ux, /Detailed score breakdowns are loading in the background/);
+  assert.match(ux, /keepFastRowsVisible/);
   assert.match(ux, /slice\(0,15\)/);
   assert.doesNotMatch(ux, /MutationObserver/);
   assert.doesNotMatch(ux, /window\.fetch\s*=/);
 });
 
+test('movement arrows and momentum meter render in fast and detailed rows', () => {
+  assert.match(ux, /ranking-move-pill/);
+  assert.match(ux, /ranking-meter-pill/);
+  assert.match(ux, /↑\$\{n\}/);
+  assert.match(ux, /↓\$\{Math\.abs\(n\)\}/);
+  assert.match(ux, /annotateDetailedRows/);
+  assert.match(css, /\.ranking-move-pill\.up/);
+  assert.match(css, /\.ranking-move-pill\.down/);
+  assert.match(css, /\.ranking-meter-pill\.stable/);
+});
+
 test('defense leaderboard visibility is local UI state only', () => {
   assert.match(ux, /ait-ranking-defense-hidden/);
-  assert.match(ux, /localStorage\.setItem\(CACHE_KEY/);
+  assert.match(ux, /localStorage\.setItem\(DEFENSE_KEY/);
   assert.match(ux, /rank-chaos-holds/);
   assert.doesNotMatch(ux, /leaderboard_rank_state|method:\s*['"](?:DELETE|PATCH|PUT)/);
 });
