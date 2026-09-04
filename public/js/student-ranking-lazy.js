@@ -93,7 +93,7 @@
         await addScript('/js/profile-ranking.js?v=20260904-chaos1', 'profile-ranking-module');
         await addScript('/js/leaderboard-compact-score.js?v=20260902-1', 'leaderboard-compact-score-js', true);
         await addScript('/js/ranking-competition-v1.js?v=20260904-1', 'ranking-competition-v1', true);
-        await addScript('/js/ranking-experience-v2.js?v=20260904-v2', 'ranking-experience-v2', true);
+        await addScript('/js/ranking-experience-v2.js?v=20260904-v3', 'ranking-experience-v2', true);
       } finally {
         window.fetch = nativeFetch;
       }
