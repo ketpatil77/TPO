@@ -6,7 +6,7 @@ const db = require('../config/database');
 const kvCache = require('../utils/kvCache');
 const { authenticateAdmin, JWT_SECRET, SESSION_VERSION } = require('../middleware/auth');
 const { normalizeBranch } = require('../config/branches');
-const { evaluate } = require('../services/submissionRisk');
+const { evaluate, duplicateIds, markDuplicate } = require('../services/submissionRisk');
 
 const router = express.Router();
 router.use(authenticateAdmin);
@@ -48,50 +48,24 @@ router.post('/:prn/impersonate', async (req, res) => {
   try {
     const cleanPrn = String(req.params.prn || '').trim();
     if (!cleanPrn) return res.status(400).json({ success:false, error:'PRN is required.' });
-
     const rosterEntry = await db.selectOne('roster', { prn: cleanPrn });
     if (!rosterEntry) return res.status(404).json({ success:false, error:'Student PRN not found in roster.' });
-
     let student = await db.selectOne('students', { prn: cleanPrn });
     if (!student) {
       student = await db.insert('students', {
-        prn: rosterEntry.prn,
-        name: rosterEntry.name,
-        email: null,
-        phone: null,
+        prn: rosterEntry.prn, name: rosterEntry.name, email: null, phone: null,
         branch: normalizeBranch(rosterEntry.branch) || rosterEntry.branch,
-        class: rosterEntry.class || null,
-        year: rosterEntry.year || null,
-        cgpa_overall: 0,
-        cgpa_semesterwise: {},
-        backlogs_semesterwise: {},
-        activities: '',
-        lateral_entry: false,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        class: rosterEntry.class || null, year: rosterEntry.year || null,
+        cgpa_overall: 0, cgpa_semesterwise: {}, backlogs_semesterwise: {}, activities: '',
+        lateral_entry: false, status: 'active', created_at: new Date().toISOString(), updated_at: new Date().toISOString()
       });
     }
-
     const token = jwt.sign({
-      role: 'student',
-      studentId: student.id,
-      prn: student.prn,
-      name: student.name,
-      branch: student.branch,
-      class: student.class,
-      year: student.year,
-      adminImpersonation: true,
-      impersonatedBy: req.admin.adminId,
-      sessionVersion: SESSION_VERSION
-    }, JWT_SECRET, { expiresIn: '2h' });
-
-    await db.logAudit('impersonate_student', 'students', student.id, {
-      prn: student.prn,
-      admin_id: req.admin.adminId,
-      mode: 'support_preview'
-    });
-
+      role:'student', studentId:student.id, prn:student.prn, name:student.name,
+      branch:student.branch, class:student.class, year:student.year,
+      adminImpersonation:true, impersonatedBy:req.admin.adminId, sessionVersion:SESSION_VERSION
+    }, JWT_SECRET, { expiresIn:'2h' });
+    await db.logAudit('impersonate_student', 'students', student.id, { prn:student.prn, admin_id:req.admin.adminId, mode:'support_preview' });
     return res.json({ success:true, token, impersonation:true });
   } catch (error) {
     console.error('Admin impersonation failed:', error);
@@ -101,22 +75,27 @@ router.post('/:prn/impersonate', async (req, res) => {
 
 router.get('/:studentId/moderation', async (req, res) => {
   try {
-    const student = await db.selectOne('students', { id: req.params.studentId });
+    const student = await db.selectOne('students', { id:req.params.studentId });
     if (!student) return res.status(404).json({ success:false, error:'Student not found.' });
     const [projects,research,internships,certificates] = await Promise.all([
-      db.select('student_projects', { student_id: student.id }),
-      db.select('research_papers', { student_id: student.id }),
-      db.select('internships', { student_id: student.id }),
-      db.select('certificates', { student_id: student.id })
+      db.select('student_projects', { student_id:student.id }),
+      db.select('research_papers', { student_id:student.id }),
+      db.select('internships', { student_id:student.id }),
+      db.select('certificates', { student_id:student.id })
     ]);
-    const decorate = (type, rows) => rows.map(item => ({ ...item, moderation: evaluate(type, item) }));
-    const groups = {
-      projects: decorate('project', projects),
-      research: decorate('research', research),
-      internships: decorate('internship', internships),
-      certificates: decorate('certificate', certificates)
+    const decorate = (type, rows) => {
+      const dupes = duplicateIds(type, rows);
+      return rows.map(item => {
+        let moderation = evaluate(type,item);
+        if (dupes.has(String(item.id))) moderation = markDuplicate(moderation);
+        return { ...item, moderation };
+      });
     };
-    res.json({ success:true, data:{ ...groups, summary: moderationSummary(Object.values(groups)) } });
+    const groups = {
+      projects:decorate('project',projects), research:decorate('research',research),
+      internships:decorate('internship',internships), certificates:decorate('certificate',certificates)
+    };
+    res.json({ success:true, data:{ ...groups, summary:moderationSummary(Object.values(groups)) } });
   } catch (error) {
     console.error('Moderation scan failed:', error);
     res.status(500).json({ success:false, error:'Unable to scan student submissions.' });
@@ -133,12 +112,9 @@ router.delete('/:studentId/moderation/:type/:id', async (req, res) => {
     await db.delete(config.table, { id:existing.id, student_id:req.params.studentId });
     await cleanupEvidence(config, existing);
     await db.logAudit('delete_student_submission', config.table, existing.id, {
-      student_id: req.params.studentId,
-      type: req.params.type,
-      title: existing.title || existing.name || existing.company || null,
-      risk_score: risk.score,
-      risk_level: risk.level,
-      reasons: risk.reasons
+      student_id:req.params.studentId, type:req.params.type,
+      title:existing.title || existing.name || existing.company || null,
+      risk_score:risk.score, risk_level:risk.level, reasons:risk.reasons
     });
     await clearCaches();
     res.json({ success:true, message:`${config.label} deleted.`, data:{ risk } });
