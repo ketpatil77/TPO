@@ -8,8 +8,8 @@
 
   function riskBadge(m = {}) {
     const level = String(m.level || 'low').toLowerCase();
-    const label = level === 'high' ? 'High risk' : level === 'medium' ? 'Needs review' : 'Auto-approved';
-    const color = level === 'high' ? '#ef4444' : level === 'medium' ? '#f59e0b' : '#10b981';
+    const label = level === 'high' ? 'High risk' : level === 'medium' ? 'Needs review' : m.audit_sample ? 'Random audit' : 'Auto-approved';
+    const color = level === 'high' ? '#ef4444' : level === 'medium' ? '#f59e0b' : m.audit_sample ? '#3b82f6' : '#10b981';
     return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:999px;background:${color}18;color:${color};font-size:11px;font-weight:800">${esc(label)} · ${Number(m.score||0)}</span>`;
   }
 
@@ -21,9 +21,11 @@
 
   function card(type,item,studentId) {
     const reasons = item.moderation?.reasons || [];
+    const audit = item.moderation?.audit_sample ? '<small style="color:#60a5fa">Selected in the stable 5% random audit sample. It still scores unless staff finds a problem.</small>' : '';
     return `<article style="border:1px solid var(--border-color);border-radius:10px;padding:10px;display:grid;gap:7px">
-      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><strong>${esc(titleFor(type,item))}</strong>${riskBadge(item.moderation)}</div>
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap"><strong>${esc(titleFor(type,item))}</strong>${riskBadge(item.moderation)}</div>
       ${reasons.length ? `<small style="color:var(--text-muted)">${esc(reasons.join(' '))}</small>` : '<small style="color:var(--text-muted)">Automatic checks found no obvious quality problem.</small>'}
+      ${audit}
       <div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn btn-danger btn-sm" data-moderation-delete="${esc(type)}" data-student-id="${esc(studentId)}" data-record-id="${esc(item.id)}">Delete</button></div>
     </article>`;
   }
@@ -42,8 +44,10 @@
         ['internship', json.data.internships || []],
         ['certificate', json.data.certificates || []]
       ];
-      const flagged = groups.reduce((sum,[,rows]) => sum + rows.filter(row => row.moderation?.needs_review).length, 0);
-      host.innerHTML = `<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px"><div><strong>Automatic integrity scan</strong><div style="color:var(--text-muted);font-size:12px">Only suspicious records need staff attention. Low-risk items are handled automatically.</div></div><span class="badge ${flagged ? 'badge-offline' : 'badge-online'}">${flagged} flagged</span></div>` + groups.map(([type,rows]) => rows.length ? `<details ${rows.some(row=>row.moderation?.needs_review)?'open':''}><summary><strong>${esc(labels[type])}s (${rows.length})</strong></summary><div style="display:grid;gap:8px;margin-top:8px">${rows.map(item=>card(type,item,studentId)).join('')}</div></details>` : '').join('');
+      const summary = json.data.summary || {};
+      const flagged = Number(summary.flagged ?? groups.reduce((sum,[,rows]) => sum + rows.filter(row => row.moderation?.needs_review).length, 0));
+      const audits = groups.reduce((sum,[,rows]) => sum + rows.filter(row => row.moderation?.audit_sample).length, 0);
+      host.innerHTML = `<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap"><div><strong>Automatic integrity scan</strong><div style="color:var(--text-muted);font-size:12px">Low-risk items are handled automatically. Staff only needs suspicious records and occasional audits.</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge ${flagged ? 'badge-offline' : 'badge-online'}">${flagged} flagged</span><span class="badge badge-info">Trust ${Number(summary.trust_score ?? 100)}/100</span>${audits ? `<span class="badge badge-info">${audits} audit sample</span>` : ''}</div></div>` + groups.map(([type,rows]) => rows.length ? `<details ${rows.some(row=>row.moderation?.needs_review||row.moderation?.audit_sample)?'open':''}><summary><strong>${esc(labels[type])}s (${rows.length})</strong></summary><div style="display:grid;gap:8px;margin-top:8px">${rows.map(item=>card(type,item,studentId)).join('')}</div></details>` : '').join('');
     } catch (error) {
       host.innerHTML = `<p style="color:#ef4444">${esc(error.message)}</p>`;
     }
