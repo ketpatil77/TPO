@@ -33,32 +33,35 @@ test('certificate scoring v4 reranks rows and updates rule copy', () => {
   assert.match(result.rules.certificates, /first 10 verified certificates = 2 points each/i);
 });
 
-test('stable ranking keeps the old renderer hidden and preserves one visible renderer', () => {
+test('stable ranking keeps the legacy renderer hidden and owns the visible list', () => {
   assert.match(stableJs, /original\.hidden = true/);
   assert.match(stableJs, /rankingStableListV4/);
-  assert.match(stableJs, /syncDetailedRows/);
+  assert.match(stableJs, /event\.stopImmediatePropagation\(\)/);
   assert.doesNotMatch(stableJs, /MutationObserver/);
 });
 
-test('stable fast rows include photos, full names, movement, momentum and score breakdown', () => {
+test('stable rows include photos, full names, movement, momentum and score breakdown', () => {
   assert.match(stableJs, /row\.avatar_url/);
-  assert.match(stableJs, /ranking-v4-move/);
-  assert.match(stableJs, /ranking-v4-momentum/);
+  assert.match(stableJs, /ranking-v5-move/);
+  assert.match(stableJs, /ranking-v5-momentum/);
   assert.match(stableJs, /Score breakdown/);
   assert.match(stableCss, /white-space:normal!important/);
   assert.match(stableCss, /text-overflow:clip!important/);
   assert.match(stableCss, /rank-chaos-inline.*display:none!important/s);
 });
 
-test('fast endpoint and stable script are wired into ranking', () => {
+test('fast and per-student detail endpoints are wired into ranking', () => {
   assert.match(route, /router\.get\('\/fast'/);
+  assert.match(route, /router\.get\('\/details\/:studentId'/);
   assert.match(route, /applyCertificateScoringV4/);
   assert.match(stableJs, /rankings-view\/fast/);
+  assert.match(stableJs, /rankings-view\/details/);
   assert.match(lazy, /ranking-stable-v4\.js/);
 });
 
 test('stable ranking has explicit mobile and light-theme treatment', () => {
-  assert.match(stableCss, /@media \(max-width:600px\)/);
-  assert.match(stableCss, /@media \(max-width:390px\)/);
+  assert.match(stableCss, /@media \(max-width:700px\)/);
+  assert.match(stableCss, /@media \(max-width:430px\)/);
   assert.match(stableCss, /:root\[data-theme="light"\]/);
+  assert.match(stableCss, /flex-wrap:nowrap!important/);
 });
