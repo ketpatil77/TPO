@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const read = file => fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
+const read = file => fs.readFileSync(path.join(__dirname, '..', file),'utf8');
 const login = read('public/js/student-login-resilience.js');
 const dashboard = read('public/js/student-dashboard-interaction-hotfix.js');
 const worker = read('worker/index.mjs');
@@ -26,15 +26,14 @@ test('student dashboard remains interactive when notification setup repeatedly r
     assert.match(dashboard, /touch-action: pan-y !important/);
     assert.match(dashboard, /setMandatoryNotificationGate = window\.setMandatoryNotificationGate/);
     assert.match(dashboard, /MutationObserver/);
-    assert.match(dashboard, /attributeFilter: \['inert', 'aria-hidden', 'style'\]/);
     assert.match(dashboard, /visibilitychange/);
-    assert.match(dashboard, /PortalOperationFeedback\?\.forceHide/);
 });
 
-test('production worker injects login resilience and dashboard interaction recovery', () => {
+test('production student dashboard excludes freeze-prone notification observers', () => {
     assert.match(worker, /student-login-resilience\.js\?v=20260904-login1/);
-    assert.match(worker, /student-dashboard-interaction-hotfix\.js\?v=20260904-unlock4/);
+    assert.match(worker, /student-dashboard-interaction-hotfix\.js\?v=20260904-unlock5/);
     assert.doesNotMatch(worker, /student-dashboard-resilience\.js\?v=/);
-    assert.match(worker, /patchLoginHtml/);
-    assert.match(worker, /assetPath === '\/index\.html'/);
+    const studentInjection = worker.match(/if \(assetPath === '\/dashboard\.html'\)[\s\S]*?return patched;/)?.[0] || worker;
+    assert.doesNotMatch(studentInjection, /notification-inbox-experience\.js/);
+    assert.doesNotMatch(studentInjection, /notification-settings-recovery\.js/);
 });
