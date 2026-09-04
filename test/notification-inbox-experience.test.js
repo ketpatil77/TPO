@@ -30,5 +30,5 @@ test('inbox mark-all remains an explicit way to clear a large notification batch
 
 test('production student dashboard excludes the freeze-prone inbox observer', () => {
   assert.doesNotMatch(worker, /notification-inbox-experience\.js\?v=/);
-  assert.match(worker, /student-dashboard-interaction-hotfix\.js\?v=20260904-unlock5/);
+  assert.match(worker, /student-dashboard-interaction-hotfix\.js\?v=20260904-unlock6/);
 });
