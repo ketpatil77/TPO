@@ -12,7 +12,6 @@ const TABLES = { project:'student_projects', research:'research_papers', interns
 
 function evidenceType(path) {
   if (/^\/certificate-evidence\/[^/]+$/.test(path)) return 'certificate';
-  if (/^\/internship-evidence\/[^/]+$/.test(path)) return 'internship';
   return null;
 }
 function submissionType(path) {
@@ -51,33 +50,30 @@ function obviousJunk(risk = {}) {
   return (risk.reasons || []).some(reason => /placeholder text|looks like junk text|repeated placeholder content/i.test(String(reason)));
 }
 
-function installEvidenceVerificationInterceptor(req, res, type, id) {
+function installCertificateVerificationInterceptor(req, res, id) {
   const originalJson = res.json.bind(res);
   let used = false;
-  res.json = function evidenceJson(payload) {
+  res.json = function certificateEvidenceJson(payload) {
     if (used) return originalJson(payload);
     used = true;
-    const record = type === 'certificate' ? payload?.data?.certificate : payload?.data?.internship;
+    const record = payload?.data?.certificate;
     if (!payload?.success || !record?.id) return originalJson(payload);
-    const risk = evaluate(type, record, { ignoreStoredStatus:true });
+    const risk = evaluate('certificate', record, { ignoreStoredStatus:true });
     const status = risk.auto_approved ? 'verified' : 'pending';
     const now = new Date().toISOString();
     const statusPatch = {
       verification_status:status,
-      verification_note:risk.reasons.length ? risk.reasons.join(' ') : 'Auto-verified after unique proof and metadata checks.',
+      verification_note:risk.reasons.length ? risk.reasons.join(' ') : 'Auto-verified after unique proof and certificate metadata checks.',
       verified_at:status === 'verified' ? now : null,
       verified_by:null,
       verified_role:status === 'verified' ? 'system' : null
     };
-    Promise.resolve(db.update(TABLES[type], { id:id || record.id, student_id:req.student.studentId }, statusPatch)).then(() => {
-      // Preserve the evidence route's full response shape (mime, bytes, path, hash, etc.).
-      // Only overlay verification fields so a moderation enhancement cannot erase proof metadata.
-      if (type === 'certificate') payload.data.certificate = { ...record, ...statusPatch };
-      else payload.data.internship = { ...record, ...statusPatch };
+    Promise.resolve(db.update('certificates', { id:id || record.id, student_id:req.student.studentId }, statusPatch)).then(() => {
+      payload.data.certificate = { ...record, ...statusPatch };
       payload.moderation = { ...risk, verification_status:status };
       return originalJson(payload);
     }).catch(error => {
-      console.error('Evidence auto-verification persistence failed:', error.message);
+      console.error('Certificate auto-verification persistence failed:', error.message);
       return originalJson(payload);
     });
     return res;
@@ -88,8 +84,6 @@ function resultRecord(type, payload) {
   if (!payload || typeof payload !== 'object') return null;
   if (type === 'project') return payload.project || null;
   if (type === 'research') return payload.research_paper || null;
-  if (type === 'internship') return payload.internship || null;
-  if (type === 'certificate') return payload.certificate || null;
   return null;
 }
 function installAutoStatusInterceptor(req, res, type, risk) {
@@ -128,8 +122,8 @@ router.use(async (req, res, next) => {
   try {
     if (req.method === 'POST') {
       const proofType = evidenceType(req.path);
-      if (proofType) {
-        installEvidenceVerificationInterceptor(req, res, proofType, recordId(req.path));
+      if (proofType === 'certificate') {
+        installCertificateVerificationInterceptor(req, res, recordId(req.path));
         return next();
       }
     }
@@ -152,8 +146,6 @@ router.use(async (req, res, next) => {
       }});
     }
 
-    // Network ownership/reachability checks are production-only. Local/test mode has no
-    // reliable Internet and must remain deterministic, while production still applies them.
     const productionIntegrity = !db.isLocal();
     const links = candidateLinks(type, req.body || {});
     const linkStatus = productionIntegrity && links.length ? await checkReachableUrls(links) : {};
@@ -166,10 +158,9 @@ router.use(async (req, res, next) => {
     };
     const risk = evaluate(type, req.body || {}, context);
 
-    // Missing/dead links, ownership mismatch and thin metadata are flags for TPO/TPC review,
-    // not destructive auto-rejections. Only obvious junk is blocked here; exact duplicates
-    // are already declined above. This keeps the algorithm conservative when uncertain.
-    if (obviousJunk(risk)) {
+    // Exact duplicates are declined above. High-risk obvious junk is also declined; uncertain
+    // ownership, reachability, or thin evidence remains pending so TPO/TPC can make the call.
+    if (risk.level === 'high' && obviousJunk(risk)) {
       return res.status(422).json({ success:false, error:{
         code:'SUBMISSION_QUALITY_FAILED',
         message:`This ${type} entry contains obvious placeholder or junk information. Fix it before saving.`,
