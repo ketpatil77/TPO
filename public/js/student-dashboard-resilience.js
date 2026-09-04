@@ -5,12 +5,12 @@
     function unlockWorkspace() {
         const gate = document.getElementById('mandatoryNotificationGate');
         const dashboard = document.getElementById('studentDashboard');
-        if (gate) gate.hidden = true;
-        document.body?.classList?.remove?.('notifications-blocked');
+        if (gate && !gate.hidden) gate.hidden = true;
+        if (document.body?.classList?.contains?.('notifications-blocked')) document.body.classList.remove('notifications-blocked');
         if (dashboard) {
-            dashboard.inert = false;
-            dashboard.removeAttribute('inert');
-            dashboard.removeAttribute('aria-hidden');
+            if (dashboard.inert) dashboard.inert = false;
+            if (dashboard.hasAttribute('inert')) dashboard.removeAttribute('inert');
+            if (dashboard.hasAttribute('aria-hidden')) dashboard.removeAttribute('aria-hidden');
         }
     }
 
@@ -49,14 +49,19 @@
         recoverStaleFeedback();
     });
 
+    function observe() {
+        if (!document.body) return;
+        observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['hidden', 'inert', 'aria-hidden'], childList: true });
+    }
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             boot();
-            observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['hidden', 'inert', 'aria-hidden'], childList: true });
+            observe();
         }, { once: true });
     } else {
         boot();
-        observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['hidden', 'inert', 'aria-hidden'], childList: true });
+        observe();
     }
 
     window.addEventListener('pageshow', boot);
