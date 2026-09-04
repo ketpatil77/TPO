@@ -40,7 +40,7 @@ function patchDashboardHtml(html, assetPath) {
         patched = patched.replace(/\/js\/observer-dashboard\.js\?v=[^"']+/g, '/js/observer-dashboard.js?v=20260819-ssc-hsc');
     }
     if (assetPath === '/dashboard.html') {
-        patched = patched.replace('</head>', '<link rel="stylesheet" href="/css/profile-requirements-20260814.css"></head>');
+        patched = patched.replace('</head>', '<link rel="stylesheet" href="/css/profile-requirements-20260814.css"><script src="/js/notification-settings-recovery.js?v=20260904-settings1" defer></script></head>');
     }
     return patched;
 }

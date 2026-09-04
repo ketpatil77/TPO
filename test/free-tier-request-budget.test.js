@@ -7,6 +7,7 @@ const wrangler = fs.readFileSync(path.join(__dirname, '../wrangler.jsonc'), 'utf
 const budget = fs.readFileSync(path.join(__dirname, '../public/js/request-budget.js'), 'utf8');
 const worker = fs.readFileSync(path.join(__dirname, '../worker/index.mjs'), 'utf8');
 const serviceWorker = fs.readFileSync(path.join(__dirname, '../public/student-push-sw.js'), 'utf8');
+const recovery = fs.readFileSync(path.join(__dirname, '../public/js/notification-settings-recovery.js'), 'utf8');
 
 test('static JS and CSS bypass Worker billing path', () => {
   assert.doesNotMatch(wrangler, /"\/js\/\*"/);
@@ -26,6 +27,18 @@ test('student notifications are push-driven instead of continuously polling Work
   assert.match(serviceWorker, /notifyOpenPortalClients/);
   assert.match(serviceWorker, /client\.postMessage\(\{/);
   assert.match(serviceWorker, /AIT_PUSH_RECEIVED/);
+  assert.match(recovery, /source\.includes\('scheduleImportantSync'\)/);
+  assert.match(recovery, /return 0/);
+});
+
+test('blocked Chrome notification permission has an actionable recovery flow', () => {
+  assert.match(worker, /notification-settings-recovery\.js\?v=20260904-settings1/);
+  assert.match(recovery, /retryNotificationSetup/);
+  assert.match(recovery, /Notification\.permission === 'denied'/);
+  assert.match(recovery, /Site settings/);
+  assert.match(recovery, /I've allowed it · Check again/);
+  assert.match(recovery, /visibilitychange/);
+  assert.match(recovery, /window\.addEventListener\('focus'/);
 });
 
 test('dashboard request budget coalesces reads, suppresses subscription rewrites and slows live activity', () => {
