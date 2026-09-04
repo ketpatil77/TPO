@@ -1,5 +1,7 @@
 /* Shared interaction polish; keeps existing forms, IDs, handlers and permissions. */
 (() => {
+    const adminImpersonationRequested = document.body?.classList.contains('student-dashboard-page') && new URLSearchParams(window.location.search).has('impersonate_token');
+
     function disclose(element, title, description) {
         if (!element || element.closest('.task-disclosure')) return;
         const details = document.createElement('details');
@@ -31,6 +33,25 @@
             density.href = '/css/dashboard-density.css?v=20260903-density1';
             density.dataset.dashboardDensity = 'true';
             document.head.appendChild(density);
+        }
+
+        // Admin preview tokens are support sessions, not real student devices. Do not trap
+        // staff behind the student's mandatory browser-push gate while previewing a profile.
+        if (adminImpersonationRequested && document.body.classList.contains('student-dashboard-page')) {
+            setTimeout(() => {
+                try {
+                    if (typeof window.setMandatoryNotificationGate === 'function') window.setMandatoryNotificationGate(false);
+                    const gate = document.getElementById('mandatoryNotificationGate');
+                    const dashboard = document.getElementById('studentDashboard');
+                    if (gate) gate.hidden = true;
+                    document.body.classList.remove('notifications-blocked');
+                    if (dashboard) {
+                        dashboard.inert = false;
+                        dashboard.setAttribute('aria-hidden', 'false');
+                    }
+                    if (typeof window.startStudentWorkspace === 'function') window.startStudentWorkspace();
+                } catch (_) {}
+            }, 0);
         }
 
         // Legacy handlers occasionally pass structured API errors directly into the toast.
@@ -84,6 +105,13 @@
                 script.src = '/js/admin-student-mobile-cards.js?v=20260904-completion1';
                 script.defer = true;
                 script.dataset.adminStudentMobileCards = 'true';
+                document.body.appendChild(script);
+            }
+            if (!document.querySelector('script[data-admin-submission-moderation]')) {
+                const script = document.createElement('script');
+                script.src = '/js/admin-submission-moderation.js?v=20260904-risk1';
+                script.defer = true;
+                script.dataset.adminSubmissionModeration = 'true';
                 document.body.appendChild(script);
             }
         }

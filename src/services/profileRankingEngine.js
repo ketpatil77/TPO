@@ -1,8 +1,9 @@
 'use strict';
 
 const db = require('../config/database');
+const { evaluate } = require('./submissionRisk');
 
-const RULE_VERSION = '2026-27 v3.1';
+const RULE_VERSION = '2026-27 v3.2';
 const LEVEL_POINTS = {
   'Department': 1,
   'Institute / College': 2,
@@ -38,9 +39,7 @@ function cgpaPoints(value) {
 }
 
 function certificatePointAt(index) {
-  if (index < 5) return 2;
-  if (index < 10) return 1.5;
-  return 0.75;
+  return index < 10 ? 2 : 1.5;
 }
 
 function isHttpsUrl(value) {
@@ -108,6 +107,7 @@ function scoreStudent(profile, related) {
   const pending = { academics: 0, certificates: 0, projects: 0, research: 0, competitions: 0, internships: 0, skills: 0, profile: 0 };
   const explanations = emptyExplanationSet();
   const pendingExplanations = emptyExplanationSet();
+  const riskSummary = { low: 0, medium: 0, high: 0, flagged: 0 };
 
   earned.academics = cgpaPoints(profile.cgpa_overall);
   explanations.academics.push({
@@ -135,32 +135,58 @@ function scoreStudent(profile, related) {
     pending.certificates += points;
     pendingExplanations.certificates.push({
       label: item.name || 'Certificate', points, status: 'pending',
-      reason: `${item.issuer || 'Issuer'} · no points until TPO/TPC verification is completed.`
+      reason: `${item.issuer || 'Issuer'} · no points until existing certificate verification is completed.`
     });
   });
 
   all.projects.forEach(item => {
+    const risk = evaluate('project', item);
+    riskSummary[risk.level] += 1;
+    if (risk.needs_review) riskSummary.flagged += 1;
     const repoBonus = isHttpsUrl(item.repository_url) ? 2 : 0;
     const liveBonus = isHttpsUrl(item.project_url) ? 2 : 0;
     const points = 4 + repoBonus + liveBonus;
-    earned.projects += points;
-    explanations.projects.push({
-      label: item.title || 'Project', points, status: 'auto-counted',
-      reason: `4 base${repoBonus ? ' + 2 repository' : ''}${liveBonus ? ' + 2 live project' : ''}`,
+    const detail = {
+      label: item.title || 'Project', points,
+      status: risk.auto_approved ? 'auto-approved' : 'flagged',
+      risk,
+      reason: risk.auto_approved
+        ? `Automatic quality checks passed · 4 base${repoBonus ? ' + 2 repository' : ''}${liveBonus ? ' + 2 live project' : ''}`
+        : `0 points until reviewed: ${risk.reasons[0] || 'submission failed automatic quality checks.'}`,
       links: [item.repository_url, item.project_url].filter(isHttpsUrl)
-    });
+    };
+    if (risk.auto_approved) {
+      earned.projects += points;
+      explanations.projects.push(detail);
+    } else {
+      pending.projects += points;
+      pendingExplanations.projects.push(detail);
+    }
   });
 
   all.research.forEach(item => {
+    const risk = evaluate('research', item);
+    riskSummary[risk.level] += 1;
+    if (risk.needs_review) riskSummary.flagged += 1;
     const doiBonus = isDoiUrl(item.doi_url) ? 2 : 0;
     const paperBonus = isHttpsUrl(item.paper_url) ? 1 : 0;
     const points = 8 + doiBonus + paperBonus;
-    earned.research += points;
-    explanations.research.push({
-      label: item.title || 'Research paper', points, status: 'auto-counted',
-      reason: `8 publication${doiBonus ? ' + 2 valid DOI' : ''}${paperBonus ? ' + 1 paper link' : ''}`,
+    const detail = {
+      label: item.title || 'Research paper', points,
+      status: risk.auto_approved ? 'auto-approved' : 'flagged',
+      risk,
+      reason: risk.auto_approved
+        ? `Automatic quality checks passed · 8 publication${doiBonus ? ' + 2 valid DOI' : ''}${paperBonus ? ' + 1 paper link' : ''}`
+        : `0 points until reviewed: ${risk.reasons[0] || 'submission failed automatic quality checks.'}`,
       links: [item.doi_url, item.paper_url].filter(isHttpsUrl)
-    });
+    };
+    if (risk.auto_approved) {
+      earned.research += points;
+      explanations.research.push(detail);
+    } else {
+      pending.research += points;
+      pendingExplanations.research.push(detail);
+    }
   });
 
   all.competitions.forEach(item => {
@@ -182,11 +208,23 @@ function scoreStudent(profile, related) {
   });
 
   all.internships.forEach(item => {
-    earned.internships += 6;
-    explanations.internships.push({
+    const risk = evaluate('internship', item);
+    riskSummary[risk.level] += 1;
+    if (risk.needs_review) riskSummary.flagged += 1;
+    const detail = {
       label: `${item.company || 'Internship'}${item.role ? ` · ${item.role}` : ''}`,
-      points: 6, status: 'auto-counted', reason: 'Internship record = 6 points.'
-    });
+      points: 6,
+      status: risk.auto_approved ? 'auto-approved' : 'flagged',
+      risk,
+      reason: risk.auto_approved ? 'Automatic quality checks passed · internship = 6 points.' : `0 points until reviewed: ${risk.reasons[0] || 'invalid internship details.'}`
+    };
+    if (risk.auto_approved) {
+      earned.internships += 6;
+      explanations.internships.push(detail);
+    } else {
+      pending.internships += 6;
+      pendingExplanations.internships.push(detail);
+    }
   });
 
   const skills = [...all.skills].sort((a, b) => String(a.skill || '').localeCompare(String(b.skill || '')));
@@ -213,7 +251,7 @@ function scoreStudent(profile, related) {
   const certificateCounts = statusCounts(all.certificates);
   const competitionCounts = statusCounts(all.competitions);
   const evidenceCounts = {
-    pending: certificateCounts.pending + competitionCounts.pending,
+    pending: certificateCounts.pending + competitionCounts.pending + riskSummary.flagged,
     verified: certificateCounts.verified + competitionCounts.verified,
     rejected: certificateCounts.rejected + competitionCounts.rejected
   };
@@ -229,6 +267,7 @@ function scoreStudent(profile, related) {
     evidence_counts: evidenceCounts,
     certificate_counts: certificateCounts,
     competition_counts: competitionCounts,
+    moderation: riskSummary,
     counts: {
       internships: all.internships.length,
       certificates: all.certificates.length,
@@ -304,13 +343,13 @@ async function buildLeaderboard(currentStudentId, branchQuery, yearQuery) {
     current: rows.find(row => row.student_id === currentStudentId) || null,
     rules: {
       version: RULE_VERSION,
-      note: 'Certificate and competition points are verification-gated. Pending or rejected evidence earns zero points. Verified evidence is counted immediately on the next ranking calculation.',
+      note: 'Low-risk projects, research and internships are auto-approved by deterministic quality checks. Suspicious submissions earn zero points until staff review. Certificates and competitions retain their existing verification gate.',
       academics: 'Profile CGPA: <5 = 0, 5–5.99 = 5, 6–6.99 = 10, 7–7.99 = 15, 8–8.99 = 20, 9+ = 25. No verification step.',
-      certificates: 'Verified certificates only: first 5 verified certificates = 2 points each, next 5 = 1.5 each, later verified certificates = 0.75 each. Pending/rejected certificates = 0.',
-      projects: 'Project = 4 base + 2 repository + 2 live project URL.',
-      research: 'Publication = 8 + 2 valid DOI + 1 paper link.',
+      certificates: 'Verified certificates only: first 10 verified certificates = 2 points each; every verified certificate after 10 = 1.5 points. Pending/rejected certificates = 0.',
+      projects: 'Low-risk project = 4 base + 2 repository + 2 live project URL. Suspicious/placeholder projects = 0 until reviewed.',
+      research: 'Low-risk publication = 8 + 2 valid DOI + 1 paper link. Suspicious research entries = 0 until reviewed.',
       competitions: 'Competition points count only after TPO/TPC verification: published level points + result points.',
-      internships: 'Internship = 6 points.',
+      internships: 'Low-risk internship = 6 points. Suspicious internship entries = 0 until reviewed.',
       skills: 'Skill = 0.5 point, maximum 20 scored skills.',
       profile: 'Resume = 3; complete required profile fields = 2.'
     }

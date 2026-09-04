@@ -12,6 +12,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const studentRoutes = require('./routes/student');
+const studentSubmissionGuard = require('./routes/studentSubmissionGuard');
 const proofManagedRecordsRoutes = require('./routes/proofManagedRecords');
 const internshipEvidenceRoutes = require('./routes/internshipEvidence');
 const certificateEvidenceRoutes = require('./routes/certificateEvidence');
@@ -26,6 +27,7 @@ const { createStudentAvatarDirectory } = require('./routes/studentAvatarDirector
 const adminAuthRoutes = require('./routes/adminAuth');
 const adminRosterRoutes = require('./routes/adminRoster');
 const adminStudentsRoutes = require('./routes/adminStudents');
+const adminModerationRoutes = require('./routes/adminModeration');
 const fullStudentExportRoutes = require('./routes/fullStudentExport');
 const certificateReviewRoutes = require('./routes/certificateReview');
 const proofReviewRoutes = require('./routes/proofReview');
@@ -88,6 +90,7 @@ if (!isCloudflareWorker) app.use(express.static(path.join(process.cwd(), 'public
 app.use('/api/auth', authRoutes);
 app.use('/api/student', protectCollegeAcademics);
 app.use('/api/student/student-avatars', createStudentAvatarDirectory(authenticateStudent));
+app.use('/api/student', studentSubmissionGuard);
 app.use('/api/student', proofManagedRecordsRoutes);
 app.use('/api/student', internshipEvidenceRoutes);
 app.use('/api/student', certificateEvidenceRoutes);
@@ -106,6 +109,9 @@ app.use('/api/admin/student-avatars', createStudentAvatarDirectory(authenticateA
 app.use('/api/admin/students/export', fullStudentExportRoutes);
 app.use('/api/admin/proof-review', proofReviewRoutes.admin);
 app.use('/api/admin/certificates', certificateReviewRoutes);
+// Moderation is mounted before the legacy student router so the corrected
+// impersonation endpoint and record moderation actions are authoritative.
+app.use('/api/admin/students', adminModerationRoutes);
 app.use('/api/admin/students', adminStudentsRoutes);
 app.use('/api/admin/profile-completion', profileCompletionRoutes.admin);
 app.use('/api/admin/audit-logs', adminAuditRoutes);
