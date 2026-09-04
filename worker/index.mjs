@@ -31,7 +31,7 @@ async function ensureExpress(env) {
 
 function patchDashboardHtml(html, assetPath) {
     let patched = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260903-global-integrity1');
-    patched = patched.replace('</head>', '<script src="/js/request-budget.js?v=20260904-free-tier1"></script></head>');
+    patched = patched.replace('</head>', '<script src="/js/request-budget.js?v=20260904-free-tier2"></script></head>');
     if (assetPath === '/admin-dashboard.html') {
         patched = patched.replace(/\/js\/admin-dashboard\.js\?v=[^"']+/g, '/js/admin-dashboard.js?v=20260902-student-activity1');
         patched = patched.replace('</head>', '<link rel="stylesheet" href="/css/admin-alignment-20260814.css"><link rel="stylesheet" href="/css/student-activity-feed.css?v=20260902-live1"><script src="/js/student-activity-feed.js?v=20260902-live1" defer></script></head>');
@@ -40,7 +40,7 @@ function patchDashboardHtml(html, assetPath) {
         patched = patched.replace(/\/js\/observer-dashboard\.js\?v=[^"']+/g, '/js/observer-dashboard.js?v=20260819-ssc-hsc');
     }
     if (assetPath === '/dashboard.html') {
-        patched = patched.replace('</head>', '<link rel="stylesheet" href="/css/profile-requirements-20260814.css"></head>');
+        patched = patched.replace('</head>', '<link rel="stylesheet" href="/css/profile-requirements-20260814.css"><script src="/js/notification-settings-recovery.js?v=20260904-settings1" defer></script></head>');
     }
     return patched;
 }
