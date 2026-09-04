@@ -32,19 +32,21 @@ test('student notifications are push-driven instead of continuously polling Work
 });
 
 test('blocked notification permission has a native-first platform-aware recovery flow', () => {
-  assert.match(worker, /notification-settings-recovery\.js\?v=20260904-settings1/);
+  assert.match(worker, /notification-settings-recovery\.js\?v=20260904-settings2/);
   assert.match(recovery, /#retryNotificationSetup, #enableMandatoryNotifications/);
   assert.match(recovery, /Notification\.permission === 'default'/);
   assert.match(recovery, /Notification\.permission === 'denied'/);
   assert.match(recovery, /Allow notifications/);
-  assert.match(recovery, /Open site settings/);
-  assert.match(recovery, /chrome:\/\/settings\/content\/siteDetails/);
-  assert.match(recovery, /Open iPhone setup/);
+  assert.match(recovery, /I allowed it · Check now/);
+  assert.match(recovery, /site controls icon beside the address/);
+  assert.match(recovery, /Open iPhone share menu/);
   assert.match(recovery, /navigator\.share/);
-  assert.match(recovery, /app-settings:/);
   assert.match(recovery, /visibilitychange/);
   assert.match(recovery, /window\.addEventListener\('focus'/);
-  assert.doesNotMatch(recovery, /I've allowed it · Check again/);
+  assert.match(recovery, /window\.addEventListener\('pageshow'/);
+  assert.doesNotMatch(recovery, /chrome:\/\/settings\/content\/siteDetails/);
+  assert.doesNotMatch(recovery, /app-settings:/);
+  assert.doesNotMatch(recovery, /Open site settings/);
 });
 
 test('dashboard request budget coalesces reads, suppresses subscription rewrites and slows live activity', () => {
