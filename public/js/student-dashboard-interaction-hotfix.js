@@ -26,8 +26,6 @@
   }
 
   function installOverrides() {
-    // Browser notifications are useful, but a delivery/configuration failure must never
-    // disable the authenticated workspace. Keep setup best-effort and non-blocking.
     try {
       window.setMandatoryNotificationGate = function (_blocked, message = '') {
         unlock();
@@ -36,8 +34,6 @@
           if (target) target.textContent = message;
         }
       };
-      // Classic-script global bindings may not be writable through window in every browser.
-      // Assignment covers that case without creating another initialization path.
       setMandatoryNotificationGate = window.setMandatoryNotificationGate;
     } catch (_) {}
 
@@ -51,16 +47,15 @@
     }
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', installOverrides, { once: true });
-  } else {
-    installOverrides();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installOverrides, { once: true });
+  else installOverrides();
 
-  // Recover after BFCache restores / mobile tab resumes. No MutationObserver, no loop.
-  window.addEventListener('pageshow', () => {
+  function recover() {
     unlock();
     hideStaleBusyUi();
-  });
-  window.addEventListener('focus', unlock);
+  }
+
+  window.addEventListener('pageshow', recover);
+  window.addEventListener('focus', recover);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) queueMicrotask(recover); });
 })();
