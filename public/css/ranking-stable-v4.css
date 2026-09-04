@@ -1,0 +1,52 @@
+#rankingList[hidden]{display:none!important}
+#rankingStableListV4{display:block}
+#rankingStableListV4 .leaderboard-entry{position:relative}
+#rankingStableListV4 .leaderboard-entry-main{min-width:0}
+#rankingStableListV4 .leaderboard-rankno{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:58px}
+#rankingStableListV4 .leaderboard-student{min-width:0}
+#rankingStableListV4 .leaderboard-student-copy{min-width:0;overflow:visible}
+#rankingStableListV4 .leaderboard-student-copy strong{display:block;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere;line-height:1.18}
+#rankingStableListV4 .leaderboard-student-copy small{display:block;white-space:normal;overflow-wrap:anywhere}
+#rankingStableListV4 .leaderboard-avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit;position:absolute;inset:0;z-index:2}
+#rankingStableListV4 .leaderboard-avatar{position:relative;overflow:hidden}
+#rankingStableListV4 .leaderboard-avatar-fallback{position:relative;z-index:1}
+#rankingStableListV4 .leaderboard-points-cell strong{display:block;color:var(--student-gold,#f3c969)}
+#rankingStableListV4 .ranking-v4-state{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;color:var(--text-muted);font-size:10px}
+#rankingStableListV4 .ranking-v4-move{display:inline-flex;align-items:center;justify-content:center;min-width:28px;min-height:26px;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:900;line-height:1}
+#rankingStableListV4 .ranking-v4-move.up{background:#d1fae5;color:#047857}
+#rankingStableListV4 .ranking-v4-move.down{background:#fee2e2;color:#b91c1c}
+#rankingStableListV4 .ranking-v4-move.flat{background:var(--surface-muted);color:var(--text-body)}
+#rankingStableListV4 .ranking-v4-momentum{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:999px;font-size:10px;font-weight:800}
+#rankingStableListV4 .ranking-v4-momentum.hot{background:rgba(245,158,11,.16);color:#fed7aa}
+#rankingStableListV4 .ranking-v4-momentum.rising{background:rgba(59,130,246,.16);color:#bfdbfe}
+#rankingStableListV4 .ranking-v4-momentum.stable{background:rgba(16,185,129,.16);color:#bbf7d0}
+#rankingStableListV4 .ranking-v4-momentum.slipping{background:rgba(239,68,68,.16);color:#fecaca}
+#rankingStableListV4 .ranking-v4-breakdown>summary{cursor:pointer;color:var(--text-body);font-weight:800}
+#rankingStableListV4 .ranking-v4-breakdown-wait{padding:12px 14px;color:var(--text-muted);font-size:11px;line-height:1.45}
+#rankingStableListV4 .rank-chaos-inline,#rankingStableListV4 .ranking-meter-inline{display:none!important}
+:root[data-theme="light"] #rankingStableListV4 .ranking-v4-momentum.hot{background:#fff7ed;color:#9a3412}
+:root[data-theme="light"] #rankingStableListV4 .ranking-v4-momentum.rising{background:#eff6ff;color:#1d4ed8}
+:root[data-theme="light"] #rankingStableListV4 .ranking-v4-momentum.stable{background:#ecfdf5;color:#047857}
+:root[data-theme="light"] #rankingStableListV4 .ranking-v4-momentum.slipping{background:#fef2f2;color:#b91b1b}
+@media (max-width:600px){
+ #rankingStableListV4 .leaderboard-entry-main{grid-template-columns:58px 68px minmax(0,1fr) auto!important;gap:10px!important;align-items:center!important}
+ #rankingStableListV4 .leaderboard-rankno{grid-column:1;grid-row:1;align-self:center}
+ #rankingStableListV4 .leaderboard-student{grid-column:2/4;grid-row:1;display:grid!important;grid-template-columns:68px minmax(0,1fr)!important;gap:10px!important;align-items:center!important}
+ #rankingStableListV4 .leaderboard-avatar{width:68px!important;height:68px!important}
+ #rankingStableListV4 .leaderboard-student-copy strong{font-size:15px!important;max-width:none!important}
+ #rankingStableListV4 .leaderboard-student-copy small{font-size:10px!important}
+ #rankingStableListV4 .leaderboard-points-cell{grid-column:4;grid-row:1;text-align:right;white-space:nowrap;align-self:center}
+ #rankingStableListV4 .leaderboard-points-cell strong{font-size:15px}
+ #rankingStableListV4 .leaderboard-cell.branch,#rankingStableListV4 .leaderboard-cell.year{display:none!important}
+ #rankingStableListV4 .leaderboard-entry-details{margin-top:0}
+ #rankingStableListV4 .leaderboard-entry-details summary{min-height:40px;display:flex;align-items:center;justify-content:center}
+ #rankingStableListV4 .ranking-v4-state{font-size:9.5px;gap:5px}
+ #rankingStableListV4 .ranking-v4-move{min-width:28px;min-height:24px;font-size:10px}
+}
+@media (max-width:390px){
+ #rankingStableListV4 .leaderboard-entry-main{grid-template-columns:52px 58px minmax(0,1fr) auto!important;gap:7px!important}
+ #rankingStableListV4 .leaderboard-student{grid-template-columns:58px minmax(0,1fr)!important;gap:7px!important}
+ #rankingStableListV4 .leaderboard-avatar{width:58px!important;height:58px!important}
+ #rankingStableListV4 .leaderboard-student-copy strong{font-size:13.5px!important}
+ #rankingStableListV4 .leaderboard-points-cell strong{font-size:13.5px}
+}
