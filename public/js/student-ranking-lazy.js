@@ -53,7 +53,9 @@
     button.setAttribute('role', 'tab');
     button.setAttribute('aria-selected', 'false');
     button.setAttribute('aria-controls', 'tab-ranking-lazy');
-    button.textContent = 'Ranking';
+    button.dataset.featureKey = 'ranking';
+    button.dataset.featureStatus = 'hot';
+    button.innerHTML = '<span class="ranking-tab-label">Ranking</span>';
     const competitionTab = tabs.querySelector('[aria-controls="tab-competitions"]');
     const researchTab = tabs.querySelector('[aria-controls="tab-research"]');
     (competitionTab || researchTab || tabs.lastElementChild)?.after(button);
@@ -72,6 +74,16 @@
     return button;
   }
 
+  function rankingLabel(button) {
+    let label = button.querySelector('.ranking-tab-label');
+    if (label) return label;
+    label = document.createElement('span');
+    label.className = 'ranking-tab-label';
+    label.textContent = 'Ranking';
+    button.prepend(label);
+    return label;
+  }
+
   async function loadRanking(placeholderButton, placeholderPanel) {
     const authoritative = removeLazyDuplicateIfRealRankingExists();
     if (authoritative) {
@@ -81,8 +93,9 @@
     if (loaded || loading) return;
     loading = true;
     placeholderButton.disabled = true;
-    const originalText = placeholderButton.textContent;
-    placeholderButton.textContent = 'Loading Ranking…';
+    const label = rankingLabel(placeholderButton);
+    const originalText = label.textContent || 'Ranking';
+    label.textContent = 'Loading Ranking…';
 
     const nativeFetch = window.fetch.bind(window);
     // profile-ranking.js historically starts two expensive overview ranking requests while it installs.
@@ -107,7 +120,7 @@
       window.fetch = nativeFetch;
       loading = false;
       placeholderButton.disabled = false;
-      placeholderButton.textContent = originalText;
+      label.textContent = originalText;
       const host = placeholderPanel.querySelector('section');
       if (host) host.innerHTML = '<h2>Ranking unavailable</h2><p>Please refresh once and try again.</p>';
       return;
