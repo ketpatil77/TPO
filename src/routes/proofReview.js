@@ -36,6 +36,11 @@ function entryLabel(type, entry) {
     return entry.name || 'Certificate';
 }
 
+function proofRedirectHtml(signedUrl) {
+    const safeUrl = JSON.stringify(String(signedUrl)).replace(/</g, '\\u003c');
+    return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Opening proof</title><style>html,body{margin:0;min-height:100%;background:#10151f;color:#e7ebf3;font-family:system-ui,sans-serif}body{display:grid;place-items:center;min-height:100vh}.box{display:flex;align-items:center;gap:12px;padding:16px 18px;border:1px solid #30394a;border-radius:14px;background:#171e2a}.spin{width:20px;height:20px;border:2px solid #566174;border-top-color:#70d7c8;border-radius:50%;animation:s .7s linear infinite}@keyframes s{to{transform:rotate(360deg)}}small{display:block;color:#97a2b6;margin-top:3px}</style></head><body><div class="box"><span class="spin"></span><div><strong>Opening proof…</strong><small>Loading directly from secure storage.</small></div></div><script>window.location.replace(${safeUrl});</script></body></html>`;
+}
+
 async function studentForId(studentId) {
     if (!studentId) return null;
     return db.selectOne('students', { id: studentId });
@@ -126,6 +131,27 @@ function createRouter(role) {
             const student = await studentForId(entry.student_id);
             if (student?.branch !== req.observer.department) return res.status(403).json({ success: false, error: { code: 'OUT_OF_SCOPE', message: 'This entry belongs to another department.' } });
         }
+
+        // Fast path: authorize here, then let the browser fetch the private object directly
+        // from Supabase's storage edge. This avoids downloading the complete proof into the
+        // Worker, buffering it, sending it again, and waiting for response.blob() in the UI.
+        if (typeof evidenceStorage.createSignedUrl === 'function') {
+            try {
+                const { data: signedData, error: signedError } = await evidenceStorage.createSignedUrl(entry.evidence_path, 120);
+                if (!signedError && signedData?.signedUrl) {
+                    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+                    res.setHeader('Cache-Control', 'private, no-store, max-age=0');
+                    res.setHeader('Referrer-Policy', 'no-referrer');
+                    res.setHeader('X-Content-Type-Options', 'nosniff');
+                    return res.send(proofRedirectHtml(signedData.signedUrl));
+                }
+                if (signedError) console.error('Proof signed URL creation failed, using proxy fallback:', signedError.message || signedError);
+            } catch (error) {
+                console.error('Proof signed URL fast path failed, using proxy fallback:', error.message);
+            }
+        }
+
+        // Compatibility fallback if signed URLs are temporarily unavailable.
         const { data, error } = await evidenceStorage.download(entry.evidence_path);
         if (error || !data) return res.status(404).json({ success: false, error: { code: 'EVIDENCE_MISSING', message: 'Proof file is unavailable.' } });
         const bytes = Buffer.from(await data.arrayBuffer());
@@ -211,4 +237,4 @@ function createRouter(role) {
     return router;
 }
 
-module.exports = { admin: createRouter('admin'), observer: createRouter('observer'), normalizeStoredStatus, statusForDatabase, notifyVerifiedStudent };
+module.exports = { admin: createRouter('admin'), observer: createRouter('observer'), normalizeStoredStatus, statusForDatabase, notifyVerifiedStudent, proofRedirectHtml };
