@@ -31,8 +31,8 @@ test('student notifications are push-driven instead of continuously polling Work
   assert.match(recovery, /return 0/);
 });
 
-test('blocked notification permission has a native-first platform-aware recovery flow', () => {
-  assert.match(worker, /notification-settings-recovery\.js\?v=20260904-settings2/);
+test('notification recovery implementation stays platform-aware but is excluded from the production student dashboard', () => {
+  assert.doesNotMatch(worker, /notification-settings-recovery\.js\?v=/);
   assert.match(recovery, /#retryNotificationSetup, #enableMandatoryNotifications/);
   assert.match(recovery, /Notification\.permission === 'default'/);
   assert.match(recovery, /Notification\.permission === 'denied'/);
@@ -49,11 +49,13 @@ test('blocked notification permission has a native-first platform-aware recovery
   assert.doesNotMatch(recovery, /Open site settings/);
 });
 
-test('dashboard request budget coalesces reads, suppresses subscription rewrites and slows live activity', () => {
+test('dashboard request budget coalesces reads, suppresses subscription rewrites and stays off the production student dashboard', () => {
   assert.match(budget, /2 \* 60 \* 1000/);
   assert.match(budget, /inflight/);
   assert.match(budget, /pushSubscriptionCache/);
   assert.match(budget, /6 \* 60 \* 60 \* 1000/);
   assert.match(budget, /\/api\/student\/push\/config/);
   assert.match(worker, /request-budget\.js\?v=20260904-free-tier2/);
+  const studentBlock = worker.match(/if \(assetPath === '\/dashboard\.html'\) \{([\s\S]*?)\n    \}/)?.[1] || '';
+  assert.doesNotMatch(studentBlock, /request-budget\.js/);
 });
