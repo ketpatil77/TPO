@@ -72,6 +72,20 @@
                 script.dataset.studentActivityFeed = 'true';
                 document.body.appendChild(script);
             }
+            if (!document.querySelector('link[data-admin-student-mobile-cards]')) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = '/css/admin-student-mobile-cards.css?v=20260904-completion1';
+                link.dataset.adminStudentMobileCards = 'true';
+                document.head.appendChild(link);
+            }
+            if (!document.querySelector('script[data-admin-student-mobile-cards]')) {
+                const script = document.createElement('script');
+                script.src = '/js/admin-student-mobile-cards.js?v=20260904-completion1';
+                script.defer = true;
+                script.dataset.adminStudentMobileCards = 'true';
+                document.body.appendChild(script);
+            }
         }
 
         const scopeBadge = document.querySelector('.observer-identity .readonly-pill');
