@@ -32,11 +32,26 @@ async function showPortalNotification(message, fallback) {
     });
 }
 
+async function notifyOpenPortalClients(message) {
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of windows) {
+        if (!client.url.startsWith(self.location.origin)) continue;
+        client.postMessage({
+            type: 'AIT_PUSH_RECEIVED',
+            notificationId: message?.data?.notificationId || null,
+            url: message?.data?.url || '/dashboard?tab=opportunities'
+        });
+    }
+}
+
 self.addEventListener('push', event => {
     const fallback = { title: 'AIT Placement Portal', body: 'You have a new placement update.', data: { url: '/dashboard?tab=opportunities' } };
     let message = fallback;
     try { message = { ...fallback, ...event.data.json() }; } catch (_) { /* use safe fallback */ }
-    event.waitUntil(showPortalNotification(message, fallback));
+    event.waitUntil(Promise.all([
+        showPortalNotification(message, fallback),
+        notifyOpenPortalClients(message)
+    ]));
 });
 
 self.addEventListener('notificationclick', event => {
