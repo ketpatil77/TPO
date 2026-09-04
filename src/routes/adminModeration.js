@@ -14,8 +14,8 @@ router.use(authenticateAdmin);
 const TYPE_MAP = {
   project: { table: 'student_projects', riskType: 'project', label: 'project' },
   research: { table: 'research_papers', riskType: 'research', label: 'research paper' },
-  internship: { table: 'internships', riskType: 'internship', label: 'internship' },
-  certificate: { table: 'certificates', riskType: 'certificate', label: 'certificate' }
+  internship: { table: 'internships', riskType: 'internship', label: 'internship', evidenceBucket: 'certificate-evidence' },
+  certificate: { table: 'certificates', riskType: 'certificate', label: 'certificate', evidenceBucket: 'certificate-evidence' }
 };
 
 async function clearCaches() {
@@ -24,6 +24,24 @@ async function clearCaches() {
     kvCache.clearPattern('profile_ranking'),
     kvCache.clearPattern('leaderboard')
   ]).catch(() => {});
+}
+
+async function cleanupEvidence(config, existing) {
+  if (!config.evidenceBucket || !existing?.evidence_path || db.isLocal()) return;
+  const storage = db.supabaseClient()?.storage?.from(config.evidenceBucket);
+  if (!storage) return;
+  const { error } = await storage.remove([existing.evidence_path]);
+  if (error) console.warn('Moderation evidence cleanup failed:', error.message);
+}
+
+function moderationSummary(groups) {
+  const rows = groups.flat();
+  const low = rows.filter(item => item.moderation.level === 'low').length;
+  const medium = rows.filter(item => item.moderation.level === 'medium').length;
+  const high = rows.filter(item => item.moderation.level === 'high').length;
+  const total = rows.length;
+  const trustScore = total ? Math.max(0, Math.round(100 - (high * 25 + medium * 10) / total * 2)) : 100;
+  return { total, low, medium, high, flagged: medium + high, trust_score: trustScore };
 }
 
 router.post('/:prn/impersonate', async (req, res) => {
@@ -92,12 +110,13 @@ router.get('/:studentId/moderation', async (req, res) => {
       db.select('certificates', { student_id: student.id })
     ]);
     const decorate = (type, rows) => rows.map(item => ({ ...item, moderation: evaluate(type, item) }));
-    res.json({ success:true, data:{
+    const groups = {
       projects: decorate('project', projects),
       research: decorate('research', research),
       internships: decorate('internship', internships),
       certificates: decorate('certificate', certificates)
-    }});
+    };
+    res.json({ success:true, data:{ ...groups, summary: moderationSummary(Object.values(groups)) } });
   } catch (error) {
     console.error('Moderation scan failed:', error);
     res.status(500).json({ success:false, error:'Unable to scan student submissions.' });
@@ -112,6 +131,7 @@ router.delete('/:studentId/moderation/:type/:id', async (req, res) => {
     if (!existing) return res.status(404).json({ success:false, error:`${config.label} not found.` });
     const risk = evaluate(config.riskType, existing);
     await db.delete(config.table, { id:existing.id, student_id:req.params.studentId });
+    await cleanupEvidence(config, existing);
     await db.logAudit('delete_student_submission', config.table, existing.id, {
       student_id: req.params.studentId,
       type: req.params.type,
