@@ -6,6 +6,7 @@ const db = require('../config/database');
 const kvCache = require('../utils/kvCache');
 const { authenticateAdmin, JWT_SECRET, SESSION_VERSION } = require('../middleware/auth');
 const { normalizeBranch } = require('../config/branches');
+const { createStudentNotification } = require('../services/incompleteProfilePush');
 const { evaluate, duplicateIds, markDuplicate } = require('../services/submissionRisk');
 
 const router = express.Router();
@@ -42,6 +43,28 @@ function moderationSummary(groups) {
   const total = rows.length;
   const trustScore = total ? Math.max(0, Math.round(100 - (high * 25 + medium * 10) / total * 2)) : 100;
   return { total, low, medium, high, flagged: medium + high, trust_score: trustScore };
+}
+
+function deletionReason(value) {
+  const reason = String(value || '').trim().replace(/\s+/g, ' ');
+  return reason.length >= 5 && reason.length <= 300 ? reason : null;
+}
+
+async function notifyDeletedSubmission({ studentId, config, existing, reason }) {
+  const title = existing.title || existing.name || existing.company || config.label;
+  try {
+    return await createStudentNotification({
+      student_id: studentId,
+      audience: 'student',
+      title: `${config.label.charAt(0).toUpperCase() + config.label.slice(1)} removed by TPO`,
+      message: `Your ${config.label} “${title}” was removed from your profile. Reason: ${reason}`,
+      priority: 'important',
+      action_url: '/dashboard?tab=edit-profile'
+    });
+  } catch (error) {
+    console.error('Moderation deletion notification failed:', error.message);
+    return null;
+  }
 }
 
 router.post('/:prn/impersonate', async (req, res) => {
@@ -106,6 +129,8 @@ router.delete('/:studentId/moderation/:type/:id', async (req, res) => {
   try {
     const config = TYPE_MAP[req.params.type];
     if (!config) return res.status(400).json({ success:false, error:'Unsupported record type.' });
+    const reason = deletionReason(req.body?.reason);
+    if (!reason) return res.status(400).json({ success:false, error:'Deletion reason is required and must be 5 to 300 characters.' });
     const existing = await db.selectOne(config.table, { id:req.params.id, student_id:req.params.studentId });
     if (!existing) return res.status(404).json({ success:false, error:`${config.label} not found.` });
     const risk = evaluate(config.riskType, existing);
@@ -114,10 +139,12 @@ router.delete('/:studentId/moderation/:type/:id', async (req, res) => {
     await db.logAudit('delete_student_submission', config.table, existing.id, {
       student_id:req.params.studentId, type:req.params.type,
       title:existing.title || existing.name || existing.company || null,
-      risk_score:risk.score, risk_level:risk.level, reasons:risk.reasons
+      risk_score:risk.score, risk_level:risk.level, automated_reasons:risk.reasons,
+      deletion_reason:reason, deleted_by:req.admin.adminId
     });
+    const notification = await notifyDeletedSubmission({ studentId:req.params.studentId, config, existing, reason });
     await clearCaches();
-    res.json({ success:true, message:`${config.label} deleted.`, data:{ risk } });
+    res.json({ success:true, message:`${config.label} deleted.`, data:{ risk, reason, notification_sent:Boolean(notification) } });
   } catch (error) {
     console.error('Delete student submission failed:', error);
     res.status(500).json({ success:false, error:'Unable to delete student submission.' });
