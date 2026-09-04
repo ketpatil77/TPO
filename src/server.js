@@ -21,6 +21,7 @@ const profileLinksRoutes = require('./routes/profileLinks');
 const freeLearningRoutes = require('./routes/freeLearning');
 const competitionReviewRoutes = require('./routes/competitionReview');
 const profileRankingViewRoutes = require('./routes/profileRankingView');
+const studentExperienceRoutes = require('./routes/studentExperience');
 const { createStudentAvatarDirectory } = require('./routes/studentAvatarDirectory');
 
 const adminAuthRoutes = require('./routes/adminAuth');
@@ -86,6 +87,7 @@ app.use('/api', (_req, res, next) => {
 if (!isCloudflareWorker) app.use(express.static(path.join(process.cwd(), 'public')));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/public', studentExperienceRoutes.public);
 app.use('/api/student', protectCollegeAcademics);
 app.use('/api/student/student-avatars', createStudentAvatarDirectory(authenticateStudent));
 app.use('/api/student', proofManagedRecordsRoutes);
@@ -97,6 +99,7 @@ app.use('/api/student/profile-declarations', profileDeclarationRoutes);
 app.use('/api/student/profile-links', profileLinksRoutes);
 app.use('/api/student/free-learning', freeLearningRoutes);
 app.use('/api/student/rankings-view', profileRankingViewRoutes);
+app.use('/api/student/experience', studentExperienceRoutes.student);
 app.use('/api/student/workflow', workflowRoutes.student);
 app.use('/api/student/advanced', advancedRoutes.student);
 
