@@ -94,6 +94,7 @@
         await addScript('/js/leaderboard-compact-score.js?v=20260902-1', 'leaderboard-compact-score-js', true);
         await addScript('/js/ranking-competition-v1.js?v=20260904-1', 'ranking-competition-v1', true);
         await addScript('/js/ranking-experience-v2.js?v=20260904-v3', 'ranking-experience-v2', true);
+        await addScript('/js/ranking-stable-v4.js?v=20260904-1', 'ranking-stable-v4', true);
       } finally {
         window.fetch = nativeFetch;
       }
