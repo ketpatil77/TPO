@@ -21,3 +21,11 @@ test('all authenticated portals load the current proof layout cache version', ()
   const loader = read('public/js/portal-responsive.js');
   assert.match(loader, /\/css\/proof-workflow\.css\?v=20260904-fit1/);
 });
+
+test('proof viewing uses a short-lived signed storage URL before proxy fallback', () => {
+  const route = read('src/routes/proofReview.js');
+  assert.match(route, /createSignedUrl\(entry\.evidence_path, 120\)/);
+  assert.match(route, /proofRedirectHtml\(signedData\.signedUrl\)/);
+  assert.match(route, /Loading directly from secure storage/);
+  assert.match(route, /evidenceStorage\.download\(entry\.evidence_path\)/);
+});
