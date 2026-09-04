@@ -29,8 +29,14 @@ async function ensureExpress(env) {
     return expressHandler;
 }
 
+function patchLoginHtml(html) {
+    let patched = html.replace(/\/js\/portal\.js\?v=[^"']+/g, '/js/portal.js?v=20260904-login-resilience1');
+    patched = patched.replace('</head>', '<script src="/js/student-login-resilience.js?v=20260904-login1" defer></script></head>');
+    return patched;
+}
+
 function patchDashboardHtml(html, assetPath) {
-    let patched = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260903-global-integrity1');
+    let patched = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260904-student-login1');
     patched = patched.replace('</head>', '<script src="/js/request-budget.js?v=20260904-free-tier2"></script></head>');
     if (assetPath === '/admin-dashboard.html') {
         patched = patched.replace(/\/js\/admin-dashboard\.js\?v=[^"']+/g, '/js/admin-dashboard.js?v=20260902-student-activity1');
@@ -40,7 +46,7 @@ function patchDashboardHtml(html, assetPath) {
         patched = patched.replace(/\/js\/observer-dashboard\.js\?v=[^"']+/g, '/js/observer-dashboard.js?v=20260819-ssc-hsc');
     }
     if (assetPath === '/dashboard.html') {
-        patched = patched.replace('</head>', '<link rel="stylesheet" href="/css/profile-requirements-20260814.css"><link rel="stylesheet" href="/css/student-projects-pro.css?v=20260904-projects2"><link rel="stylesheet" href="/css/student-feature-status.css?v=20260904-feature1"><script src="/js/notification-settings-recovery.js?v=20260904-settings2" defer></script><script src="/js/notification-inbox-experience.js?v=20260904-inbox1" defer></script><script src="/js/student-projects-pro.js?v=20260904-projects2" defer></script><script src="/js/student-feature-status.js?v=20260904-feature1" defer></script></head>');
+        patched = patched.replace('</head>', '<link rel="stylesheet" href="/css/profile-requirements-20260814.css"><link rel="stylesheet" href="/css/student-projects-pro.css?v=20260904-projects2"><link rel="stylesheet" href="/css/student-feature-status.css?v=20260904-feature1"><script src="/js/student-dashboard-resilience.js?v=20260904-dashboard1" defer></script><script src="/js/notification-settings-recovery.js?v=20260904-settings2" defer></script><script src="/js/notification-inbox-experience.js?v=20260904-inbox1" defer></script><script src="/js/student-projects-pro.js?v=20260904-projects2" defer></script><script src="/js/student-feature-status.js?v=20260904-feature1" defer></script></head>');
     }
     return patched;
 }
@@ -57,6 +63,10 @@ export default {
         if (assetPath) {
             url.pathname = assetPath;
             const response = await env.ASSETS.fetch(new Request(url, request));
+            if (assetPath === '/index.html') {
+                const patched = patchLoginHtml(await response.text());
+                return noStore(new Response(patched, { status: response.status, headers: response.headers }), env);
+            }
             if (['/dashboard.html', '/admin-dashboard.html', '/observer-dashboard.html'].includes(assetPath)) {
                 const patched = patchDashboardHtml(await response.text(), assetPath);
                 return noStore(new Response(patched, { status: response.status, headers: response.headers }), env);
