@@ -29,9 +29,10 @@ test('student dashboard remains interactive when notification setup repeatedly r
     assert.match(dashboard, /visibilitychange/);
 });
 
-test('production student dashboard excludes freeze-prone notification observers', () => {
+test('production student dashboard installs interaction recovery before the legacy dashboard boot path', () => {
     assert.match(worker, /student-login-resilience\.js\?v=20260904-login1/);
-    assert.match(worker, /student-dashboard-interaction-hotfix\.js\?v=20260904-unlock5/);
+    assert.match(worker, /<script src="\/js\/student-dashboard-interaction-hotfix\.js\?v=20260904-unlock6"><\/script>/);
+    assert.doesNotMatch(worker, /student-dashboard-interaction-hotfix\.js\?v=20260904-unlock6" defer/);
     assert.doesNotMatch(worker, /student-dashboard-resilience\.js\?v=/);
     const studentInjection = worker.match(/if \(assetPath === '\/dashboard\.html'\)[\s\S]*?return patched;/)?.[0] || worker;
     assert.doesNotMatch(studentInjection, /notification-inbox-experience\.js/);
