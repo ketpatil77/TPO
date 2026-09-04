@@ -25,8 +25,8 @@
         }
     }
 
-    // The dashboard's own script owns initialization. Calling startStudentWorkspace() again here
-    // duplicated listeners and network work and could leave Chrome in a permanent busy state.
+    // Dashboard initialization belongs to the primary dashboard script. This helper only removes
+    // interaction locks and stale feedback; it never starts the workspace a second time.
     function boot() {
         unlockWorkspace();
         recoverStaleFeedback();
