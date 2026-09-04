@@ -1,0 +1,146 @@
+/* Ranking experience v2: speed preview, theme-safe contrast, compact defense controls, personalized badges. */
+#tab-ranking .rank-chaos-card,
+#tab-ranking .ranking-strength-panel,
+#tab-ranking .rank-chaos-panel { color: var(--text-body); }
+
+#tab-ranking .rank-chaos-card > strong,
+#tab-ranking .rank-chaos-card .rank-chaos-hold,
+#tab-ranking .rank-chaos-mainline > strong,
+#tab-ranking .rank-chaos-event strong,
+#tab-ranking .rank-chaos-hold-row strong,
+#tab-ranking .rank-chaos-hold-row > b,
+#tab-ranking .ranking-strength-panel h3,
+#tab-ranking .ranking-badge-details strong { color: var(--text-heading) !important; }
+
+#tab-ranking .rank-chaos-card > small,
+#tab-ranking .rank-chaos-event small,
+#tab-ranking .rank-chaos-hold-row small,
+#tab-ranking .ranking-strength-head p,
+#tab-ranking .ranking-badge-details small { color: var(--text-muted) !important; }
+
+#tab-ranking .rank-chaos-card {
+  min-height: 138px;
+  overflow: hidden;
+}
+
+#tab-ranking .rank-chaos-card > strong,
+#tab-ranking .rank-chaos-card > small,
+#tab-ranking .rank-chaos-alert,
+#tab-ranking .rank-chaos-hold,
+#tab-ranking .rank-chaos-mainline { overflow-wrap: anywhere; }
+
+#tab-ranking .rank-chaos-momentum.hot { background: rgba(245,158,11,.16); color: #fed7aa; }
+#tab-ranking .rank-chaos-momentum.rising { background: rgba(59,130,246,.16); color: #bfdbfe; }
+#tab-ranking .rank-chaos-momentum.stable { background: rgba(16,185,129,.16); color: #bbf7d0; }
+#tab-ranking .rank-chaos-momentum.slipping { background: rgba(239,68,68,.16); color: #fecaca; }
+#tab-ranking .rank-chaos-alert.safe { background: rgba(16,185,129,.14); color: #a7f3d0; }
+#tab-ranking .rank-chaos-alert.danger { background: rgba(239,68,68,.14); color: #fecaca; }
+#tab-ranking .rank-chaos-alert.neutral { background: var(--surface-muted); color: var(--text-body); }
+#tab-ranking .rank-chaos-move.flat { background: var(--surface-muted); color: var(--text-body); }
+
+:root[data-theme="light"] #tab-ranking .rank-chaos-momentum.hot { background:#fff7ed; color:#9a3412; }
+:root[data-theme="light"] #tab-ranking .rank-chaos-momentum.rising { background:#eff6ff; color:#1d4ed8; }
+:root[data-theme="light"] #tab-ranking .rank-chaos-momentum.stable { background:#ecfdf5; color:#047857; }
+:root[data-theme="light"] #tab-ranking .rank-chaos-momentum.slipping { background:#fef2f2; color:#b91c1c; }
+:root[data-theme="light"] #tab-ranking .rank-chaos-alert.safe { background:#ecfdf5; color:#065f46; }
+:root[data-theme="light"] #tab-ranking .rank-chaos-alert.danger { background:#fef2f2; color:#991b1b; }
+
+#tab-ranking .rank-compact-toggle {
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--text-heading);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+#tab-ranking .rank-compact-toggle:hover,
+#tab-ranking .rank-compact-toggle:focus-visible { border-color: var(--student-gold); outline: none; }
+
+#tab-ranking .rank-chaos-panel.defense-collapsed { padding-bottom: 12px; }
+#tab-ranking .rank-chaos-panel.defense-collapsed .rank-chaos-heading { margin-bottom: 0; }
+
+#tab-ranking .ranking-strength-panel {
+  padding: 14px 15px;
+  min-width: 0;
+}
+#tab-ranking .ranking-strength-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+#tab-ranking .ranking-strength-head h3 { margin: 2px 0 2px; font-size: 17px; }
+#tab-ranking .ranking-strength-head p { margin: 0; font-size: 11px; line-height: 1.4; }
+#tab-ranking .ranking-strength-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+#tab-ranking .ranking-strength-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(243,201,105,.34);
+  background: rgba(243,201,105,.10);
+  color: var(--text-heading);
+  font-size: 11px;
+  font-weight: 800;
+}
+#tab-ranking .ranking-strength-badge b { font-size: 14px; line-height: 1; }
+#tab-ranking .ranking-badge-details {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 7px;
+  margin-top: 10px;
+}
+#tab-ranking .ranking-badge-details[hidden] { display: none; }
+#tab-ranking .ranking-badge-details > div {
+  padding: 9px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--surface-muted);
+}
+#tab-ranking .ranking-badge-details strong,
+#tab-ranking .ranking-badge-details small { display: block; }
+#tab-ranking .ranking-badge-details strong { font-size: 11px; }
+#tab-ranking .ranking-badge-details small { margin-top: 3px; font-size: 10px; line-height: 1.35; }
+
+#tab-ranking .ranking-fast-note {
+  padding: 8px 10px;
+  color: var(--text-muted);
+  font-size: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+#tab-ranking .ranking-fast-row .leaderboard-entry-details { display:none; }
+#tab-ranking .ranking-fast-row .leaderboard-cell.branch { font-weight: 800; color: var(--text-heading); }
+#tab-ranking .ranking-fast-row .leaderboard-cell.year { color: var(--text-muted); font-size: 10px; }
+
+@media (max-width: 600px) {
+  #tab-ranking .rank-chaos-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  #tab-ranking .rank-chaos-card { min-height: 126px; padding: 10px; }
+  #tab-ranking .rank-chaos-card > strong { font-size: 11px !important; line-height: 1.35; }
+  #tab-ranking .rank-chaos-card > small { font-size: 9.5px; line-height: 1.35; }
+  #tab-ranking .rank-chaos-mainline > strong { font-size: 22px !important; }
+  #tab-ranking .rank-chaos-alert { width: 100%; font-size: 9px; line-height: 1.3; }
+  #tab-ranking .ranking-strength-panel { padding: 11px; }
+  #tab-ranking .ranking-strength-head h3 { font-size: 15px; }
+  #tab-ranking .ranking-strength-head p { font-size: 10px; }
+  #tab-ranking .ranking-strength-badges { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  #tab-ranking .ranking-strength-badges::-webkit-scrollbar { display:none; }
+  #tab-ranking .ranking-strength-badge { white-space: nowrap; min-height: 34px; }
+  #tab-ranking .ranking-badge-details { grid-template-columns: 1fr; }
+  #tab-ranking .rank-compact-toggle { min-height: 38px; min-width: 58px; }
+}
+
+@media (max-width: 380px) {
+  #tab-ranking .rank-chaos-grid { grid-template-columns: 1fr; }
+  #tab-ranking .rank-chaos-card { min-height: 0; }
+}
