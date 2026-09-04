@@ -10,6 +10,7 @@
     ['certificates', { controls: ['tab-certificates'], status: 'new' }],
     ['ranking', { controls: ['tab-ranking', 'tab-ranking-lazy'], status: 'hot' }]
   ]);
+  const defer = typeof queueMicrotask === 'function' ? queueMicrotask : callback => Promise.resolve().then(callback);
 
   function normalizedStatus(value) {
     return String(value || 'new').toLowerCase() === 'hot' ? 'hot' : 'new';
@@ -64,7 +65,7 @@
   function queueApply() {
     if (queued) return;
     queued = true;
-    queueMicrotask(() => {
+    defer(() => {
       queued = false;
       applyRegistry();
     });
