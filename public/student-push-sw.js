@@ -3,23 +3,45 @@
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 
-self.addEventListener('push', event => {
-    const fallback = { title: 'AIT Placement Portal', body: 'Your placement profile needs attention.', data: { url: '/dashboard?tab=edit-profile' } };
-    let message = fallback;
-    try { message = { ...fallback, ...event.data.json() }; } catch (_) { /* use safe fallback */ }
-    event.waitUntil(self.registration.showNotification(message.title, {
-        body: message.body,
+function notificationTag(message) {
+    const url = String(message?.data?.url || '');
+    if (message?.tag === 'profile-completion-reminder' || url.includes('edit-profile')) return 'ait-profile-updates';
+    if (url.includes('opportunities') || url.includes('jobs')) return 'ait-placement-updates';
+    return 'ait-portal-updates';
+}
+
+async function showPortalNotification(message, fallback) {
+    const tag = notificationTag(message);
+    const title = String(message.title || fallback.title);
+    const body = String(message.body || fallback.body);
+
+    // Do not surface the same push twice. In-app notifications remain the full history.
+    const visible = await self.registration.getNotifications({ tag });
+    const duplicate = visible.some(item => item.title === title && item.body === body);
+    if (duplicate) return;
+
+    return self.registration.showNotification(title, {
+        body,
         icon: message.icon || '/icons/icon-192.png',
         badge: message.badge || '/icons/icon-192.png',
-        tag: message.tag || 'profile-completion-reminder',
-        renotify: true,
-        data: message.data || fallback.data
-    }));
+        tag,
+        renotify: false,
+        requireInteraction: false,
+        timestamp: Date.now(),
+        data: { ...(message.data || fallback.data), pushCategory: tag }
+    });
+}
+
+self.addEventListener('push', event => {
+    const fallback = { title: 'AIT Placement Portal', body: 'You have a new placement update.', data: { url: '/dashboard?tab=opportunities' } };
+    let message = fallback;
+    try { message = { ...fallback, ...event.data.json() }; } catch (_) { /* use safe fallback */ }
+    event.waitUntil(showPortalNotification(message, fallback));
 });
 
 self.addEventListener('notificationclick', event => {
     event.notification.close();
-    const target = new URL(event.notification.data?.url || '/dashboard?tab=edit-profile', self.location.origin).href;
+    const target = new URL(event.notification.data?.url || '/dashboard?tab=opportunities', self.location.origin).href;
     event.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windows => {
         const existing = windows.find(windowClient => windowClient.url.startsWith(self.location.origin));
         return existing ? existing.navigate(target).then(client => client.focus()) : clients.openWindow(target);
