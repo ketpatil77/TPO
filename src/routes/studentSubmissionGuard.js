@@ -47,6 +47,9 @@ function hasReusedLink(type, body, existing, editingId) {
     return candidateLinks(type, row).map(normalizedUrl).filter(Boolean).some(url => candidate.has(url));
   });
 }
+function obviousJunk(risk = {}) {
+  return (risk.reasons || []).some(reason => /placeholder text|looks like junk text|repeated placeholder content/i.test(String(reason)));
+}
 
 function installEvidenceVerificationInterceptor(req, res, type, id) {
   const originalJson = res.json.bind(res);
@@ -59,15 +62,18 @@ function installEvidenceVerificationInterceptor(req, res, type, id) {
     const risk = evaluate(type, record, { ignoreStoredStatus:true });
     const status = risk.auto_approved ? 'verified' : 'pending';
     const now = new Date().toISOString();
-    Promise.resolve(db.update(TABLES[type], { id:id || record.id, student_id:req.student.studentId }, {
+    const statusPatch = {
       verification_status:status,
       verification_note:risk.reasons.length ? risk.reasons.join(' ') : 'Auto-verified after unique proof and metadata checks.',
       verified_at:status === 'verified' ? now : null,
       verified_by:null,
       verified_role:status === 'verified' ? 'system' : null
-    })).then(updated => {
-      if (type === 'certificate') payload.data.certificate = updated || { ...record, verification_status:status };
-      else payload.data.internship = updated || { ...record, verification_status:status };
+    };
+    Promise.resolve(db.update(TABLES[type], { id:id || record.id, student_id:req.student.studentId }, statusPatch)).then(() => {
+      // Preserve the evidence route's full response shape (mime, bytes, path, hash, etc.).
+      // Only overlay verification fields so a moderation enhancement cannot erase proof metadata.
+      if (type === 'certificate') payload.data.certificate = { ...record, ...statusPatch };
+      else payload.data.internship = { ...record, ...statusPatch };
       payload.moderation = { ...risk, verification_status:status };
       return originalJson(payload);
     }).catch(error => {
@@ -97,15 +103,16 @@ function installAutoStatusInterceptor(req, res, type, risk) {
     if (!payload?.success || !record?.id) return originalJson(payload);
     const status = risk.auto_approved ? 'verified' : 'pending';
     const now = new Date().toISOString();
-    Promise.resolve(db.update(TABLES[type], { id:record.id, student_id:req.student.studentId }, {
+    const statusPatch = {
       verification_status:status,
       verification_note:risk.reasons.length ? risk.reasons.join(' ') : 'Auto-verified by submission integrity checks.',
       verified_at:status === 'verified' ? now : null,
       verified_by:null,
       verified_role:status === 'verified' ? 'system' : null
-    })).then(updated => {
-      if (type === 'project') payload.project = updated || { ...record, verification_status:status };
-      else payload.research_paper = updated || { ...record, verification_status:status };
+    };
+    Promise.resolve(db.update(TABLES[type], { id:record.id, student_id:req.student.studentId }, statusPatch)).then(() => {
+      if (type === 'project') payload.project = { ...record, ...statusPatch };
+      else payload.research_paper = { ...record, ...statusPatch };
       payload.moderation = { ...risk, verification_status:status };
       return originalJson(payload);
     }).catch(error => {
@@ -145,21 +152,27 @@ router.use(async (req, res, next) => {
       }});
     }
 
+    // Network ownership/reachability checks are production-only. Local/test mode has no
+    // reliable Internet and must remain deterministic, while production still applies them.
+    const productionIntegrity = !db.isLocal();
     const links = candidateLinks(type, req.body || {});
-    const linkStatus = links.length ? await checkReachableUrls(links) : {};
+    const linkStatus = productionIntegrity && links.length ? await checkReachableUrls(links) : {};
     const context = {
-      enforceOwnership:type === 'project',
-      enforceReachability:['project','research'].includes(type),
+      enforceOwnership:productionIntegrity && type === 'project',
+      enforceReachability:productionIntegrity && ['project','research'].includes(type),
       profileGithubUsername:githubOwner(student?.github_url),
       linkStatus,
       reusedLink:false
     };
     const risk = evaluate(type, req.body || {}, context);
 
-    if (risk.level === 'high') {
+    // Missing/dead links, ownership mismatch and thin metadata are flags for TPO/TPC review,
+    // not destructive auto-rejections. Only obvious junk is blocked here; exact duplicates
+    // are already declined above. This keeps the algorithm conservative when uncertain.
+    if (obviousJunk(risk)) {
       return res.status(422).json({ success:false, error:{
         code:'SUBMISSION_QUALITY_FAILED',
-        message:`This ${type} entry failed automatic integrity checks. Fix it before saving.`,
+        message:`This ${type} entry contains obvious placeholder or junk information. Fix it before saving.`,
         reasons:risk.reasons,
         risk_score:risk.score
       }});
