@@ -6,15 +6,23 @@ const path = require('node:path');
 const gateSource = fs.readFileSync(path.join(__dirname, '../public/js/push-gate-utils.js'), 'utf8');
 const swSource = fs.readFileSync(path.join(__dirname, '../public/student-push-sw.js'), 'utf8');
 
-test('browser notification permission is optional and never blocks the student workspace', () => {
-    assert.match(gateSource, /Browser push is[\s\S]*optional enhancement/);
+test('notification assurance never hard-blocks portal content on browser permission', () => {
+    assert.match(gateSource, /Hard-blocking site content until browser notification permission is granted/);
     assert.match(gateSource, /dashboard\.inert = false/);
-    assert.match(gateSource, /openWorkspace\(\)/);
-    assert.match(gateSource, /In-app notifications already work/);
+    assert.match(gateSource, /neverBrowserGateWorkspace\(\)/);
+    assert.match(gateSource, /Browser alerts are required for off-site placement updates/);
 });
 
-test('permission prompt is only reached from explicit browser-alert enable action', () => {
-    assert.match(gateSource, /enableOptionalBrowserNotifications/);
+test('important in-app notifications require explicit acknowledgement', () => {
+    assert.match(gateSource, /mandatoryImportantNotification/);
+    assert.match(gateSource, /priority === 'important'/);
+    assert.match(gateSource, /Acknowledge/);
+    assert.match(gateSource, /acknowledgeImportant/);
+    assert.match(gateSource, /markAllExceptMandatoryImportant/);
+});
+
+test('browser permission prompt only runs from explicit enable action', () => {
+    assert.match(gateSource, /enableAssuredBrowserNotifications/);
     assert.match(gateSource, /Notification\.requestPermission\(\)/);
     assert.match(gateSource, /data-enable-browser-alerts/);
 });
