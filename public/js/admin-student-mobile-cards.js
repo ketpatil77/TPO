@@ -81,6 +81,10 @@
   function paintCompletion(cell, record) {
     if (!cell) return;
     const value = Number.isFinite(Number(record?.completion)) ? Math.max(0, Math.min(100, Number(record.completion))) : null;
+    const missingText = Array.isArray(record?.missing) ? record.missing.join(', ') : '';
+    const state = `${value === null ? 'na' : value}|${missingText}`;
+    if (cell.dataset.completionState === state) return;
+    cell.dataset.completionState = state;
     cell.textContent = '';
     const wrap = make('div', `student-profile-completion ${value === null ? '' : completionClass(value)}`.trim());
     const label = make('strong', '', value === null ? '—' : `${Math.round(value)}%`);
@@ -89,7 +93,7 @@
     fill.style.setProperty('--profile-completion', value === null ? '0%' : `${value}%`);
     track.append(fill);
     wrap.append(label, track);
-    if (record?.missing?.length) wrap.title = `Missing: ${record.missing.join(', ')}`;
+    if (missingText) wrap.title = `Missing: ${missingText}`;
     else if (value === 100) wrap.title = 'Profile complete';
     cell.append(wrap);
   }
@@ -127,6 +131,8 @@
     if (!score) return;
     const record = completionByPrn.get(prn);
     const value = Number.isFinite(Number(record?.completion)) ? `${Math.round(Number(record.completion))}%` : '—';
+    if (score.dataset.profileCompletion === value) return;
+    score.dataset.profileCompletion = value;
     score.replaceChildren(make('strong', '', value), make('small', '', 'PROFILE'));
   }
 
@@ -164,6 +170,7 @@
     const score = make('span', 'mobile-student-score');
     const record = completionByPrn.get(prn);
     const completion = Number.isFinite(Number(record?.completion)) ? `${Math.round(Number(record.completion))}%` : '—';
+    score.dataset.profileCompletion = completion;
     score.append(make('strong', '', completion), make('small', '', 'PROFILE'));
 
     const arrow = make('span', 'mobile-student-chevron', '›');
