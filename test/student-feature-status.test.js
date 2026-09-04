@@ -22,6 +22,12 @@ test('ranking HOT badge survives lazy-tab replacement and loading text changes',
   assert.match(js, /normalized === 'hot' \? 'HOT' : 'NEW'/);
 });
 
+test('feature observer updates are idempotent instead of feeding themselves forever', () => {
+  assert.match(js, /button\.dataset\.featureStatus !== normalized/);
+  assert.match(js, /button\.dataset\.featureKey !== key/);
+  assert.match(js, /attributeFilter: \['aria-controls', 'data-feature-status'\]/);
+});
+
 test('feature badges are persistent and intentionally non-pulsing', () => {
   assert.match(css, /animation:\s*none\s*!important/);
   assert.match(css, /\.student-new-badge\.is-hot/);
