@@ -25,13 +25,16 @@ test('mandatory notification gate blocks workspace and prompts only after explic
     assert.doesNotMatch(html, /pushOptInButton|pushTestButton|Send test|Disable reminders/);
 });
 
-test('student service worker displays push payload and opens profile editor', () => {
+test('student service worker displays push payload without spammy renotification and opens profile editor', () => {
     const source = fs.readFileSync(path.join(process.cwd(), 'public/student-push-sw.js'), 'utf8');
     assert.match(source, /addEventListener\('push'/);
     assert.match(source, /showNotification/);
     assert.match(source, /icon:\s*message\.icon/);
     assert.match(source, /badge:\s*message\.badge/);
-    assert.match(source, /renotify:\s*true/);
+    assert.match(source, /getNotifications\(\{ tag \}\)/);
+    assert.match(source, /duplicate/);
+    assert.match(source, /renotify:\s*false/);
+    assert.doesNotMatch(source, /renotify:\s*true/);
     assert.match(source, /skipWaiting/);
     assert.match(source, /clients\.claim/);
     assert.match(source, /addEventListener\('notificationclick'/);
