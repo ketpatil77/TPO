@@ -12,10 +12,13 @@
 
   const ua = () => navigator.userAgent || '';
   const isIOS = () => /iPhone|iPad|iPod/i.test(ua()) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = () => /Android/i.test(ua());
+  const isChrome = () => /Chrome|CriOS/i.test(ua()) && !/Edg|OPR|SamsungBrowser/i.test(ua());
   const isStandalone = () => window.matchMedia?.('(display-mode: standalone)')?.matches || navigator.standalone === true;
   const supportsPush = () => 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
   let recoveryOpen = false;
   let checking = false;
+  let permissionStatus = null;
 
   function statusElements() {
     return {
@@ -46,9 +49,12 @@
     style.textContent = `
       .notification-settings-recovery{position:fixed;inset:0;z-index:100001;display:grid;place-items:center;padding:16px;background:rgba(4,7,12,.78);backdrop-filter:blur(7px)}
       .notification-settings-recovery[hidden]{display:none!important}
-      .notification-settings-recovery-card{width:min(470px,100%);padding:20px;border:1px solid var(--border-color,#374151);border-radius:18px;background:var(--bg-card,#171d28);color:var(--text-main,#f7f8fb);box-shadow:0 24px 70px rgba(0,0,0,.45)}
+      .notification-settings-recovery-card{width:min(500px,100%);padding:20px;border:1px solid var(--border-color,#374151);border-radius:18px;background:var(--bg-card,#171d28);color:var(--text-main,#f7f8fb);box-shadow:0 24px 70px rgba(0,0,0,.45)}
       .notification-settings-recovery-icon{width:48px;height:48px;display:grid;place-items:center;margin-bottom:12px;border-radius:14px;background:rgba(243,201,105,.12);font-size:1.35rem}
       .notification-settings-recovery-card h2{margin:0 0 7px;font-size:1.3rem}.notification-settings-recovery-card p{margin:0;color:var(--text-body,#c4cad4);line-height:1.5}
+      .notification-settings-help{display:none;margin-top:13px;padding:12px;border:1px solid var(--border-color,#374151);border-radius:12px;background:rgba(148,163,184,.055)}
+      .notification-settings-help.is-visible{display:block}.notification-settings-help strong{display:block;margin-bottom:6px;font-size:.84rem}.notification-settings-help span{display:block;color:var(--text-body,#c4cad4);font-size:.8rem;line-height:1.45}
+      .notification-settings-help b{color:var(--text-main,#f7f8fb)}
       .notification-settings-state{min-height:21px;margin-top:11px;font-size:.88rem;color:var(--text-body,#c4cad4)}
       .notification-settings-actions{display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:15px}
       @media(max-width:520px){.notification-settings-recovery{align-items:end;padding:10px}.notification-settings-recovery-card{border-radius:17px}.notification-settings-actions{grid-template-columns:1fr}.notification-settings-actions .btn{width:100%}}
@@ -67,6 +73,7 @@
         <div class="notification-settings-recovery-icon" aria-hidden="true">🔔</div>
         <h2 id="notificationSettingsRecoveryTitle">Enable notifications</h2>
         <p id="notificationSettingsRecoveryIntro">The portal needs notification access for placement updates.</p>
+        <div id="notificationSettingsHelp" class="notification-settings-help" aria-live="polite"></div>
         <div id="notificationSettingsRecoveryState" class="notification-settings-state" role="status"></div>
         <div class="notification-settings-actions">
           <button id="notificationSettingsPrimary" class="btn btn-primary" type="button">Allow notifications</button>
@@ -80,44 +87,73 @@
     return modal;
   }
 
+  function blockedHelp() {
+    if (isIOS()) {
+      return isStandalone()
+        ? '<strong>One manual permission change is required by iPhone.</strong><span>Open <b>Settings → Apps → AIT Placement Portal → Notifications</b> and turn on <b>Allow Notifications</b>. Return here and the portal will detect it automatically.</span>'
+        : '<strong>iPhone Web Push works from a Home Screen web app.</strong><span>Add AIT Placement Portal to the Home Screen first. Open it from the new icon, then tap <b>Allow notifications</b>.</span>';
+    }
+    if (isAndroid() && isChrome()) {
+      return '<strong>Chrome will not let a website reopen a permission you already blocked.</strong><span>Tap the <b>site controls icon beside the address</b> → <b>Permissions</b> → <b>Notifications</b> → <b>Allow</b>. Return here and the portal will detect it automatically.</span>';
+    }
+    if (isAndroid()) {
+      return '<strong>Your browser has locked this permission.</strong><span>Open this site’s permissions from the browser address bar, change <b>Notifications</b> to <b>Allow</b>, then return here.</span>';
+    }
+    return '<strong>The browser has locked this permission after it was blocked.</strong><span>Open the site controls beside the address bar, change <b>Notifications</b> to <b>Allow</b>, then return here.</span>';
+  }
+
   function recoveryCopy() {
     if (isIOS() && !isStandalone()) {
       return {
         title: 'Set up iPhone notifications',
-        intro: 'AIT Portal must be added to the Home Screen before iPhone can deliver Web Push notifications.',
-        label: 'Open iPhone setup'
+        intro: 'AIT Portal must run as a Home Screen web app before iPhone can deliver Web Push.',
+        label: 'Open iPhone share menu',
+        showHelp: true
       };
     }
     if ('Notification' in window && Notification.permission === 'default') {
       return {
         title: 'Enable notifications',
-        intro: 'Tap below and your browser will show its native Allow notification dialog.',
-        label: 'Allow notifications'
+        intro: 'Tap below. Your browser will show its real Allow notification dialog immediately.',
+        label: 'Allow notifications',
+        showHelp: false
       };
     }
     if ('Notification' in window && Notification.permission === 'denied') {
       return {
         title: 'Notifications are blocked',
-        intro: 'The browser has already blocked this site, so the native Allow dialog cannot be shown again until the permission is reset.',
-        label: isIOS() ? 'Open notification settings' : 'Open site settings'
+        intro: 'This permission was denied earlier. Browsers intentionally prevent websites from forcing that permission screen open again.',
+        label: 'I allowed it · Check now',
+        showHelp: true
       };
     }
     return {
       title: 'Enable notifications',
       intro: 'Connect this device to placement notifications.',
-      label: 'Enable notifications'
+      label: 'Enable notifications',
+      showHelp: false
     };
+  }
+
+  function refreshRecovery(message = '') {
+    const modal = ensureRecovery();
+    const copy = recoveryCopy();
+    const help = modal.querySelector('#notificationSettingsHelp');
+    modal.querySelector('#notificationSettingsRecoveryTitle').textContent = copy.title;
+    modal.querySelector('#notificationSettingsRecoveryIntro').textContent = copy.intro;
+    modal.querySelector('#notificationSettingsPrimary').textContent = copy.label;
+    if (help) {
+      help.classList.toggle('is-visible', Boolean(copy.showHelp));
+      help.innerHTML = copy.showHelp ? blockedHelp() : '';
+    }
+    if (message) modal.querySelector('#notificationSettingsRecoveryState').textContent = message;
   }
 
   function openRecovery(message = '') {
     const modal = ensureRecovery();
-    const copy = recoveryCopy();
     recoveryOpen = true;
     modal.hidden = false;
-    modal.querySelector('#notificationSettingsRecoveryTitle').textContent = copy.title;
-    modal.querySelector('#notificationSettingsRecoveryIntro').textContent = copy.intro;
-    modal.querySelector('#notificationSettingsPrimary').textContent = copy.label;
-    modal.querySelector('#notificationSettingsRecoveryState').textContent = message;
+    refreshRecovery(message);
     setTimeout(() => modal.querySelector('#notificationSettingsPrimary')?.focus(), 20);
   }
 
@@ -151,11 +187,12 @@
       return false;
     } finally {
       checking = false;
-      if (button) { button.disabled = false; button.textContent = recoveryCopy().label; }
+      if (button) { button.disabled = false; refreshRecovery(); }
     }
   }
 
   async function requestNativePermission() {
+    if (Notification.permission === 'denied') return false;
     if (typeof window.enableMandatoryNotifications === 'function') {
       await window.enableMandatoryNotifications();
     } else {
@@ -170,38 +207,24 @@
     if (navigator.share) {
       try {
         await navigator.share({ title: 'AIT Placement Portal', text: 'Add AIT Placement Portal to your Home Screen for placement notifications.', url: location.href });
-        if (state) state.textContent = 'Choose “Add to Home Screen”, then open AIT Portal and tap Allow notifications.';
+        if (state) state.textContent = 'Add the portal to the Home Screen, then open it from its new icon.';
         return;
       } catch (error) {
         if (error?.name === 'AbortError') return;
       }
     }
-    if (state) state.textContent = 'Use Safari Share → Add to Home Screen, then open AIT Portal.';
+    if (state) state.textContent = 'Open the browser Share menu and add AIT Placement Portal to the Home Screen.';
   }
 
-  function tryOpenBrowserSiteSettings() {
-    const state = document.getElementById('notificationSettingsRecoveryState');
-    const settingsUrl = `chrome://settings/content/siteDetails?site=${encodeURIComponent(location.origin)}`;
-    let leftPage = false;
-    const markLeft = () => { leftPage = true; };
-    window.addEventListener('blur', markLeft, { once: true });
-    document.addEventListener('visibilitychange', () => { if (document.hidden) leftPage = true; }, { once: true });
-    try { window.open(settingsUrl, '_blank', 'noopener'); } catch (_) { /* fallback below */ }
-    setTimeout(() => {
-      if (!leftPage && state) state.textContent = 'Chrome blocked automatic settings opening. Tap the site controls beside the address and set Notifications to Allow.';
-      else if (state) state.textContent = 'Set Notifications to Allow, then return here.';
-    }, 700);
-  }
-
-  function tryOpenIosSettings() {
-    const state = document.getElementById('notificationSettingsRecoveryState');
-    let leftPage = false;
-    const onHidden = () => { if (document.hidden) leftPage = true; };
-    document.addEventListener('visibilitychange', onHidden, { once: true });
-    try { window.location.href = 'app-settings:'; } catch (_) { /* fallback below */ }
-    setTimeout(() => {
-      if (!leftPage && state) state.textContent = 'iOS blocked automatic Settings opening. Open Settings → Notifications → AIT Placement Portal.';
-    }, 900);
+  async function recheckPermission({ announce = false } = {}) {
+    if (!supportsPush()) return false;
+    if (Notification.permission === 'granted') return connectNotifications();
+    if (Notification.permission === 'default') {
+      refreshRecovery(announce ? 'Permission is ready to be requested. Tap Allow notifications.' : '');
+      return false;
+    }
+    refreshRecovery(announce ? 'Still blocked. Change the site permission to Allow, then return here.' : '');
+    return false;
   }
 
   async function primaryRecoveryAction() {
@@ -219,13 +242,10 @@
     }
     if (Notification.permission === 'default') {
       await requestNativePermission();
-      if (Notification.permission !== 'granted') openRecovery('Permission was not allowed. Tap again after changing the browser permission.');
+      if (Notification.permission !== 'granted') openRecovery('Permission was not allowed. The browser now requires a manual permission change.');
       return;
     }
-    if (Notification.permission === 'denied') {
-      if (isIOS()) tryOpenIosSettings();
-      else tryOpenBrowserSiteSettings();
-    }
+    await recheckPermission({ announce: true });
   }
 
   async function smartRecovery() {
@@ -243,8 +263,6 @@
     return false;
   }
 
-  // Own both notification setup buttons so iPhone never falls into the old unsupported
-  // Notification API path and default permission always stays inside the original click gesture.
   document.addEventListener('click', event => {
     const button = event.target.closest?.('#retryNotificationSetup, #enableMandatoryNotifications');
     if (!button) return;
@@ -254,19 +272,24 @@
   }, true);
 
   async function recheckOnReturn() {
-    if (!supportsPush() || Notification.permission !== 'granted') return;
-    const statusVisible = !statusElements().box?.hidden;
-    if (!recoveryOpen && !statusVisible) return;
-    await connectNotifications();
+    if (!supportsPush()) return;
+    if (Notification.permission === 'granted') {
+      await connectNotifications();
+      return;
+    }
+    if (recoveryOpen) refreshRecovery();
   }
 
   document.addEventListener('visibilitychange', () => { if (!document.hidden) recheckOnReturn(); });
   window.addEventListener('focus', recheckOnReturn);
+  window.addEventListener('pageshow', recheckOnReturn);
 
   try {
     navigator.permissions?.query?.({ name: 'notifications' }).then(permission => {
+      permissionStatus = permission;
       permission.addEventListener?.('change', () => {
         if (permission.state === 'granted') recheckOnReturn();
+        else if (recoveryOpen) refreshRecovery();
       });
     }).catch(() => {});
   } catch (_) {}
