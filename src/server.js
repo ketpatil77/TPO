@@ -12,6 +12,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const studentRoutes = require('./routes/student');
+const studentSubmissionGuard = require('./routes/studentSubmissionGuard');
 const proofManagedRecordsRoutes = require('./routes/proofManagedRecords');
 const internshipEvidenceRoutes = require('./routes/internshipEvidence');
 const certificateEvidenceRoutes = require('./routes/certificateEvidence');
@@ -89,6 +90,7 @@ if (!isCloudflareWorker) app.use(express.static(path.join(process.cwd(), 'public
 app.use('/api/auth', authRoutes);
 app.use('/api/student', protectCollegeAcademics);
 app.use('/api/student/student-avatars', createStudentAvatarDirectory(authenticateStudent));
+app.use('/api/student', studentSubmissionGuard);
 app.use('/api/student', proofManagedRecordsRoutes);
 app.use('/api/student', internshipEvidenceRoutes);
 app.use('/api/student', certificateEvidenceRoutes);
