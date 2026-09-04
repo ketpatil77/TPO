@@ -249,7 +249,7 @@
   padding:24px;
 }
 
-@media (min-width:1500px) {
+@media (min-width:1200px) {
   #tab-projects #projectsList.project-grid {
     grid-template-columns:repeat(4,minmax(0,1fr)) !important;
   }
