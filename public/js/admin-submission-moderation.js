@@ -26,7 +26,7 @@
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap"><strong>${esc(titleFor(type,item))}</strong>${riskBadge(item.moderation)}</div>
       ${reasons.length ? `<small style="color:var(--text-muted)">${esc(reasons.join(' '))}</small>` : '<small style="color:var(--text-muted)">Automatic checks found no obvious quality problem.</small>'}
       ${audit}
-      <div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn btn-danger btn-sm" data-moderation-delete="${esc(type)}" data-student-id="${esc(studentId)}" data-record-id="${esc(item.id)}">Delete</button></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn btn-danger btn-sm" data-moderation-delete="${esc(type)}" data-student-id="${esc(studentId)}" data-record-id="${esc(item.id)}">Delete with reason</button></div>
     </article>`;
   }
 
@@ -53,19 +53,40 @@
     }
   }
 
+  function askDeletionReason(type) {
+    const reason = window.prompt(`Why are you deleting this ${String(labels[type] || 'record').toLowerCase()}?\n\nThis reason will be shown to the student and stored in the audit history.`, 'Invalid or misleading information');
+    if (reason === null) return null;
+    const clean = reason.trim().replace(/\s+/g, ' ');
+    if (clean.length < 5) {
+      showToast?.('Enter a clear deletion reason of at least 5 characters.', 'error');
+      return null;
+    }
+    if (clean.length > 300) {
+      showToast?.('Deletion reason must be 300 characters or fewer.', 'error');
+      return null;
+    }
+    return clean;
+  }
+
   async function removeRecord(button) {
     const type = button.dataset.moderationDelete;
     const studentId = button.dataset.studentId;
     const id = button.dataset.recordId;
     if (!type || !studentId || !id) return;
-    if (!confirm(`Delete this ${labels[type] || 'record'}? This removes its Profile Points immediately and records the action in the audit log.`)) return;
+    const reason = askDeletionReason(type);
+    if (!reason) return;
+    if (!confirm(`Delete this ${labels[type] || 'record'}?\n\nReason: ${reason}\n\nThe student will be notified and Profile Points will be recalculated.`)) return;
     const original = button.textContent;
     button.disabled = true; button.textContent = 'Deleting…';
     try {
-      const response = await fetch(`/api/admin/students/${encodeURIComponent(studentId)}/moderation/${encodeURIComponent(type)}/${encodeURIComponent(id)}`, { method:'DELETE', headers:{ Authorization:`Bearer ${token()}` } });
+      const response = await fetch(`/api/admin/students/${encodeURIComponent(studentId)}/moderation/${encodeURIComponent(type)}/${encodeURIComponent(id)}`, {
+        method:'DELETE',
+        headers:{ Authorization:`Bearer ${token()}`, 'Content-Type':'application/json' },
+        body:JSON.stringify({ reason })
+      });
       const json = await response.json();
-      if (!response.ok || !json.success) throw new Error(json.error || 'Delete failed.');
-      showToast?.(`${labels[type]} deleted. Ranking will recalculate.`, 'success');
+      if (!response.ok || !json.success) throw new Error(typeof json.error === 'string' ? json.error : json.error?.message || 'Delete failed.');
+      showToast?.(`${labels[type]} deleted. Student notified with the reason.`, 'success');
       await loadModeration(studentId);
       if (typeof loadAdminStudents === 'function') await loadAdminStudents();
     } catch (error) {
