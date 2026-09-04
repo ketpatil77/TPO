@@ -25,10 +25,12 @@ test('college branch and year scopes are handled by stable ranking', () => {
   assert.match(ui,/#rankingBranch,#rankingYear/);
 });
 
-test('movement stays inline with rank on mobile', () => {
+test('movement stays inline with rank on mobile and rank column stays compact', () => {
   assert.match(css,/flex-wrap:nowrap!important/);
-  assert.match(css,/grid-template-columns:82px 62px minmax\(0,1fr\) auto/);
+  assert.match(css,/grid-template-columns:64px 62px minmax\(0,1fr\) auto/);
+  assert.match(css,/grid-template-columns:56px 54px minmax\(0,1fr\) auto/);
   assert.match(css,/ranking-v5-move/);
+  assert.match(css,/background:transparent!important/);
 });
 
 test('score breakdown is lazy and per student instead of rebuilding the full leaderboard', () => {
