@@ -5,7 +5,7 @@ const path = require('node:path');
 
 const read = file => fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
 const login = read('public/js/student-login-resilience.js');
-const dashboard = read('public/js/student-dashboard-resilience.js');
+const dashboard = read('public/js/student-dashboard-interaction-hotfix.js');
 const worker = read('worker/index.mjs');
 
 test('student login uses one successful auth request and redirects without a secondary session gate', () => {
@@ -17,17 +17,21 @@ test('student login uses one successful auth request and redirects without a sec
     assert.doesNotMatch(login, /\/api\/auth\/me/);
 });
 
-test('student dashboard cannot be disabled by background notification setup', () => {
-    assert.match(dashboard, /gate && !gate\.hidden/);
+test('student dashboard remains interactive when notification setup fails or resumes', () => {
+    assert.match(dashboard, /gate\.hidden = true/);
     assert.match(dashboard, /dashboard\.inert = false/);
     assert.match(dashboard, /removeAttribute\('aria-hidden'\)/);
-    assert.doesNotMatch(dashboard, /startStudentWorkspace\s*\(/);
+    assert.match(dashboard, /remove\?\.\('notifications-blocked'\)/);
+    assert.match(dashboard, /setMandatoryNotificationGate = window\.setMandatoryNotificationGate/);
+    assert.match(dashboard, /visibilitychange/);
     assert.match(dashboard, /PortalOperationFeedback\?\.forceHide/);
+    assert.doesNotMatch(dashboard, /MutationObserver/);
 });
 
-test('production worker injects both student resilience modules with cache-busted versions', () => {
+test('production worker injects login resilience and dashboard interaction recovery', () => {
     assert.match(worker, /student-login-resilience\.js\?v=20260904-login1/);
-    assert.match(worker, /student-dashboard-resilience\.js\?v=20260904-interaction2/);
+    assert.match(worker, /student-dashboard-interaction-hotfix\.js\?v=20260904-unlock3/);
+    assert.doesNotMatch(worker, /student-dashboard-resilience\.js\?v=/);
     assert.match(worker, /patchLoginHtml/);
     assert.match(worker, /assetPath === '\/index\.html'/);
 });
