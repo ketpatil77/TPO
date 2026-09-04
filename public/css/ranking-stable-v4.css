@@ -48,9 +48,9 @@
 :root[data-theme="light"] #rankingStableListV4 .ranking-v5-score-head strong,
 :root[data-theme="light"] #rankingStableListV4 .ranking-v5-detail-group h4{color:#172033}
 @media (max-width:700px){
- #rankingStableListV4 .leaderboard-entry-main{grid-template-columns:82px 62px minmax(0,1fr) auto!important;gap:9px!important;align-items:center!important}
+ #rankingStableListV4 .leaderboard-entry-main{grid-template-columns:64px 62px minmax(0,1fr) auto!important;gap:7px!important;align-items:center!important}
  #rankingStableListV4 .leaderboard-rankno.ranking-v5-rank{grid-column:1;grid-row:1;align-self:center}
- #rankingStableListV4 .leaderboard-student{grid-column:2/4;grid-row:1;display:grid!important;grid-template-columns:62px minmax(0,1fr)!important;gap:9px!important;align-items:center!important}
+ #rankingStableListV4 .leaderboard-student{grid-column:2/4;grid-row:1;display:grid!important;grid-template-columns:62px minmax(0,1fr)!important;gap:7px!important;align-items:center!important}
  #rankingStableListV4 .leaderboard-avatar{width:62px!important;height:62px!important}
  #rankingStableListV4 .leaderboard-student-copy strong{font-size:14px!important;max-width:none!important}
  #rankingStableListV4 .leaderboard-student-copy small{font-size:10px!important}
@@ -66,16 +66,16 @@
  #rankingPager.ranking-v5-pager #rankingNextV5{grid-column:2;grid-row:2}
 }
 @media (max-width:430px){
- #rankingStableListV4 .leaderboard-entry-main{grid-template-columns:74px 54px minmax(0,1fr) auto!important;gap:7px!important}
- #rankingStableListV4 .leaderboard-student{grid-template-columns:54px minmax(0,1fr)!important;gap:7px!important}
+ #rankingStableListV4 .leaderboard-entry-main{grid-template-columns:56px 54px minmax(0,1fr) auto!important;gap:5px!important}
+ #rankingStableListV4 .leaderboard-student{grid-template-columns:54px minmax(0,1fr)!important;gap:6px!important}
  #rankingStableListV4 .leaderboard-avatar{width:54px!important;height:54px!important}
  #rankingStableListV4 .leaderboard-student-copy strong{font-size:12.8px!important}
  #rankingStableListV4 .leaderboard-points-cell strong{font-size:12.8px}
  #rankingStableListV4 .ranking-v5-move{min-width:0;height:auto;padding:0;font-size:10px}
 }
 @media (max-width:365px){
- #rankingStableListV4 .leaderboard-entry-main{grid-template-columns:70px 48px minmax(0,1fr) auto!important;gap:6px!important}
- #rankingStableListV4 .leaderboard-student{grid-template-columns:48px minmax(0,1fr)!important;gap:6px!important}
+ #rankingStableListV4 .leaderboard-entry-main{grid-template-columns:54px 48px minmax(0,1fr) auto!important;gap:5px!important}
+ #rankingStableListV4 .leaderboard-student{grid-template-columns:48px minmax(0,1fr)!important;gap:5px!important}
  #rankingStableListV4 .leaderboard-avatar{width:48px!important;height:48px!important}
  #rankingStableListV4 .leaderboard-student-copy strong{font-size:12px!important}
  #rankingStableListV4 .leaderboard-points-cell strong{font-size:12px}
