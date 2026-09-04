@@ -36,6 +36,17 @@ test('staff delete is allowlisted, audited, cache-clearing and proof-cleaning', 
   assert.match(route,/clearCaches/);
 });
 
+test('deletion requires a human reason, audits it and notifies the affected student', () => {
+  assert.match(route,/deletionReason\(req\.body\?\.reason\)/);
+  assert.match(route,/5 to 300 characters/);
+  assert.match(route,/deletion_reason:reason/);
+  assert.match(route,/createStudentNotification/);
+  assert.match(route,/Reason: \$\{reason\}/);
+  assert.match(adminUi,/Delete with reason/);
+  assert.match(adminUi,/shown to the student and stored in the audit history/);
+  assert.match(adminUi,/JSON\.stringify\(\{ reason \}\)/);
+});
+
 test('admin modal loads automatic integrity scan and deletion controls', () => {
   assert.match(adminUi,/Automatic integrity scan/);
   assert.match(adminUi,/Trust \$\{Number\(summary\.trust_score/);
