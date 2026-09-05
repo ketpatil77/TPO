@@ -127,22 +127,26 @@
     const original = button.textContent;
     button.disabled = true; button.textContent = 'Logging in…';
     try {
-      // Admin authentication is now cookie-first (HttpOnly adminToken). Keep support for an
-      // older localStorage bearer token if one exists, but never require it.
+      // The HttpOnly admin cookie is authoritative server-side. A stale legacy bearer token
+      // may still be sent for compatibility, but it can no longer override the fresh cookie.
       const response = await fetch(`/api/admin/students/${encodeURIComponent(prn)}/impersonate`, {
         method:'POST',
         credentials:'same-origin',
         headers:adminHeaders()
       });
       const json = await response.json();
-      if (!response.ok || !json.success || !json.token) {
+      if (!response.ok || !json.success || !json.redirect) {
         const message = typeof json.error === 'string' ? json.error : json.error?.message || 'Unable to open student profile.';
         if (response.status === 401 || response.status === 403) throw new Error('Your TPO session has expired. Sign in again.');
         throw new Error(message);
       }
+
+      // The backend has already installed a fresh two-hour HttpOnly student support cookie.
+      // Do not put the student JWT in the URL or rely on stale localStorage state.
+      localStorage.removeItem('tpo_token');
       input.value = '';
-      studentWindow.location.replace(`/dashboard?impersonate_token=${encodeURIComponent(json.token)}`);
-      showToast?.('Student profile opened in a separate support tab. TPO remains signed in here.', 'success');
+      studentWindow.location.replace(json.redirect);
+      showToast?.('Student profile opened. TPO remains signed in here.', 'success');
     } catch (error) {
       try { studentWindow.close(); } catch (_) {}
       showToast?.(error.message || 'Unable to open student profile.', 'error');
@@ -180,6 +184,15 @@
       event.preventDefault(); event.stopImmediatePropagation();
       impersonateFromTpo(button);
     }, true);
+    const input = document.getElementById('impersonatePrn');
+    if (input && !input.dataset.impersonateEnterBound) {
+      input.dataset.impersonateEnterBound = 'true';
+      input.addEventListener('keydown', event => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        document.getElementById('btnImpersonate')?.click();
+      });
+    }
     return true;
   }
 

@@ -62,7 +62,9 @@ async function authenticateObserver(req, res, next) {
  * Middleware to protect Admin-only routes
  */
 async function authenticateAdmin(req, res, next) {
-    let token = getExtractToken(req, 'adminToken');
+    // Admin sessions are also cookie-first. Old localStorage bearer tokens may linger for
+    // months on staff devices; they must never override a fresh HttpOnly admin session.
+    let token = getExtractToken(req, 'adminToken', true);
     if (!token) {
         return res.status(401).json({ success: false, error: 'Unauthorized: Admin authentication required.' });
     }
