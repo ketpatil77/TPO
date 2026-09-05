@@ -66,3 +66,14 @@ test('TPO impersonation creates a two-hour HttpOnly student cookie and student a
   assert.match(auth,/getExtractToken\(req, 'token', true\)/);
   assert.match(auth,/if \(preferCookie && cookieToken\) return cookieToken/);
 });
+
+test('TPO support login uses backend redirect and never exposes the student JWT in the dashboard URL', () => {
+  const ui = fs.readFileSync(path.join(__dirname,'../public/js/admin-submission-moderation.js'),'utf8');
+  const auth = fs.readFileSync(path.join(__dirname,'../src/middleware/auth.js'),'utf8');
+  assert.match(ui,/!json\.redirect/);
+  assert.match(ui,/studentWindow\.location\.replace\(json\.redirect\)/);
+  assert.match(ui,/localStorage\.removeItem\('tpo_token'\)/);
+  assert.doesNotMatch(ui,/dashboard\?impersonate_token=/);
+  assert.match(ui,/event\.key !== 'Enter'/);
+  assert.match(auth,/getExtractToken\(req, 'adminToken', true\)/);
+});
