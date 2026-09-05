@@ -65,8 +65,8 @@ test('projects compare repository owner with student GitHub profile and require 
 
 test('duplicate fingerprints cover titles, repeated links and proof hashes', () => {
   assert.match(risk,/submissionFingerprints/);
-  assert.match(risk,/project-title:/);
-  assert.match(risk,/research-title:/);
+  assert.match(risk,/titleFingerprint\('project'/);
+  assert.match(risk,/titleFingerprint\('research'/);
   assert.match(risk,/project-url:/);
   assert.match(risk,/research-url:/);
   assert.match(risk,/cert-proof:/);
