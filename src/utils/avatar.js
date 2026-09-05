@@ -2,6 +2,8 @@ const multer = require('multer');
 const db = require('../config/database');
 
 const MAX_AVATAR_BYTES = 1024 * 1024;
+const AVATAR_REDIRECT_SIGNED_SECONDS = 21600;
+const AVATAR_REDIRECT_CACHE_SECONDS = 14400;
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -82,10 +84,13 @@ async function signedAvatar(res, path) {
 async function redirectAvatar(res, path) {
     if (!path) return res.status(404).send('Profile picture not uploaded.');
     if (db.isLocal()) return res.status(404).send('Profile picture unavailable in local mode.');
-    const { data, error } = await db.supabaseClient().storage.from('avatars').createSignedUrl(path, 600);
+    const { data, error } = await db.supabaseClient().storage.from('avatars').createSignedUrl(path, AVATAR_REDIRECT_SIGNED_SECONDS);
     if (error || !data?.signedUrl) return res.status(404).send('Profile picture unavailable.');
-    res.setHeader('Cache-Control', 'private, max-age=300');
+    // The portal URL is stable while the private Supabase token stays hidden behind it.
+    // Cache the redirect for less time than the signed target remains valid, so revisiting
+    // leaderboard pages does not repeatedly download/sign the same profile photos.
+    res.setHeader('Cache-Control', `private, max-age=${AVATAR_REDIRECT_CACHE_SECONDS}, stale-while-revalidate=600`);
     return res.redirect(302, data.signedUrl);
 }
 
-module.exports = { acceptAvatar, uploadAvatar, getAvatar, deleteAvatar, redirectAvatar, MAX_AVATAR_BYTES };
+module.exports = { acceptAvatar, uploadAvatar, getAvatar, deleteAvatar, redirectAvatar, MAX_AVATAR_BYTES, AVATAR_REDIRECT_SIGNED_SECONDS, AVATAR_REDIRECT_CACHE_SECONDS };
