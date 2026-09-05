@@ -1,16 +1,23 @@
 (() => {
-  if (window.__AIT_ADMIN_SUBMISSION_MODERATION__) return;
-  window.__AIT_ADMIN_SUBMISSION_MODERATION__ = true;
+  if (window.__AIT_ADMIN_SUBMISSION_MODERATION_V2__) return;
+  window.__AIT_ADMIN_SUBMISSION_MODERATION_V2__ = true;
 
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[ch]));
   const token = () => localStorage.getItem('tpo_admin_token') || '';
   const labels = { project:'Project', research:'Research paper', internship:'Internship', certificate:'Certificate' };
 
-  function riskBadge(m = {}) {
-    const level = String(m.level || 'low').toLowerCase();
-    const label = level === 'high' ? 'High risk' : level === 'medium' ? 'Needs review' : m.audit_sample ? 'Random audit' : 'Auto-approved';
-    const color = level === 'high' ? '#ef4444' : level === 'medium' ? '#f59e0b' : m.audit_sample ? '#3b82f6' : '#10b981';
-    return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:999px;background:${color}18;color:${color};font-size:11px;font-weight:800">${esc(label)} · ${Number(m.score||0)}</span>`;
+  function statusBadge(item = {}) {
+    const m = item.moderation || {};
+    const status = String(item.moderation_status || '').toLowerCase();
+    let label = 'Auto-approved'; let color = '#10b981';
+    if (status === 'rejected' || m.staff_rejected) { label = 'Rejected'; color = '#ef4444'; }
+    else if (status === 'verified' || m.staff_approved) { label = 'Approved'; color = '#10b981'; }
+    else if (m.duplicate) { label = 'Duplicate · 0 pts'; color = '#ef4444'; }
+    else if (m.needs_review) { label = 'Needs review · 0 pts'; color = '#f59e0b'; }
+    else if (m.audit_sample) { label = `Random audit · ${Number(item.profile_points || 0)} pts`; color = '#3b82f6'; }
+    else if (item.profile_points > 0) label = `Auto-approved · ${Number(item.profile_points)} pts`;
+    else if (item.moderation_status === 'pending' && item.name) { label = 'Pending verification · 0 pts'; color = '#f59e0b'; }
+    return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:999px;background:${color}18;color:${color};font-size:11px;font-weight:800">${esc(label)}</span>`;
   }
 
   function titleFor(type,item) {
@@ -21,12 +28,15 @@
 
   function card(type,item,studentId) {
     const reasons = item.moderation?.reasons || [];
-    const audit = item.moderation?.audit_sample ? '<small style="color:#60a5fa">Selected in the stable 5% random audit sample. It still scores unless staff finds a problem.</small>' : '';
-    return `<article style="border:1px solid var(--border-color);border-radius:10px;padding:10px;display:grid;gap:7px">
-      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap"><strong>${esc(titleFor(type,item))}</strong>${riskBadge(item.moderation)}</div>
+    const audit = item.moderation?.audit_sample ? '<small style="color:#60a5fa">Selected for random audit. It keeps its automatic points unless staff rejects it.</small>' : '';
+    return `<article style="border:1px solid var(--border-color);border-radius:10px;padding:10px;display:grid;gap:8px">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap"><strong>${esc(titleFor(type,item))}</strong>${statusBadge(item)}</div>
       ${reasons.length ? `<small style="color:var(--text-muted)">${esc(reasons.join(' '))}</small>` : '<small style="color:var(--text-muted)">Automatic checks found no obvious quality problem.</small>'}
       ${audit}
-      <div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn btn-danger btn-sm" data-moderation-delete="${esc(type)}" data-student-id="${esc(studentId)}" data-record-id="${esc(item.id)}">Delete with reason</button></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+        <button type="button" class="btn btn-success btn-sm" data-moderation-review="approve" data-type="${esc(type)}" data-student-id="${esc(studentId)}" data-record-id="${esc(item.id)}">Approve</button>
+        <button type="button" class="btn btn-danger btn-sm" data-moderation-review="reject" data-type="${esc(type)}" data-student-id="${esc(studentId)}" data-record-id="${esc(item.id)}">Reject</button>
+      </div>
     </article>`;
   }
 
@@ -37,56 +47,42 @@
     try {
       const response = await fetch(`/api/admin/students/${encodeURIComponent(studentId)}/moderation`, { headers:{ Authorization:`Bearer ${token()}` } });
       const json = await response.json();
-      if (!response.ok || !json.success) throw new Error(json.error || 'Moderation scan failed.');
-      const groups = [
-        ['project', json.data.projects || []],
-        ['research', json.data.research || []],
-        ['internship', json.data.internships || []],
-        ['certificate', json.data.certificates || []]
-      ];
+      if (!response.ok || !json.success) throw new Error(typeof json.error === 'string' ? json.error : json.error?.message || 'Moderation scan failed.');
+      const groups = [['project',json.data.projects||[]],['research',json.data.research||[]],['internship',json.data.internships||[]],['certificate',json.data.certificates||[]]];
       const summary = json.data.summary || {};
-      const flagged = Number(summary.flagged ?? groups.reduce((sum,[,rows]) => sum + rows.filter(row => row.moderation?.needs_review).length, 0));
-      const audits = groups.reduce((sum,[,rows]) => sum + rows.filter(row => row.moderation?.audit_sample).length, 0);
-      host.innerHTML = `<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap"><div><strong>Automatic integrity scan</strong><div style="color:var(--text-muted);font-size:12px">Low-risk items are handled automatically. Staff only needs suspicious records and occasional audits.</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge ${flagged ? 'badge-offline' : 'badge-online'}">${flagged} flagged</span><span class="badge badge-info">Trust ${Number(summary.trust_score ?? 100)}/100</span>${audits ? `<span class="badge badge-info">${audits} audit sample</span>` : ''}</div></div>` + groups.map(([type,rows]) => rows.length ? `<details ${rows.some(row=>row.moderation?.needs_review||row.moderation?.audit_sample)?'open':''}><summary><strong>${esc(labels[type])}s (${rows.length})</strong></summary><div style="display:grid;gap:8px;margin-top:8px">${rows.map(item=>card(type,item,studentId)).join('')}</div></details>` : '').join('');
+      const flagged = Number(summary.flagged ?? groups.reduce((sum,[,rows]) => sum + rows.filter(row => row.moderation?.needs_review).length,0));
+      host.innerHTML = `<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap"><div><strong>Automatic integrity scan</strong><div style="color:var(--text-muted);font-size:12px">Clean entries score automatically. Suspicious entries score 0 until approved. Certificates score only after verification.</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge ${flagged ? 'badge-offline':'badge-online'}">${flagged} flagged</span><span class="badge badge-info">Trust ${Number(summary.trust_score ?? 100)}/100</span></div></div>` + groups.map(([type,rows]) => rows.length ? `<details ${rows.some(row=>row.moderation?.needs_review||row.moderation?.audit_sample)?'open':''}><summary><strong>${esc(labels[type])}s (${rows.length})</strong></summary><div style="display:grid;gap:8px;margin-top:8px">${rows.map(item=>card(type,item,studentId)).join('')}</div></details>` : '').join('');
     } catch (error) {
       host.innerHTML = `<p style="color:#ef4444">${esc(error.message)}</p>`;
     }
   }
 
-  function askDeletionReason(type) {
-    const reason = window.prompt(`Why are you deleting this ${String(labels[type] || 'record').toLowerCase()}?\n\nThis reason will be shown to the student and stored in the audit history.`, 'Invalid or misleading information');
-    if (reason === null) return null;
-    const clean = reason.trim().replace(/\s+/g, ' ');
-    if (clean.length < 5) {
-      showToast?.('Enter a clear deletion reason of at least 5 characters.', 'error');
-      return null;
-    }
-    if (clean.length > 300) {
-      showToast?.('Deletion reason must be 300 characters or fewer.', 'error');
-      return null;
-    }
+  function askRejectReason(type) {
+    const value = window.prompt(`Why are you rejecting this ${String(labels[type] || 'record').toLowerCase()}?\n\nThe student will see this reason.`, 'Invalid, duplicate, misleading, or unsupported information');
+    if (value === null) return null;
+    const clean = value.trim().replace(/\s+/g,' ');
+    if (clean.length < 5 || clean.length > 300) { showToast?.('Reason must be 5 to 300 characters.', 'error'); return null; }
     return clean;
   }
 
-  async function removeRecord(button) {
-    const type = button.dataset.moderationDelete;
+  async function review(button) {
+    const decision = button.dataset.moderationReview;
+    const type = button.dataset.type;
     const studentId = button.dataset.studentId;
     const id = button.dataset.recordId;
-    if (!type || !studentId || !id) return;
-    const reason = askDeletionReason(type);
-    if (!reason) return;
-    if (!confirm(`Delete this ${labels[type] || 'record'}?\n\nReason: ${reason}\n\nThe student will be notified and Profile Points will be recalculated.`)) return;
+    if (!decision || !type || !studentId || !id) return;
+    const reason = decision === 'reject' ? askRejectReason(type) : '';
+    if (decision === 'reject' && !reason) return;
+    if (!confirm(`${decision === 'approve' ? 'Approve' : 'Reject'} this ${labels[type] || 'record'}?${reason ? `\n\nReason: ${reason}` : ''}\n\nProfile Points will recalculate immediately.`)) return;
     const original = button.textContent;
-    button.disabled = true; button.textContent = 'Deleting…';
+    button.disabled = true; button.textContent = decision === 'approve' ? 'Approving…' : 'Rejecting…';
     try {
-      const response = await fetch(`/api/admin/students/${encodeURIComponent(studentId)}/moderation/${encodeURIComponent(type)}/${encodeURIComponent(id)}`, {
-        method:'DELETE',
-        headers:{ Authorization:`Bearer ${token()}`, 'Content-Type':'application/json' },
-        body:JSON.stringify({ reason })
+      const response = await fetch(`/api/admin/students/${encodeURIComponent(studentId)}/moderation/${encodeURIComponent(type)}/${encodeURIComponent(id)}/review`, {
+        method:'POST', headers:{ Authorization:`Bearer ${token()}`, 'Content-Type':'application/json' }, body:JSON.stringify({ decision, reason })
       });
       const json = await response.json();
-      if (!response.ok || !json.success) throw new Error(typeof json.error === 'string' ? json.error : json.error?.message || 'Delete failed.');
-      showToast?.(`${labels[type]} deleted. Student notified with the reason.`, 'success');
+      if (!response.ok || !json.success) throw new Error(typeof json.error === 'string' ? json.error : json.error?.message || 'Review failed.');
+      showToast?.(`${labels[type]} ${decision === 'approve' ? 'approved' : 'rejected'}. Ranking recalculated.`, 'success');
       await loadModeration(studentId);
       if (typeof loadAdminStudents === 'function') await loadAdminStudents();
     } catch (error) {
@@ -96,7 +92,7 @@
   }
 
   function install() {
-    if (typeof window.openStudentModal !== 'function' || window.openStudentModal.__moderationWrapped) return false;
+    if (typeof window.openStudentModal !== 'function' || window.openStudentModal.__moderationV2Wrapped) return false;
     const original = window.openStudentModal;
     const wrapped = function(studentId) {
       const result = original.apply(this, arguments);
@@ -104,26 +100,24 @@
       if (content) {
         let panel = document.getElementById('adminSubmissionModerationPanel');
         if (!panel) {
-          panel = document.createElement('section');
-          panel.id = 'adminSubmissionModerationPanel';
-          panel.style.cssText = 'margin:0 0 1rem;padding:1rem;border:1px solid var(--border-color);border-radius:12px;background:var(--surface-muted)';
+          panel = document.createElement('section'); panel.id='adminSubmissionModerationPanel';
+          panel.style.cssText='margin:0 0 1rem;padding:1rem;border:1px solid var(--border-color);border-radius:12px;background:var(--surface-muted)';
           content.prepend(panel);
         }
         loadModeration(studentId);
       }
       return result;
     };
-    wrapped.__moderationWrapped = true;
+    wrapped.__moderationV2Wrapped = true;
     window.openStudentModal = wrapped;
     document.addEventListener('click', event => {
-      const button = event.target.closest('[data-moderation-delete]');
-      if (button) { event.preventDefault(); event.stopPropagation(); removeRecord(button); }
+      const button = event.target.closest('[data-moderation-review]');
+      if (button) { event.preventDefault(); event.stopPropagation(); review(button); }
     });
     return true;
   }
 
   if (!install()) {
-    let tries = 0;
-    const timer = setInterval(() => { if (install() || ++tries > 40) clearInterval(timer); }, 100);
+    let tries=0; const timer=setInterval(() => { if (install() || ++tries > 40) clearInterval(timer); },100);
   }
 })();

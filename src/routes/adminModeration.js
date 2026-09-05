@@ -7,7 +7,7 @@ const kvCache = require('../utils/kvCache');
 const { authenticateAdmin, JWT_SECRET, SESSION_VERSION } = require('../middleware/auth');
 const { normalizeBranch } = require('../config/branches');
 const { createStudentNotification } = require('../services/incompleteProfilePush');
-const { evaluate, duplicateIds, markDuplicate } = require('../services/submissionRisk');
+const { evaluate, duplicateIds, markDuplicate, validHttps, doiLike } = require('../services/submissionRisk');
 
 const router = express.Router();
 router.use(authenticateAdmin);
@@ -15,8 +15,8 @@ router.use(authenticateAdmin);
 const TYPE_MAP = {
   project: { table: 'student_projects', riskType: 'project', label: 'project' },
   research: { table: 'research_papers', riskType: 'research', label: 'research paper' },
-  internship: { table: 'internships', riskType: 'internship', label: 'internship', evidenceBucket: 'certificate-evidence' },
-  certificate: { table: 'certificates', riskType: 'certificate', label: 'certificate', evidenceBucket: 'certificate-evidence' }
+  internship: { table: 'internships', riskType: 'internship', label: 'internship' },
+  certificate: { table: 'certificates', riskType: 'certificate', label: 'certificate' }
 };
 
 async function clearCaches() {
@@ -27,12 +27,22 @@ async function clearCaches() {
   ]).catch(() => {});
 }
 
-async function cleanupEvidence(config, existing) {
-  if (!config.evidenceBucket || !existing?.evidence_path || db.isLocal()) return;
-  const storage = db.supabaseClient()?.storage?.from(config.evidenceBucket);
-  if (!storage) return;
-  const { error } = await storage.remove([existing.evidence_path]);
-  if (error) console.warn('Moderation evidence cleanup failed:', error.message);
+function cleanReason(value) {
+  const reason = String(value || '').trim().replace(/\s+/g, ' ');
+  return reason.length >= 5 && reason.length <= 300 ? reason : null;
+}
+
+function storedStatus(item) {
+  const value = String(item?.verification_status || 'pending').toLowerCase();
+  return value === 'approved' ? 'verified' : value;
+}
+
+function basePoints(type, item, moderation) {
+  if (!moderation?.auto_approved || moderation?.duplicate || moderation?.staff_rejected) return 0;
+  if (type === 'project') return 4 + (validHttps(item.repository_url) ? 2 : 0) + (validHttps(item.project_url) ? 2 : 0);
+  if (type === 'research') return 8 + (doiLike(item.doi_url) ? 2 : 0) + (validHttps(item.paper_url) ? 1 : 0);
+  if (type === 'internship') return 6;
+  return 0;
 }
 
 function moderationSummary(groups) {
@@ -45,24 +55,22 @@ function moderationSummary(groups) {
   return { total, low, medium, high, flagged: medium + high, trust_score: trustScore };
 }
 
-function deletionReason(value) {
-  const reason = String(value || '').trim().replace(/\s+/g, ' ');
-  return reason.length >= 5 && reason.length <= 300 ? reason : null;
-}
-
-async function notifyDeletedSubmission({ studentId, config, existing, reason }) {
-  const title = existing.title || existing.name || existing.company || config.label;
+async function notifyDecision({ studentId, config, existing, decision, reason }) {
+  const label = existing.title || existing.name || existing.company || config.label;
+  const approved = decision === 'approve';
   try {
     return await createStudentNotification({
       student_id: studentId,
       audience: 'student',
-      title: `${config.label.charAt(0).toUpperCase() + config.label.slice(1)} removed by TPO`,
-      message: `Your ${config.label} “${title}” was removed from your profile. Reason: ${reason}`,
+      title: `${config.label.charAt(0).toUpperCase() + config.label.slice(1)} ${approved ? 'approved' : 'rejected'}`,
+      message: approved
+        ? `Your ${config.label} “${label}” was reviewed and approved by TPO. Eligible Profile Points now count.`
+        : `Your ${config.label} “${label}” was rejected by TPO. Reason: ${reason}`,
       priority: 'important',
       action_url: '/dashboard?tab=edit-profile'
     });
   } catch (error) {
-    console.error('Moderation deletion notification failed:', error.message);
+    console.error('Moderation decision notification failed:', error.message);
     return null;
   }
 }
@@ -109,15 +117,18 @@ router.get('/:studentId/moderation', async (req, res) => {
     const decorate = (type, rows) => {
       const dupes = duplicateIds(type, rows);
       return rows.map(item => {
-        let moderation = evaluate(type,item);
+        let moderation = evaluate(type,item,{ github_url:student.github_url || '' });
         if (dupes.has(String(item.id))) moderation = markDuplicate(moderation);
-        return { ...item, moderation };
+        return { ...item, moderation, profile_points:basePoints(type,item,moderation), moderation_status:storedStatus(item) };
       });
     };
     const groups = {
       projects:decorate('project',projects), research:decorate('research',research),
       internships:decorate('internship',internships), certificates:decorate('certificate',certificates)
     };
+    const verifiedCertificates = groups.certificates.filter(item => storedStatus(item) === 'verified' && !item.moderation.duplicate);
+    verifiedCertificates.sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).forEach((item,index) => { item.profile_points = index < 10 ? 2 : 1.5; });
+    groups.certificates.filter(item => storedStatus(item) !== 'verified').forEach(item => { item.profile_points = 0; });
     res.json({ success:true, data:{ ...groups, summary:moderationSummary(Object.values(groups)) } });
   } catch (error) {
     console.error('Moderation scan failed:', error);
@@ -125,29 +136,41 @@ router.get('/:studentId/moderation', async (req, res) => {
   }
 });
 
-router.delete('/:studentId/moderation/:type/:id', async (req, res) => {
+router.post('/:studentId/moderation/:type/:id/review', async (req, res) => {
   try {
     const config = TYPE_MAP[req.params.type];
     if (!config) return res.status(400).json({ success:false, error:'Unsupported record type.' });
-    const reason = deletionReason(req.body?.reason);
-    if (!reason) return res.status(400).json({ success:false, error:'Deletion reason is required and must be 5 to 300 characters.' });
+    const decision = String(req.body?.decision || '').toLowerCase();
+    if (!['approve','reject'].includes(decision)) return res.status(400).json({ success:false, error:'Decision must be approve or reject.' });
+    const reason = decision === 'reject' ? cleanReason(req.body?.reason) : String(req.body?.reason || '').trim().slice(0,300);
+    if (decision === 'reject' && !reason) return res.status(400).json({ success:false, error:'Rejection reason is required and must be 5 to 300 characters.' });
     const existing = await db.selectOne(config.table, { id:req.params.id, student_id:req.params.studentId });
     if (!existing) return res.status(404).json({ success:false, error:`${config.label} not found.` });
-    const risk = evaluate(config.riskType, existing);
-    await db.delete(config.table, { id:existing.id, student_id:req.params.studentId });
-    await cleanupEvidence(config, existing);
-    await db.logAudit('delete_student_submission', config.table, existing.id, {
-      student_id:req.params.studentId, type:req.params.type,
-      title:existing.title || existing.name || existing.company || null,
-      risk_score:risk.score, risk_level:risk.level, automated_reasons:risk.reasons,
-      deletion_reason:reason, deleted_by:req.admin.adminId
+    if ((req.params.type === 'certificate' || req.params.type === 'internship') && decision === 'approve' && !existing.evidence_path) {
+      return res.status(400).json({ success:false, error:'Proof is required before approval.' });
+    }
+    const student = await db.selectOne('students', { id:req.params.studentId });
+    const now = new Date().toISOString();
+    const newStatus = decision === 'approve' ? 'verified' : 'rejected';
+    const updated = await db.update(config.table, { id:existing.id, student_id:req.params.studentId }, {
+      verification_status:newStatus,
+      verification_note:decision === 'reject' ? reason : (reason || null),
+      verified_at:now,
+      verified_by:req.admin.adminId,
+      verified_role:'tpo'
     });
-    const notification = await notifyDeletedSubmission({ studentId:req.params.studentId, config, existing, reason });
+    if (!updated) throw new Error('Moderation update matched no record.');
+    await db.logAudit('student_submission_review', config.table, existing.id, {
+      student_id:req.params.studentId, type:req.params.type, decision,
+      reason:decision === 'reject' ? reason : (reason || ''), reviewed_by:req.admin.adminId, reviewed_at:now
+    });
+    const notification = await notifyDecision({ studentId:req.params.studentId, config, existing, decision, reason });
     await clearCaches();
-    res.json({ success:true, message:`${config.label} deleted.`, data:{ risk, reason, notification_sent:Boolean(notification) } });
+    let moderation = evaluate(config.riskType,{ ...existing, ...updated },{ github_url:student?.github_url || '' });
+    res.json({ success:true, message:`${config.label} ${decision === 'approve' ? 'approved' : 'rejected'}.`, data:{ status:newStatus, moderation, notification_sent:Boolean(notification) } });
   } catch (error) {
-    console.error('Delete student submission failed:', error);
-    res.status(500).json({ success:false, error:'Unable to delete student submission.' });
+    console.error('Review student submission failed:', error);
+    res.status(500).json({ success:false, error:'Unable to save moderation decision.' });
   }
 });
 
