@@ -49,21 +49,24 @@ test('moderation labels show profile points instead of exposing risk score as po
 });
 
 test('research accepts valid journal links without requiring doi.org', () => {
-  assert.match(risk,/const publicationUrl = validHttps\(item\.doi_url\)/);
+  assert.match(risk,/validHttps\(doiRaw\)/);
   assert.doesNotMatch(risk,/DOI URL is not a valid doi\.org path/);
   assert.match(risk,/journal, publication, DOI, or paper URL/);
 });
 
-test('projects compare repository owner with student GitHub profile and require evidence URL', () => {
+test('projects compare repository owner with student GitHub profile and require project-specific evidence', () => {
   assert.match(risk,/githubProfileOwner/);
   assert.match(risk,/githubRepoOwner/);
   assert.match(risk,/does not match the student GitHub profile/);
-  assert.match(risk,/Every project needs a valid HTTPS live URL or GitHub repository URL/);
+  assert.match(risk,/project-specific live URL or GitHub repository URL/);
+  assert.match(risk,/cannot be the same link/);
   assert.match(guard,/github_url:student\?\.github_url/);
 });
 
-test('duplicate fingerprints cover repeated links and proof hashes', () => {
+test('duplicate fingerprints cover titles, repeated links and proof hashes', () => {
   assert.match(risk,/submissionFingerprints/);
+  assert.match(risk,/project-title:/);
+  assert.match(risk,/research-title:/);
   assert.match(risk,/project-url:/);
   assert.match(risk,/research-url:/);
   assert.match(risk,/cert-proof:/);

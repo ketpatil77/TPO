@@ -11,9 +11,12 @@ test('submission guard applies only to supported student write records', () => {
   for (const pathName of ['projects','research-papers','internships','certificates']) assert.match(guard,new RegExp(pathName));
 });
 
-test('only high-risk obvious junk is blocked while medium risk can be saved for later review', () => {
-  assert.match(guard,/risk\.level === 'high'/);
-  assert.match(guard,/status\(422\)/);
+test('objective cheating is blocked while uncertain evidence is persisted for review', () => {
+  assert.match(guard,/risk\.hard_reject/);
+  assert.match(guard,/DUPLICATE_SUBMISSION/);
+  assert.match(guard,/probeSubmissionUrls/);
+  assert.match(guard,/AUTO_FLAG:/);
+  assert.match(guard,/verification_status:'pending'/);
   assert.match(guard,/req\.submissionRisk = risk/);
 });
 

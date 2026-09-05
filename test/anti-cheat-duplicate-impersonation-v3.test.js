@@ -2,18 +2,18 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { duplicateIds, submissionFingerprints, researchRisk } = require('../src/services/submissionRisk');
+const { duplicateIds, submissionFingerprints, researchRisk, projectRisk } = require('../src/services/submissionRisk');
 
-test('research titles alone never create duplicate fingerprints', () => {
+test('same research title inside one student profile is a duplicate even when URLs differ', () => {
   const a = { id:'a', title:'AI in Agriculture', publication:'Journal X', doi_url:'https://journal.example.org/article/1', paper_url:'https://files.example.org/paper-a.pdf' };
   const b = { id:'b', title:'AI in Agriculture', publication:'Journal X', doi_url:'https://journal.example.org/article/2', paper_url:'https://files.example.org/paper-b.pdf' };
-  assert.equal([...duplicateIds('research',[a,b])].length, 0);
-  assert.equal(submissionFingerprints('research',a).some(v => v.startsWith('research-title:')), false);
+  assert.deepEqual([...duplicateIds('research',[a,b])], ['b']);
+  assert.equal(submissionFingerprints('research',a).some(v => v.startsWith('research-title:')), true);
 });
 
 test('research exact repeated evidence URL is a high-confidence duplicate', () => {
-  const a = { id:'a', doi_url:'https://journal.example.org/article/1?utm=one' };
-  const b = { id:'b', doi_url:'https://journal.example.org/article/1#section' };
+  const a = { id:'a', title:'Paper A', doi_url:'https://journal.example.org/article/1?utm=one' };
+  const b = { id:'b', title:'Paper B', doi_url:'https://journal.example.org/article/1#section' };
   assert.deepEqual([...duplicateIds('research',[a,b])], ['b']);
 });
 
@@ -25,12 +25,23 @@ test('valid non-doi journal URL is acceptable evidence', () => {
     doi_url:'https://journal.example.org/articles/volume-5-paper-22'
   });
   assert.equal(risk.reasons.some(reason => /doi\.org/i.test(reason)), false);
+  assert.equal(risk.hard_reject, false);
 });
 
-test('project titles alone never make duplicate records', () => {
+test('same project title is duplicate while one GitHub profile may own different repositories', () => {
   const a = { id:'a', title:'College ERP', repository_url:'https://github.com/student/erp-v1' };
   const b = { id:'b', title:'College ERP', repository_url:'https://github.com/student/erp-v2' };
-  assert.equal([...duplicateIds('project',[a,b])].length, 0);
+  assert.deepEqual([...duplicateIds('project',[a,b])], ['b']);
+  const first = projectRisk({title:'ERP One',summary:'A complete college ERP with attendance, student profiles, reporting and role-based administrative workflows.',technologies:'Node.js, PostgreSQL',repository_url:'https://github.com/student/erp-v1'},{github_url:'https://github.com/student'});
+  const second = projectRisk({title:'ERP Two',summary:'A separate placement ERP with recruiter workflows, candidate filtering, analytics and secure staff administration.',technologies:'Node.js, PostgreSQL',repository_url:'https://github.com/student/erp-v2'},{github_url:'https://github.com/student'});
+  assert.equal(first.auto_approved, true);
+  assert.equal(second.auto_approved, true);
+});
+
+test('project repository and live URL cannot be the same link', () => {
+  const risk = projectRisk({title:'Secure Portal',summary:'A secure portal implementing role based access, student workflows, records and administrative reporting for campus operations.',technologies:'Node.js',repository_url:'https://github.com/student/portal',project_url:'https://github.com/student/portal'},{github_url:'https://github.com/student'});
+  assert.equal(risk.hard_reject, true);
+  assert.match(risk.reasons.join(' '),/cannot be the same link/i);
 });
 
 test('TPO impersonation opens a tab synchronously and preserves admin session', () => {
