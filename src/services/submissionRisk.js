@@ -51,27 +51,30 @@ function repeatedContent(values) {
   const compact = values.map(v => text(v).toLowerCase().replace(/[^a-z0-9]/g,'')).filter(Boolean);
   return compact.length > 1 && new Set(compact).size === 1;
 }
+
+// Duplicate detection is intentionally conservative. We only auto-decline when two
+// records share evidence that should be globally unique for that student. Similar
+// titles are not duplicates: legitimate papers/projects often reuse related names.
 function submissionFingerprints(type,item = {}) {
   const out = [];
   if (type === 'project') {
     const repo = normalizedUrl(item.repository_url); const live = normalizedUrl(item.project_url);
     if (repo) out.push(`project-url:${repo}`);
     if (live) out.push(`project-url:${live}`);
-    const title = normalizedText(item.title); if (title) out.push(`project-title:${title}`);
   } else if (type === 'research') {
     const doi = normalizedUrl(item.doi_url); const paper = normalizedUrl(item.paper_url);
     if (doi) out.push(`research-url:${doi}`);
     if (paper) out.push(`research-url:${paper}`);
-    const title = normalizedText(item.title); const publication = normalizedText(item.publication);
-    if (title) out.push(`research-title:${title}|${publication}`);
   } else if (type === 'internship') {
     const proof = text(item.evidence_sha256 || item.evidence_path);
     if (proof) out.push(`intern-proof:${proof}`);
-    out.push(`intern:${normalizedText(item.company)}|${normalizedText(item.role)}|${text(item.start_date)}|${text(item.end_date)}`);
+    const start = text(item.start_date), end = text(item.end_date);
+    if (start || end) out.push(`intern:${normalizedText(item.company)}|${normalizedText(item.role)}|${start}|${end}`);
   } else if (type === 'certificate') {
     const proof = text(item.evidence_sha256 || item.evidence_path);
     if (proof) out.push(`cert-proof:${proof}`);
-    out.push(`cert:${normalizedText(item.name)}|${normalizedText(item.issuer)}|${text(item.issued_on || item.issue_date)}`);
+    const issued = text(item.issued_on || item.issue_date);
+    if (issued) out.push(`cert:${normalizedText(item.name)}|${normalizedText(item.issuer)}|${issued}`);
   }
   return [...new Set(out.filter(Boolean))];
 }
@@ -97,7 +100,7 @@ function classify(score,reasons,item) {
   return { score:capped, level:capped >= 60 ? 'high' : capped >= 30 ? 'medium' : 'low', auto_approved:low, needs_review:!low, audit_sample:low && auditSample(item), reasons };
 }
 function markDuplicate(risk) {
-  return { ...risk, score:100, level:'high', auto_approved:false, needs_review:true, audit_sample:false, duplicate:true, reasons:['Duplicate submission detected. Duplicate entries earn zero Profile Points. No cheating.', ...(risk.reasons || [])] };
+  return { ...risk, score:100, level:'high', auto_approved:false, needs_review:true, audit_sample:false, duplicate:true, reasons:['Exact duplicate evidence detected. The same URL/proof/date-key is already used in another entry, so this record earns zero Profile Points until reviewed.', ...(risk.reasons || [])] };
 }
 function applyStoredDecision(risk,item={}) {
   const status = String(item.verification_status || '').toLowerCase();
@@ -126,8 +129,8 @@ function researchRisk(item = {}) {
   if(isJunk(item.publication)){score+=45;reasons.push('Publication/journal looks invalid.');}
   if(text(item.abstract).length<80||tokens(item.abstract).length<12){score+=35;reasons.push('Abstract/contribution is too short.');}
   if(isJunk(item.abstract)){score+=60;reasons.push('Abstract looks like junk text.');}
-  const doiOrJournal = validHttps(item.doi_url); const paper = validHttps(item.paper_url);
-  if(!doiOrJournal&&!paper){score+=45;reasons.push('A working HTTPS journal, publication, DOI, or paper URL is required for automatic scoring.');}
+  const publicationUrl = validHttps(item.doi_url); const paper = validHttps(item.paper_url);
+  if(!publicationUrl&&!paper){score+=45;reasons.push('A valid HTTPS journal, publication, DOI, or paper URL is required for automatic scoring.');}
   if(item.doi_url && !validHttps(item.doi_url)){score+=45;reasons.push('The DOI/publication URL is malformed or not HTTPS.');}
   if(repeatedContent([item.title,item.publication,item.abstract])){score+=35;reasons.push('Repeated placeholder content across fields.');}
   return applyStoredDecision(classify(score,reasons,item),item);
