@@ -1,6 +1,6 @@
 (() => {
-  if (window.__AIT_ADMIN_SUBMISSION_MODERATION_V2__) return;
-  window.__AIT_ADMIN_SUBMISSION_MODERATION_V2__ = true;
+  if (window.__AIT_ADMIN_SUBMISSION_MODERATION_V3__) return;
+  window.__AIT_ADMIN_SUBMISSION_MODERATION_V3__ = true;
 
   if (!document.querySelector('script[data-flagged-review-queue]')) {
     const queueScript = document.createElement('script');
@@ -10,8 +10,12 @@
     document.head.appendChild(queueScript);
   }
 
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[ch]));
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const token = () => localStorage.getItem('tpo_admin_token') || '';
+  const adminHeaders = (extra = {}) => {
+    const legacyToken = token();
+    return legacyToken ? { ...extra, Authorization:`Bearer ${legacyToken}` } : { ...extra };
+  };
   const labels = { project:'Project', research:'Research paper', internship:'Internship', certificate:'Certificate' };
 
   function statusBadge(item = {}) {
@@ -53,7 +57,10 @@
     if (!host) return;
     host.innerHTML = '<p style="color:var(--text-muted)">Running automatic quality checks…</p>';
     try {
-      const response = await fetch(`/api/admin/students/${encodeURIComponent(studentId)}/moderation`, { headers:{ Authorization:`Bearer ${token()}` } });
+      const response = await fetch(`/api/admin/students/${encodeURIComponent(studentId)}/moderation`, {
+        credentials:'same-origin',
+        headers:adminHeaders()
+      });
       const json = await response.json();
       if (!response.ok || !json.success) throw new Error(typeof json.error === 'string' ? json.error : json.error?.message || 'Moderation scan failed.');
       const groups = [['project',json.data.projects||[]],['research',json.data.research||[]],['internship',json.data.internships||[]],['certificate',json.data.certificates||[]]];
@@ -86,7 +93,10 @@
     button.disabled = true; button.textContent = decision === 'approve' ? 'Approving…' : 'Rejecting…';
     try {
       const response = await fetch(`/api/admin/students/${encodeURIComponent(studentId)}/moderation/${encodeURIComponent(type)}/${encodeURIComponent(id)}/review`, {
-        method:'POST', headers:{ Authorization:`Bearer ${token()}`, 'Content-Type':'application/json' }, body:JSON.stringify({ decision, reason })
+        method:'POST',
+        credentials:'same-origin',
+        headers:adminHeaders({'Content-Type':'application/json'}),
+        body:JSON.stringify({ decision, reason })
       });
       const json = await response.json();
       if (!response.ok || !json.success) throw new Error(typeof json.error === 'string' ? json.error : json.error?.message || 'Review failed.');
@@ -103,9 +113,9 @@
     const input = document.getElementById('impersonatePrn');
     const prn = input?.value.trim();
     if (!prn) return showToast?.('Enter a PRN to login.', 'error');
-    const adminToken = token();
-    if (!adminToken) return showToast?.('TPO session is missing. Sign in again.', 'error');
 
+    // Open synchronously while the click still has a user gesture. Mobile browsers otherwise
+    // treat the student tab as a popup and block it after the API request completes.
     const studentWindow = window.open('about:blank', '_blank');
     if (!studentWindow) return showToast?.('Student window was blocked. Allow pop-ups for this portal and retry. Your TPO session is unchanged.', 'error');
     try {
@@ -117,11 +127,19 @@
     const original = button.textContent;
     button.disabled = true; button.textContent = 'Logging in…';
     try {
+      // Admin authentication is now cookie-first (HttpOnly adminToken). Keep support for an
+      // older localStorage bearer token if one exists, but never require it.
       const response = await fetch(`/api/admin/students/${encodeURIComponent(prn)}/impersonate`, {
-        method:'POST', headers:{ Authorization:`Bearer ${adminToken}` }
+        method:'POST',
+        credentials:'same-origin',
+        headers:adminHeaders()
       });
       const json = await response.json();
-      if (!response.ok || !json.success || !json.token) throw new Error(typeof json.error === 'string' ? json.error : json.error?.message || 'Unable to open student profile.');
+      if (!response.ok || !json.success || !json.token) {
+        const message = typeof json.error === 'string' ? json.error : json.error?.message || 'Unable to open student profile.';
+        if (response.status === 401 || response.status === 403) throw new Error('Your TPO session has expired. Sign in again.');
+        throw new Error(message);
+      }
       input.value = '';
       studentWindow.location.replace(`/dashboard?impersonate_token=${encodeURIComponent(json.token)}`);
       showToast?.('Student profile opened in a separate support tab. TPO remains signed in here.', 'success');
@@ -134,7 +152,7 @@
   }
 
   function install() {
-    if (typeof window.openStudentModal !== 'function' || window.openStudentModal.__moderationV2Wrapped) return false;
+    if (typeof window.openStudentModal !== 'function' || window.openStudentModal.__moderationV3Wrapped) return false;
     const original = window.openStudentModal;
     const wrapped = function(studentId) {
       const result = original.apply(this, arguments);
@@ -150,7 +168,7 @@
       }
       return result;
     };
-    wrapped.__moderationV2Wrapped = true;
+    wrapped.__moderationV3Wrapped = true;
     window.openStudentModal = wrapped;
     document.addEventListener('click', event => {
       const reviewButton = event.target.closest('[data-moderation-review]');
