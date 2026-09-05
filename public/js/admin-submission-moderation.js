@@ -99,6 +99,40 @@
     }
   }
 
+  async function impersonateFromTpo(button) {
+    const input = document.getElementById('impersonatePrn');
+    const prn = input?.value.trim();
+    if (!prn) return showToast?.('Enter a PRN to login.', 'error');
+    const adminToken = token();
+    if (!adminToken) return showToast?.('TPO session is missing. Sign in again.', 'error');
+
+    const studentWindow = window.open('about:blank', '_blank');
+    if (!studentWindow) return showToast?.('Student window was blocked. Allow pop-ups for this portal and retry. Your TPO session is unchanged.', 'error');
+    try {
+      studentWindow.opener = null;
+      studentWindow.document.title = 'Opening student profile…';
+      studentWindow.document.body.innerHTML = '<p style="font-family:system-ui;padding:24px">Opening student profile…</p>';
+    } catch (_) {}
+
+    const original = button.textContent;
+    button.disabled = true; button.textContent = 'Logging in…';
+    try {
+      const response = await fetch(`/api/admin/students/${encodeURIComponent(prn)}/impersonate`, {
+        method:'POST', headers:{ Authorization:`Bearer ${adminToken}` }
+      });
+      const json = await response.json();
+      if (!response.ok || !json.success || !json.token) throw new Error(typeof json.error === 'string' ? json.error : json.error?.message || 'Unable to open student profile.');
+      input.value = '';
+      studentWindow.location.replace(`/dashboard?impersonate_token=${encodeURIComponent(json.token)}`);
+      showToast?.('Student profile opened in a separate support tab. TPO remains signed in here.', 'success');
+    } catch (error) {
+      try { studentWindow.close(); } catch (_) {}
+      showToast?.(error.message || 'Unable to open student profile.', 'error');
+    } finally {
+      button.disabled = false; button.textContent = original;
+    }
+  }
+
   function install() {
     if (typeof window.openStudentModal !== 'function' || window.openStudentModal.__moderationV2Wrapped) return false;
     const original = window.openStudentModal;
@@ -119,9 +153,15 @@
     wrapped.__moderationV2Wrapped = true;
     window.openStudentModal = wrapped;
     document.addEventListener('click', event => {
-      const button = event.target.closest('[data-moderation-review]');
-      if (button) { event.preventDefault(); event.stopPropagation(); review(button); }
+      const reviewButton = event.target.closest('[data-moderation-review]');
+      if (reviewButton) { event.preventDefault(); event.stopPropagation(); review(reviewButton); }
     });
+    document.addEventListener('click', event => {
+      const button = event.target.closest('#btnImpersonate');
+      if (!button) return;
+      event.preventDefault(); event.stopImmediatePropagation();
+      impersonateFromTpo(button);
+    }, true);
     return true;
   }
 

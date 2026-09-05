@@ -49,7 +49,7 @@ test('moderation labels show profile points instead of exposing risk score as po
 });
 
 test('research accepts valid journal links without requiring doi.org', () => {
-  assert.match(risk,/const doiOrJournal = validHttps\(item\.doi_url\)/);
+  assert.match(risk,/const publicationUrl = validHttps\(item\.doi_url\)/);
   assert.doesNotMatch(risk,/DOI URL is not a valid doi\.org path/);
   assert.match(risk,/journal, publication, DOI, or paper URL/);
 });
