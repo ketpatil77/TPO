@@ -27,12 +27,14 @@ test('browser permission prompt only runs from explicit enable action', () => {
     assert.match(gateSource, /data-enable-browser-alerts/);
 });
 
-test('service worker collapses push categories and suppresses duplicate visible pushes', () => {
+test('service worker collapses ordinary categories, deduplicates exact pushes, and re-notifies new ranking updates', () => {
     assert.match(swSource, /ait-profile-updates/);
     assert.match(swSource, /ait-placement-updates/);
     assert.match(swSource, /ait-portal-updates/);
+    assert.match(swSource, /ait-ranking-updates/);
+    assert.match(swSource, /tab=ranking/);
+    assert.match(swSource, /renotify: true/);
+    assert.match(swSource, /renotify: false/);
     assert.match(swSource, /getNotifications\(\{ tag \}\)/);
     assert.match(swSource, /duplicate/);
-    assert.match(swSource, /renotify: false/);
-    assert.doesNotMatch(swSource, /renotify: true/);
 });
