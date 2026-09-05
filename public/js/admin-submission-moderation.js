@@ -2,6 +2,14 @@
   if (window.__AIT_ADMIN_SUBMISSION_MODERATION_V2__) return;
   window.__AIT_ADMIN_SUBMISSION_MODERATION_V2__ = true;
 
+  if (!document.querySelector('script[data-flagged-review-queue]')) {
+    const queueScript = document.createElement('script');
+    queueScript.src = '/js/flagged-review-queue.js?v=20260905-1';
+    queueScript.defer = true;
+    queueScript.dataset.flaggedReviewQueue = '1';
+    document.head.appendChild(queueScript);
+  }
+
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[ch]));
   const token = () => localStorage.getItem('tpo_admin_token') || '';
   const labels = { project:'Project', research:'Research paper', internship:'Internship', certificate:'Certificate' };

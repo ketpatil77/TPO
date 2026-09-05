@@ -28,6 +28,7 @@ const adminAuthRoutes = require('./routes/adminAuth');
 const adminRosterRoutes = require('./routes/adminRoster');
 const adminStudentsRoutes = require('./routes/adminStudents');
 const adminModerationRoutes = require('./routes/adminModeration');
+const moderationQueueRoutes = require('./routes/moderationQueue');
 const fullStudentExportRoutes = require('./routes/fullStudentExport');
 const certificateReviewRoutes = require('./routes/certificateReview');
 const proofReviewRoutes = require('./routes/proofReview');
@@ -109,6 +110,7 @@ app.use('/api/admin/student-avatars', createStudentAvatarDirectory(authenticateA
 app.use('/api/admin/students/export', fullStudentExportRoutes);
 app.use('/api/admin/proof-review', proofReviewRoutes.admin);
 app.use('/api/admin/certificates', certificateReviewRoutes);
+app.use('/api/admin/moderation-queue', moderationQueueRoutes.admin);
 // Moderation is mounted before the legacy student router so the corrected
 // impersonation endpoint and record moderation actions are authoritative.
 app.use('/api/admin/students', adminModerationRoutes);
@@ -124,6 +126,7 @@ app.use('/api/admin/launch', launchOperationsRoutes);
 app.use('/api/observer/auth', observerAuthRoutes);
 app.use('/api/observer/student-avatars', createStudentAvatarDirectory(authenticateObserver));
 app.use('/api/observer/proof-review', proofReviewRoutes.observer);
+app.use('/api/observer/moderation-queue', moderationQueueRoutes.observer);
 app.use('/api/observer/profile-completion', profileCompletionRoutes.observer);
 app.use('/api/observer/competitions', competitionReviewRoutes.observer);
 app.use('/api/observer', observerRoutes);
