@@ -100,9 +100,12 @@ function scoreStudent(profile,related){
   };
 }
 
-async function signedAvatarMap(cohort){
-  if(db.isLocal())return new Map(); const withAvatar=cohort.filter(i=>i.avatar_path); if(!withAvatar.length)return new Map();
-  try{const paths=withAvatar.map(i=>i.avatar_path);const{data,error}=await db.supabaseClient().storage.from('avatars').createSignedUrls(paths,3600);if(error)throw error;const map=new Map();(data||[]).forEach((item,index)=>{if(item?.signedUrl)map.set(withAvatar[index].id,item.signedUrl);});return map;}catch(error){console.warn('Leaderboard avatar signing failed:',error.message);return new Map();}
+function avatarRouteMap(cohort){
+  const map=new Map();
+  (cohort||[]).forEach(profile=>{
+    if(profile.avatar_path) map.set(profile.id,`/api/student/student-avatars/${encodeURIComponent(profile.id)}`);
+  });
+  return map;
 }
 
 async function buildLeaderboard(currentStudentId,branchQuery,yearQuery){
@@ -111,7 +114,7 @@ async function buildLeaderboard(currentStudentId,branchQuery,yearQuery){
   const branch=branchQuery||currentProfile.branch||'all'; const year=yearQuery||currentProfile.year||'all';
   const related={internships:groupByStudent(internships),certificates:groupByStudent(certificates),projects:groupByStudent(projects),research:groupByStudent(research),competitions:groupByStudent(competitions),skills:groupByStudent(skills)};
   let cohort=students.filter(i=>i.status!=='inactive'); if(branch!=='all')cohort=cohort.filter(i=>String(i.branch||'').toUpperCase()===String(branch).toUpperCase()); if(year!=='all')cohort=cohort.filter(i=>String(i.year||'').toLowerCase()===String(year).toLowerCase());
-  const avatars=await signedAvatarMap(cohort);
+  const avatars=avatarRouteMap(cohort);
   const rows=cohort.map(profile=>({student_id:profile.id,name:profile.name||'Student',prn:profile.prn,branch:profile.branch,year:profile.year,avatar_url:avatars.get(profile.id)||null,is_me:profile.id===currentStudentId,...scoreStudent(profile,related)})).sort((a,b)=>b.points-a.points||b.potential_points-a.potential_points||String(a.name).localeCompare(String(b.name)));
   let lastScore=null,lastRank=0; rows.forEach((row,index)=>{if(lastScore===null||row.points!==lastScore)lastRank=index+1;row.rank=lastRank;lastScore=row.points;});
   return {filters:{branch,year},rows,current:rows.find(r=>r.student_id===currentStudentId)||null,rules:{version:RULE_VERSION,note:'Clean projects, research and internships score automatically. Duplicates, rejected records and suspicious entries score 0 until staff approval. Certificates and competitions score only after verification.',academics:'Profile CGPA uses the published band.',certificates:'Verified certificates only: first 10 = 2 points each; after 10 = 1.5 each. Pending/rejected/duplicate = 0 earned points.',projects:'Clean project = 4 base + 2 repository + 2 live URL. Duplicate, rejected or flagged = 0 earned points.',research:'Clean publication = 8 + 2 DOI bonus when doi.org + 1 paper link. A valid journal URL may be used without DOI.',competitions:'Competition points count only after verification.',internships:'Clean internship = 6 points. Rejected/duplicate/flagged = 0.',skills:'Skill = 0.5 point, maximum 20 scored skills.',profile:'Resume = 3; complete required profile fields = 2.'}};
