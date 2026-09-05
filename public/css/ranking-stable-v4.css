@@ -23,17 +23,21 @@
 #rankingStableListV4 .ranking-v5-momentum.stable{background:rgba(16,185,129,.18);color:#bbf7d0}
 #rankingStableListV4 .ranking-v5-momentum.slipping{background:rgba(239,68,68,.18);color:#fecaca}
 #rankingStableListV4 .ranking-v5-breakdown>summary{cursor:pointer;color:var(--text-body);font-weight:800;min-height:46px;display:flex;align-items:center;justify-content:center}
-#rankingStableListV4 .ranking-v5-breakdown-body{padding:12px 16px 18px;color:var(--text-muted);font-size:12px;line-height:1.45}
-#rankingStableListV4 .ranking-v5-score-head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-#rankingStableListV4 .ranking-v5-score-head strong{color:var(--text-primary,#f8fafc);font-size:14px}
-#rankingStableListV4 .ranking-v5-score-head span{color:var(--student-gold,#f3c969)}
-#rankingStableListV4 .ranking-v5-evidence-list{display:grid;gap:10px;margin-top:12px}
-#rankingStableListV4 .ranking-v5-detail-group{border-top:1px solid var(--color-border,#334155);padding-top:9px}
-#rankingStableListV4 .ranking-v5-detail-group h4{margin:0 0 6px;text-transform:capitalize;color:var(--text-primary,#f8fafc)}
-#rankingStableListV4 .ranking-v5-evidence{display:flex;justify-content:space-between;gap:12px;padding:7px 0}
-#rankingStableListV4 .ranking-v5-evidence strong,#rankingStableListV4 .ranking-v5-evidence small{display:block}
+#rankingStableListV4 .ranking-v5-breakdown-body{padding:12px 16px 18px;color:var(--text-muted);font-size:12px;line-height:1.45;text-align:left}
+#rankingStableListV4 .ranking-v5-score-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:12px;text-align:left}
+#rankingStableListV4 .ranking-v5-score-head strong{color:var(--text-primary,#f8fafc);font-size:14px;text-align:left}
+#rankingStableListV4 .ranking-v5-score-head span{color:var(--student-gold,#f3c969);text-align:left}
+#rankingStableListV4 .ranking-breakdown-grid-v3{display:grid;text-align:left}
+#rankingStableListV4 .ranking-category-score{text-align:left!important;align-items:flex-start!important;justify-items:start!important}
+#rankingStableListV4 .ranking-category-score small,#rankingStableListV4 .ranking-category-score strong,#rankingStableListV4 .ranking-category-score em{display:block;text-align:left!important;width:100%}
+#rankingStableListV4 .ranking-v5-evidence-list{display:grid;gap:10px;margin-top:12px;text-align:left}
+#rankingStableListV4 .ranking-v5-detail-group{border-top:1px solid var(--color-border,#334155);padding-top:9px;text-align:left}
+#rankingStableListV4 .ranking-v5-detail-group h4{margin:0 0 6px;text-transform:capitalize;color:var(--text-primary,#f8fafc);text-align:left}
+#rankingStableListV4 .ranking-v5-evidence{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:7px 0;text-align:left}
+#rankingStableListV4 .ranking-v5-evidence>div{min-width:0;flex:1 1 auto;text-align:left!important}
+#rankingStableListV4 .ranking-v5-evidence strong,#rankingStableListV4 .ranking-v5-evidence small{display:block;text-align:left!important}
 #rankingStableListV4 .ranking-v5-evidence small{margin-top:2px;color:var(--text-muted)}
-#rankingStableListV4 .ranking-v5-evidence b{white-space:nowrap;color:var(--student-gold,#f3c969)}
+#rankingStableListV4 .ranking-v5-evidence b{white-space:nowrap;color:var(--student-gold,#f3c969);text-align:right;margin-left:auto;flex:0 0 auto}
 #rankingStableListV4 .ranking-v5-evidence.pending b{color:#f59e0b}
 #rankingStableListV4 .rank-chaos-inline,#rankingStableListV4 .ranking-meter-inline,#rankingStableListV4 .ranking-move-pill,#rankingStableListV4 .ranking-meter-pill{display:none!important}
 #rankingPager.ranking-v5-pager{display:grid!important;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:14px}
@@ -60,6 +64,8 @@
  #rankingStableListV4 .ranking-v5-state{font-size:10px;gap:5px}
  #rankingStableListV4 .ranking-v5-move{min-width:0;height:auto;padding:0;font-size:11px}
  #rankingStableListV4 .ranking-v5-momentum{font-size:10px;padding:4px 7px}
+ #rankingStableListV4 .ranking-v5-breakdown-body{padding:12px 12px 16px}
+ #rankingStableListV4 .ranking-v5-evidence{gap:9px}
  #rankingPager.ranking-v5-pager{grid-template-columns:1fr 1fr}
  #rankingPager.ranking-v5-pager small{grid-column:1/-1;grid-row:1}
  #rankingPager.ranking-v5-pager #rankingPrevV5{grid-column:1;grid-row:2}
@@ -72,6 +78,7 @@
  #rankingStableListV4 .leaderboard-student-copy strong{font-size:12.8px!important}
  #rankingStableListV4 .leaderboard-points-cell strong{font-size:12.8px}
  #rankingStableListV4 .ranking-v5-move{min-width:0;height:auto;padding:0;font-size:10px}
+ #rankingStableListV4 .ranking-category-score{min-width:0}
 }
 @media (max-width:365px){
  #rankingStableListV4 .leaderboard-entry-main{grid-template-columns:54px 48px minmax(0,1fr) auto!important;gap:5px!important}
