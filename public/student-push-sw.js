@@ -3,19 +3,21 @@
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 
-function notificationTag(message) {
+function notificationCategory(message) {
     const url = String(message?.data?.url || '');
-    if (message?.tag === 'profile-completion-reminder' || url.includes('edit-profile')) return 'ait-profile-updates';
-    if (url.includes('opportunities') || url.includes('jobs')) return 'ait-placement-updates';
-    return 'ait-portal-updates';
+    if (url.includes('tab=ranking')) return { tag: 'ait-ranking-updates', renotify: true };
+    if (message?.tag === 'profile-completion-reminder' || url.includes('edit-profile')) return { tag: 'ait-profile-updates', renotify: false };
+    if (url.includes('opportunities') || url.includes('jobs')) return { tag: 'ait-placement-updates', renotify: false };
+    return { tag: 'ait-portal-updates', renotify: false };
 }
 
 async function showPortalNotification(message, fallback) {
-    const tag = notificationTag(message);
+    const { tag, renotify } = notificationCategory(message);
     const title = String(message.title || fallback.title);
     const body = String(message.body || fallback.body);
 
-    // Do not surface the same push twice. In-app notifications remain the full history.
+    // Do not surface the exact same push twice. Ranking updates intentionally
+    // re-notify when a new ranking message replaces the previous ranking card.
     const visible = await self.registration.getNotifications({ tag });
     const duplicate = visible.some(item => item.title === title && item.body === body);
     if (duplicate) return;
@@ -25,7 +27,7 @@ async function showPortalNotification(message, fallback) {
         icon: message.icon || '/icons/icon-192.png',
         badge: message.badge || '/icons/icon-192.png',
         tag,
-        renotify: false,
+        renotify,
         requireInteraction: false,
         timestamp: Date.now(),
         data: { ...(message.data || fallback.data), pushCategory: tag }
