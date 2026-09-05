@@ -1,48 +1,35 @@
 'use strict';
 
 const db = require('../config/database');
-const { holdTier, momentum, nearestDifferentRank } = require('./rankingCompetition');
+const { buildLeaderboard } = require('./profileRankingEngine');
+const { applyCertificateScoringV4 } = require('./rankingScoreV4');
+const { holdTier, momentum } = require('./rankingCompetition');
 
 const num = value => Number.isFinite(Number(value)) ? Number(value) : 0;
 const secondsBetween = (a, b) => Math.max(0, Math.floor((new Date(b).getTime() - new Date(a).getTime()) / 1000) || 0);
 
-async function signedAvatarMap(students) {
-  if (db.isLocal()) return new Map();
-  const withAvatar = students.filter(student => student.avatar_path);
-  if (!withAvatar.length) return new Map();
-  try {
-    const paths = withAvatar.map(student => student.avatar_path);
-    const { data, error } = await db.supabaseClient().storage.from('avatars').createSignedUrls(paths, 3600);
-    if (error) throw error;
-    const map = new Map();
-    (data || []).forEach((item, index) => {
-      if (item?.signedUrl) map.set(withAvatar[index].id, item.signedUrl);
-    });
-    return map;
-  } catch (error) {
-    console.warn('Fast ranking avatar signing failed:', error.message);
-    return new Map();
-  }
-}
-
-function competitionFor(state, above, below, now) {
-  const holdSeconds = secondsBetween(state.rank_since, now);
-  const weeklyGain = Math.max(0, num(state.current_points) - num(state.week_start_points));
-  const rankDelta = num(state.last_rank_delta);
-  const pointDelta = num(state.last_point_delta);
-  const gapAhead = above ? Math.max(0, num(above.current_points) - num(state.current_points)) : 0;
-  const gapBehind = below ? Math.max(0, num(state.current_points) - num(below.current_points)) : 0;
+function competitionFor(state, liveRow, above, below, now) {
+  const effectiveState = state || {};
+  const livePoints = num(liveRow?.points);
+  const liveRank = num(liveRow?.rank);
+  const rankSince = effectiveState.rank_since || now.toISOString();
+  const holdSeconds = secondsBetween(rankSince, now);
+  const weeklyGain = Math.max(0, livePoints - num(effectiveState.week_start_points ?? livePoints));
+  const rankDelta = state ? num(effectiveState.last_rank_delta) : 0;
+  const pointDelta = state ? num(effectiveState.last_point_delta) : 0;
+  const gapAhead = above ? Math.max(0, num(above.points) - livePoints) : 0;
+  const gapBehind = below ? Math.max(0, livePoints - num(below.points)) : 0;
   return {
     movement: rankDelta,
     point_delta: pointDelta,
     weekly_gain: weeklyGain,
-    growth_streak_weeks: num(state.growth_streak_weeks),
+    growth_streak_weeks: num(effectiveState.growth_streak_weeks),
     hold_seconds: holdSeconds,
-    hold_since: state.rank_since,
+    hold_since: rankSince,
     hold_badge: holdTier(holdSeconds),
-    longest_hold_seconds: num(state.longest_hold_seconds),
-    longest_hold_rank: num(state.longest_hold_rank || state.current_rank),
-    best_rank: num(state.best_rank || state.current_rank),
+    longest_hold_seconds: num(effectiveState.longest_hold_seconds),
+    longest_hold_rank: num(effectiveState.longest_hold_rank || liveRank),
+    best_rank: num(effectiveState.best_rank || liveRank),
     gap_ahead: gapAhead,
     gap_behind: gapBehind,
     pressure: Boolean(below && gapBehind <= 6),
@@ -53,33 +40,35 @@ function competitionFor(state, above, below, now) {
 }
 
 async function readFastRankingSnapshot(currentStudentId, { now = new Date() } = {}) {
-  const [states, students] = await Promise.all([
+  // The visible leaderboard and the score breakdown must come from the same
+  // scoring engine. leaderboard_rank_state is competition history only; it is
+  // not authoritative for the current points because verification/profile
+  // changes can happen between competition-state reconciliations.
+  const [states, liveRaw] = await Promise.all([
     db.select('leaderboard_rank_state', { scope_key: 'college' }),
-    db.select('students')
+    buildLeaderboard(currentStudentId, 'all', 'all')
   ]);
-  const studentById = new Map(students.map(student => [student.id, student]));
-  const activeStates = states
-    .filter(state => studentById.get(state.student_id)?.status !== 'inactive')
-    .sort((a, b) => num(a.current_rank) - num(b.current_rank) || num(b.current_points) - num(a.current_points) || String(studentById.get(a.student_id)?.name || '').localeCompare(String(studentById.get(b.student_id)?.name || '')));
-  const activeStudents = activeStates.map(state => studentById.get(state.student_id)).filter(Boolean);
-  const avatars = await signedAvatarMap(activeStudents);
+  const live = applyCertificateScoringV4(liveRaw);
+  const stateByStudent = new Map(states.map(state => [String(state.student_id), state]));
+  const liveRows = [...(live.rows || [])].sort((a, b) => num(a.rank) - num(b.rank) || num(b.points) - num(a.points) || String(a.name || '').localeCompare(String(b.name || '')));
 
-  const rows = activeStates.map((state, index) => {
-    const student = studentById.get(state.student_id) || {};
-    const above = nearestDifferentRank(activeStates, index, -1);
-    const below = nearestDifferentRank(activeStates, index, 1);
-    return {
-      student_id: state.student_id,
-      name: student.name || 'Student',
-      branch: student.branch || '',
-      year: student.year || '',
-      avatar_url: avatars.get(state.student_id) || null,
-      rank: num(state.current_rank),
-      points: num(state.current_points),
-      is_me: state.student_id === currentStudentId,
-      competition: competitionFor(state, above, below, now)
-    };
-  });
+  const rows = liveRows.map((row, index) => ({
+    student_id: row.student_id,
+    name: row.name || 'Student',
+    branch: row.branch || '',
+    year: row.year || '',
+    avatar_url: row.avatar_url || null,
+    rank: num(row.rank),
+    points: num(row.points),
+    is_me: row.student_id === currentStudentId,
+    competition: competitionFor(
+      stateByStudent.get(String(row.student_id)),
+      row,
+      index > 0 ? liveRows[index - 1] : null,
+      index + 1 < liveRows.length ? liveRows[index + 1] : null,
+      now
+    )
+  }));
 
   return {
     scope: 'college',
