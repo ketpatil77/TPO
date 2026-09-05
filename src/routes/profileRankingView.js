@@ -2,6 +2,7 @@
 
 const express = require('express');
 const { authenticateStudent } = require('../middleware/auth');
+const db = require('../config/database');
 const { buildLeaderboard } = require('../services/profileRankingEngine');
 const { enrichCollegeLeaderboard, readCompetitionSnapshot } = require('../services/rankingCompetition');
 const { applyCertificateScoringV4 } = require('../services/rankingScoreV4');
@@ -14,6 +15,33 @@ router.use(authenticateStudent);
 function noStore(res) {
   res.setHeader('Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0');
   res.setHeader('Pragma', 'no-cache');
+}
+
+function publicBattleEvent(event) {
+  return {
+    id: event.id,
+    type: event.event_type,
+    message: event.message,
+    rank_from: Number(event.rank_from) || 0,
+    rank_to: Number(event.rank_to) || 0,
+    points: Number(event.points) || 0,
+    point_delta: Number(event.point_delta) || 0,
+    created_at: event.created_at
+  };
+}
+
+async function includeTopFiveCaptures(data) {
+  const events = await db.select('leaderboard_events', { scope_key: 'college' });
+  const extra = events
+    .filter(event => event.event_type === 'rank_capture' && Number(event.rank_to) > 0 && Number(event.rank_to) <= 5)
+    .map(publicBattleEvent);
+  const merged = new Map([...(data.events || []), ...extra].map(event => [event.id, event]));
+  return {
+    ...data,
+    events: [...merged.values()]
+      .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
+      .slice(0, 12)
+  };
 }
 
 router.get('/profile', async (req, res) => {
@@ -41,7 +69,8 @@ router.get('/profile', async (req, res) => {
 
 router.get('/competition', async (req, res) => {
   try {
-    const data = await readCompetitionSnapshot(req.student.studentId);
+    const snapshot = await readCompetitionSnapshot(req.student.studentId);
+    const data = await includeTopFiveCaptures(snapshot);
     noStore(res);
     return res.json({ success: true, data });
   } catch (error) {
