@@ -17,7 +17,10 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
  * Middleware to protect Student-only routes
  */
 function authenticateStudent(req, res, next) {
-    let token = getExtractToken(req, 'token');
+    // Student sessions are cookie-first. This is important for TPO support preview:
+    // a stale legacy localStorage bearer token must never override the fresh HttpOnly
+    // impersonation cookie and bounce the support tab back to login.
+    let token = getExtractToken(req, 'token', true);
     if (!token) {
         return res.status(401).json({ success: false, error: 'Unauthorized: Student token required.' });
     }
@@ -85,16 +88,17 @@ async function authenticateSuperAdmin(req, res, next) {
     await authenticateAdmin(req, res, () => req.admin.role === 'super_admin' ? next() : res.status(403).json({ success:false, error:'Super Administrator access required.' }));
 }
 
-function getExtractToken(req, expectedCookie) {
+function getExtractToken(req, expectedCookie, preferCookie = false) {
+    const cookieToken = req.cookies?.[expectedCookie] || null;
+    if (preferCookie && cookieToken) return cookieToken;
+
     let token = null;
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
         const candidate = authHeader.substring(7);
         if (candidate && candidate !== 'null' && candidate !== 'undefined') token = candidate;
     }
-    if (!token && req.cookies && req.cookies[expectedCookie]) {
-        token = req.cookies[expectedCookie];
-    }
+    if (!token && cookieToken) token = cookieToken;
     return token;
 }
 
@@ -103,6 +107,6 @@ module.exports = {
     authenticateAdmin,
     authenticateObserver,
     authenticateSuperAdmin,
-    JWT_SECRET
-    ,SESSION_VERSION
+    JWT_SECRET,
+    SESSION_VERSION
 };

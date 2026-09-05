@@ -54,3 +54,15 @@ test('TPO impersonation opens synchronously and uses the HttpOnly admin session 
   assert.doesNotMatch(ui,/if \(!adminToken\).*TPO session is missing/s);
   assert.doesNotMatch(ui,/removeItem\('tpo_admin_token'\)/);
 });
+
+test('TPO impersonation creates a two-hour HttpOnly student cookie and student auth prefers it over stale bearer state', () => {
+  const route = fs.readFileSync(path.join(__dirname,'../src/routes/adminModeration.js'),'utf8');
+  const auth = fs.readFileSync(path.join(__dirname,'../src/middleware/auth.js'),'utf8');
+  assert.match(route,/res\.cookie\('token', token/);
+  assert.match(route,/httpOnly:true/);
+  assert.match(route,/sameSite:'strict'/);
+  assert.match(route,/maxAge:2 \* 60 \* 60 \* 1000/);
+  assert.match(route,/redirect:'\/dashboard\?admin_preview=1'/);
+  assert.match(auth,/getExtractToken\(req, 'token', true\)/);
+  assert.match(auth,/if \(preferCookie && cookieToken\) return cookieToken/);
+});
