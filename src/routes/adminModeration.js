@@ -96,8 +96,20 @@ router.post('/:prn/impersonate', async (req, res) => {
       branch:student.branch, class:student.class, year:student.year,
       adminImpersonation:true, impersonatedBy:req.admin.adminId, sessionVersion:SESSION_VERSION
     }, JWT_SECRET, { expiresIn:'2h' });
+
+    // Establish the support preview as a real HttpOnly student session as well as returning
+    // the bearer token for compatibility with older cached dashboard JavaScript. This makes
+    // impersonation survive stale localStorage and removes the redirect-to-login failure mode.
+    res.cookie('token', token, {
+      httpOnly:true,
+      secure:process.env.NODE_ENV === 'production',
+      sameSite:'strict',
+      path:'/',
+      maxAge:2 * 60 * 60 * 1000
+    });
+
     await db.logAudit('impersonate_student', 'students', student.id, { prn:student.prn, admin_id:req.admin.adminId, mode:'support_preview' });
-    return res.json({ success:true, token, impersonation:true });
+    return res.json({ success:true, token, impersonation:true, redirect:'/dashboard?admin_preview=1' });
   } catch (error) {
     console.error('Admin impersonation failed:', error);
     return res.status(500).json({ success:false, error:'Unable to open student profile.' });
