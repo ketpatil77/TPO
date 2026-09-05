@@ -44,11 +44,13 @@ test('project repository and live URL cannot be the same link', () => {
   assert.match(risk.reasons.join(' '),/cannot be the same link/i);
 });
 
-test('TPO impersonation opens a tab synchronously and preserves admin session', () => {
+test('TPO impersonation opens synchronously and uses the HttpOnly admin session cookie', () => {
   const ui = fs.readFileSync(path.join(__dirname,'../public/js/admin-submission-moderation.js'),'utf8');
   assert.match(ui,/window\.open\('about:blank', '_blank'\)/);
   assert.match(ui,/stopImmediatePropagation\(\)/);
-  assert.match(ui,/tpo_admin_token/);
+  assert.match(ui,/credentials:'same-origin'/);
+  assert.match(ui,/headers:adminHeaders\(\)/);
   assert.match(ui,/TPO remains signed in here/);
+  assert.doesNotMatch(ui,/if \(!adminToken\).*TPO session is missing/s);
   assert.doesNotMatch(ui,/removeItem\('tpo_admin_token'\)/);
 });
