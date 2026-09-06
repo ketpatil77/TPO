@@ -10,8 +10,9 @@
   let successCursor = 0;
 
   function storageKey(name, studentId = '') { return `${STORAGE_PREFIX}${studentId}:${name}`; }
-  function muted() { return localStorage.getItem(storageKey('muted')) === '1' || reduceMotion(); }
-  function setMuted(value) { localStorage.setItem(storageKey('muted'), value ? '1' : '0'); renderMuteToggle(); }
+  function userMuted() { return localStorage.getItem(storageKey('muted')) === '1'; }
+  function muted() { return userMuted(); }
+  function setMuted(value, button = null) { localStorage.setItem(storageKey('muted'), value ? '1' : '0'); renderMuteToggle(button); }
 
   function tone(kind = 'soft') {
     if (muted()) return;
@@ -33,26 +34,26 @@
   }
 
   function haptic(kind = 'soft') {
-    if (muted() || !navigator.vibrate) return;
+    if (muted() || reduceMotion() || !navigator.vibrate) return;
     navigator.vibrate(kind === 'milestone' ? 90 : 60);
   }
 
   function feedback(kind = 'soft') { tone(kind); haptic(kind); }
 
-  function renderMuteToggle() {
+  function renderMuteToggle(existingButton = null) {
     if (!document.body.classList.contains('student-dashboard-page')) return;
     const nav = document.querySelector('.navbar-inner > div:last-child');
     if (!nav) return;
-    let button = document.getElementById('experienceMuteToggle');
+    let button = existingButton || document.getElementById('experienceMuteToggle');
     if (!button) {
       button = document.createElement('button');
       button.id = 'experienceMuteToggle';
       button.type = 'button';
       button.className = 'experience-mute-toggle';
       nav.insertBefore(button, document.getElementById('logoutBtn'));
-      button.addEventListener('click', () => setMuted(!muted()));
+      button.addEventListener('click', () => { const next = !userMuted(); setMuted(next, button); });
     }
-    const isMuted = muted();
+    const isMuted = userMuted();
     button.setAttribute('aria-label', isMuted ? 'Turn on portal sounds and haptics' : 'Mute portal sounds and haptics');
     button.setAttribute('aria-pressed', String(isMuted));
     button.innerHTML = isMuted
