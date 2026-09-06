@@ -27,10 +27,15 @@
 .student-avatar.rank-frame-bronze,
 .candidate-rank-avatar.rank-frame-bronze { border-color: var(--experience-bronze); }
 .student-avatar.rank-frame-triple,
-.candidate-rank-avatar.rank-frame-triple { border-color: transparent; }
-.student-avatar.rank-frame-triple::before,
-.candidate-rank-avatar.rank-frame-triple::before { content:""; position:absolute; inset:0; z-index:4; padding:3px; border-radius:inherit; pointer-events:none; background:conic-gradient(from 0turn, var(--experience-gold), var(--accent), var(--experience-gold)); -webkit-mask:linear-gradient(var(--text-heading) 0 0) content-box,linear-gradient(var(--text-heading) 0 0); -webkit-mask-composite:xor; mask-composite:exclude; animation:rank-frame-shimmer 2.4s linear infinite; }
-@keyframes rank-frame-shimmer { to { transform: rotate(1turn); } }
+.candidate-rank-avatar.rank-frame-triple {
+  border-color: var(--experience-gold);
+  box-shadow: var(--shadow-sm);
+  animation: rank-frame-shimmer 2.4s ease-in-out infinite;
+}
+@keyframes rank-frame-shimmer {
+  0%, 100% { border-color: var(--experience-gold); box-shadow: var(--shadow-sm); }
+  50% { border-color: var(--accent); box-shadow: var(--shadow-md); }
+}
 
 .student-avatar-initial { position:relative; z-index:1; }
 .student-avatar.has-image .student-avatar-initial { opacity:0; }
@@ -71,11 +76,10 @@
 .candidate-rank-avatar img { width:100%; height:100%; object-fit:cover; }
 .candidate-rank-avatar .candidate-avatar-fallback { font-weight:700; }
 .candidate-rank-badge { display:block; margin-top:var(--space-xs); color:var(--text-muted); font-size:.72rem; }
-.candidate-rank-avatar[data-triple="true"].rank-frame-triple { animation:none; }
-.candidate-rank-avatar[data-triple="true"].rank-frame-triple::before { animation-play-state:paused; }
-.candidate-rank-avatar[data-triple="true"].rank-frame-triple:hover::before,
-.candidate-rank-avatar[data-triple="true"].rank-frame-triple:focus-visible::before,
-.candidate-rank-avatar[data-triple="true"].rank-frame-triple.is-rank-reveal-open::before { animation-play-state:running; }
+.candidate-rank-avatar[data-triple="true"].rank-frame-triple { animation-play-state:paused; }
+.candidate-rank-avatar[data-triple="true"].rank-frame-triple:hover,
+.candidate-rank-avatar[data-triple="true"].rank-frame-triple:focus-visible,
+.candidate-rank-avatar[data-triple="true"].rank-frame-triple.is-rank-reveal-open { animation-play-state:running; }
 
 .unified-auth-shell .portal-story { position:relative; overflow:hidden; }
 .login-ambient { position:absolute; inset:0; pointer-events:none; overflow:hidden; opacity:.55; }
@@ -101,8 +105,8 @@
 }
 @media (prefers-reduced-motion:reduce) {
   .student-dashboard-page .tab-content.active,
-  .student-avatar.rank-frame-triple::before,
-  .candidate-rank-avatar.rank-frame-triple::before,
+  .student-avatar.rank-frame-triple,
+  .candidate-rank-avatar.rank-frame-triple,
   .login-ambient i { animation:none !important; }
   .student-avatar .rank-photo-reveal,
   .student-dashboard-page .header-banner,

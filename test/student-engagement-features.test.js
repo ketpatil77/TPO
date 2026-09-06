@@ -49,14 +49,17 @@ test('engagement CSS uses tokens, touch targets, reduced motion and bounded tran
   assert.match(css,/240ms/); assert.doesNotMatch(css,/transition[^;]*(?:[5-9]\d\d|\d{4,})ms/);
   assert.match(css,/focus-visible/);
   assert.match(css,/rank-frame-triple/);
-  assert.match(css,/-webkit-mask-composite:xor/);
-  assert.doesNotMatch(css,/rank-frame-triple::after/);
+  assert.match(css,/animation: rank-frame-shimmer 2\.4s ease-in-out infinite/);
+  assert.match(css,/animation-play-state:paused/);
+  assert.doesNotMatch(css,/rank-frame-triple::before/);
+  assert.doesNotMatch(css,/-webkit-mask-composite|mask-composite|conic-gradient/);
+  assert.doesNotMatch(css,/transform:\s*rotate/);
   assert.match(css,/since-last-card\.is-quiet/);
   assert.match(css,/since-last-grid \{ grid-template-columns:repeat\(3/);
 });
 
 test('versioned engagement assets load on login, student, TPO and TPC pages',()=>{
-  for(const page of pages){ assert.match(page,/student-experience-v1\.css\?v=20260906-engagement2/); assert.match(page,/student-experience-v1\.js\?v=20260906-engagement2/); }
+  for(const page of pages){ assert.match(page,/student-experience-v1\.css\?v=20260906-engagement3/); assert.match(page,/student-experience-v1\.js\?v=20260906-engagement3/); }
 });
 
 
@@ -80,4 +83,12 @@ test('profile point rules use explicit mobile-safe button disclosure', () => {
   assert.match(ranking,/aria-controls=\"rankingRules\"/);
   assert.match(ranking,/rulesPanel\.hidden = !open/);
   assert.doesNotMatch(ranking,/<details class=\"glass-card ranking-rules\">/);
+});
+
+
+test('triple frame never paints rotating geometry over the profile photo', () => {
+  assert.match(css, /\.student-avatar\.rank-frame-triple,[\s\S]*border-color: var\(--experience-gold\)/);
+  assert.match(css, /@keyframes rank-frame-shimmer[\s\S]*border-color:[\s\S]*box-shadow/);
+  assert.doesNotMatch(css, /rank-frame-triple::before|rank-frame-triple::after/);
+  assert.doesNotMatch(css, /rotate\(|conic-gradient|mask-composite/);
 });
