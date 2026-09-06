@@ -43,6 +43,8 @@ jobs:
         run: npm run deploy:dry-run
       - name: Commit only fully verified application changes
         run: |
+          git config user.name "KET ⚡"
+          git config user.email "ket.patil77@gmail.com"
           git add src public test
           git status --short
           git commit -m "feat: add student engagement experience"
