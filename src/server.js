@@ -19,6 +19,7 @@ const certificateEvidenceRoutes = require('./routes/certificateEvidence');
 const competitionRoutes = require('./routes/competitions');
 const profileDeclarationRoutes = require('./routes/profileDeclarations');
 const profileLinksRoutes = require('./routes/profileLinks');
+const freeLearningV2Routes = require('./routes/freeLearningV2');
 const freeLearningRoutes = require('./routes/freeLearning');
 const competitionReviewRoutes = require('./routes/competitionReview');
 const profileRankingViewRoutes = require('./routes/profileRankingView');
@@ -99,6 +100,9 @@ app.use('/api/student', studentRoutes);
 app.use('/api/student/competitions', competitionRoutes);
 app.use('/api/student/profile-declarations', profileDeclarationRoutes);
 app.use('/api/student/profile-links', profileLinksRoutes);
+// Curated catalog owns discovery/current resources. The legacy route remains behind it so
+// old saved/started/completed resource IDs continue to accept progress updates safely.
+app.use('/api/student/free-learning', freeLearningV2Routes);
 app.use('/api/student/free-learning', freeLearningRoutes);
 app.use('/api/student/rankings-view', profileRankingViewRoutes);
 app.use('/api/student/workflow', workflowRoutes.student);
