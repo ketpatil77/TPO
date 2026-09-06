@@ -135,8 +135,8 @@
 
         if (document.body.classList.contains('admin-dashboard-page')) {
             loadScript('/js/calendar-polish.js?v=20260901-1', 'calendar-polish');
-            loadStylesheet('/css/tpo-certificate-review.css?v=20260903-1', 'tpo-certificate-review');
-            loadScript('/js/tpo-certificate-review.js?v=20260903-1', 'tpo-certificate-review-js');
+            loadStylesheet('/css/tpo-certificate-review.css?v=20260906-fraud1', 'tpo-certificate-review');
+            loadScript('/js/tpo-certificate-review.js?v=20260906-fraud1', 'tpo-certificate-review-js');
         }
         if (document.body.classList.contains('observer-shell')) {
             loadStylesheet('/css/tpc-layout-v2.css?v=20260902-4', 'tpc-layout-v2');

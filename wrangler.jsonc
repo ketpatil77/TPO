@@ -15,7 +15,8 @@
     "VAPID_SUBJECT": "mailto:ket.patil77@gmail.com",
     "PUSH_COMPLETION_THRESHOLD": "80",
     "PUSH_REMINDER_CRON": "0 4 */3 * *",
-    "PROOF_EXPIRY_CRON": "0 * * * *"
+    "PROOF_EXPIRY_CRON": "0 * * * *",
+    "MANUAL_AUDIT_CRON": "15 0 * * *"
   },
   "assets": {
     "directory": "./public",
@@ -35,8 +36,12 @@
       "bucket_name": "ait-certificate-vault"
     }
   ],
+  "queues": {
+    "producers": [{ "binding": "CERTIFICATE_FRAUD_QUEUE", "queue": "ait-certificate-fraud" }],
+    "consumers": [{ "queue": "ait-certificate-fraud", "max_batch_size": 1, "max_batch_timeout": 5, "max_retries": 3 }]
+  },
   "triggers": {
-    "crons": ["0 * * * *", "0 4 */3 * *"]
+    "crons": ["0 * * * *", "0 4 */3 * *", "15 0 * * *"]
   },
   "observability": { "enabled": true, "head_sampling_rate": 1 }
 }

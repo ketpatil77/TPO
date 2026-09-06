@@ -22,21 +22,21 @@
     proofUrl = '';
   }
 
-  async function openProof(id) {
+  async function openProof(id, kind = 'proof') {
     ensureViewer();
     const viewer = document.getElementById('tpoCertificateProofViewer');
     const status = document.getElementById('tpoCertificateProofStatus');
     const image = document.getElementById('tpoCertificateProofImage');
     status.hidden = false;
-    status.textContent = 'Loading private proof…';
+    status.textContent = kind === 'ela' ? 'Loading ELA tamper diff…' : 'Loading private proof…';
     image.hidden = true;
     viewer.classList.add('active');
     try {
-      const response = await fetch(`/api/admin/certificates/${encodeURIComponent(id)}/proof`);
+      const response = await fetch(`/api/admin/certificates/${encodeURIComponent(id)}/${kind === 'ela' ? 'ela-diff' : 'proof'}`);
       if (!response.ok) {
         let json = null;
         try { json = await response.json(); } catch (_) {}
-        throw new Error(json?.error?.message || 'Could not open proof.');
+        throw new Error(json?.error?.message || (kind === 'ela' ? 'Could not open ELA diff.' : 'Could not open proof.'));
       }
       const blob = await response.blob();
       if (proofUrl) URL.revokeObjectURL(proofUrl);
@@ -75,7 +75,12 @@
       const rows = json.data || [];
       host.innerHTML = rows.length ? `<div class="certificate-review-grid">${rows.map(item => {
         const status = item.verification_status || 'pending';
-        return `<article class="certificate-review-card"><div class="certificate-review-head"><div><h4>${esc(item.name || 'Certificate')}</h4><p>${esc(item.issuer || 'Issuer not specified')} · ${esc(item.date || '—')}</p></div><span class="certificate-review-status ${esc(status)}">${esc(status)}</span></div><p>${item.has_proof ? `Proof uploaded${item.evidence_bytes ? ` · ${Math.round(item.evidence_bytes/1024)} KB` : ''}` : 'No proof uploaded'}</p>${item.verification_note ? `<p><strong>Note:</strong> ${esc(item.verification_note)}</p>` : ''}<div class="certificate-review-actions">${item.has_proof ? `<button class="btn btn-secondary btn-sm" data-proof="${esc(item.id)}">View proof</button>` : ''}<button class="btn btn-primary btn-sm" data-review="verified" data-id="${esc(item.id)}" ${item.has_proof ? '' : 'disabled'}>Verify</button><button class="btn btn-danger btn-sm" data-review="rejected" data-id="${esc(item.id)}">Reject</button>${status !== 'pending' ? `<button class="btn btn-secondary btn-sm" data-review="pending" data-id="${esc(item.id)}">Reset</button>` : ''}</div></article>`;
+        const fraudStatus = item.review_status || 'pending_review';
+        const reasons = Array.isArray(item.flagged_reasons) ? item.flagged_reasons : [];
+        const score = value => value === null || value === undefined ? '—' : `${esc(value)}/100`;
+        const reasonHtml = reasons.length ? `<div class="certificate-fraud-flags">${reasons.map(reason => `<span>${esc(reason.replaceAll('_',' '))}</span>`).join('')}</div>` : `<p class="certificate-auto-clear">No automated fraud signal detected.</p>`;
+        const analysisHtml = item.fraud_processed_at ? `<div class="certificate-fraud-panel"><div class="certificate-fraud-state"><strong>Fraud checks</strong><span class="certificate-review-status ${esc(fraudStatus)}">${esc(fraudStatus.replaceAll('_',' '))}</span></div>${reasonHtml}<dl class="certificate-score-grid"><div><dt>Name match</dt><dd>${score(item.name_match_score)}</dd></div><div><dt>Tamper</dt><dd>${score(item.tamper_score)}</dd></div><div><dt>Layout anomaly</dt><dd>${score(item.layout_anomaly_score)}</dd></div><div><dt>pHash</dt><dd class="mono">${esc(item.phash || '—')}</dd></div></dl>${item.ocr_extracted_name ? `<p><strong>OCR name:</strong> ${esc(item.ocr_extracted_name)}</p>` : ''}${item.duplicate_of_cert_id ? `<p><strong>Duplicate match:</strong> ${esc(item.duplicate_of_cert_id)}</p>` : ''}</div>` : `<div class="certificate-fraud-panel pending"><strong>Fraud checks pending</strong>${item.fraud_processing_error ? `<p>${esc(item.fraud_processing_error)}</p>` : ''}</div>`;
+        return `<article class="certificate-review-card"><div class="certificate-review-head"><div><h4>${esc(item.name || 'Certificate')}</h4><p>${esc(item.issuer || 'Issuer not specified')} · ${esc(item.date || '—')}</p></div><span class="certificate-review-status ${esc(status)}">${esc(status)}</span></div><p>${item.has_proof ? `Proof uploaded${item.evidence_bytes ? ` · ${Math.round(item.evidence_bytes/1024)} KB` : ''}` : 'No proof uploaded'}</p>${analysisHtml}${item.verification_note ? `<p><strong>Note:</strong> ${esc(item.verification_note)}</p>` : ''}<div class="certificate-review-actions">${item.has_proof ? `<button class="btn btn-secondary btn-sm" data-proof="${esc(item.id)}">View proof</button>` : ''}${item.has_ela_diff ? `<button class="btn btn-secondary btn-sm" data-ela="${esc(item.id)}">ELA diff</button>` : ''}<button class="btn btn-primary btn-sm" data-review="verified" data-id="${esc(item.id)}" ${item.has_proof && item.fraud_processed_at ? '' : 'disabled'}>Approve</button><button class="btn btn-danger btn-sm" data-review="rejected" data-id="${esc(item.id)}">Reject</button>${status !== 'pending' ? `<button class="btn btn-secondary btn-sm" data-review="pending" data-id="${esc(item.id)}">Reset</button>` : ''}</div></article>`;
       }).join('')}</div>` : '<div class="candidate-empty">No certificates recorded.</div>';
     } catch (error) {
       host.innerHTML = `<div class="candidate-empty">${esc(error.message)}</div>`;
@@ -84,7 +89,9 @@
 
   document.addEventListener('click', event => {
     const proof = event.target.closest('[data-proof]');
-    if (proof) { event.preventDefault(); openProof(proof.dataset.proof); return; }
+    if (proof) { event.preventDefault(); openProof(proof.dataset.proof, 'proof'); return; }
+    const ela = event.target.closest('[data-ela]');
+    if (ela) { event.preventDefault(); openProof(ela.dataset.ela, 'ela'); return; }
     const review = event.target.closest('[data-review][data-id]');
     if (review) { event.preventDefault(); reviewCertificate(review.dataset.id, review.dataset.review); }
   });

@@ -2,19 +2,18 @@ const express = require('express');
 const multer = require('multer');
 const { createHash } = require('node:crypto');
 const db = require('../config/database');
+const { enqueueCertificateAnalysis } = require('../services/certificateFraudDetection');
 const { authenticateStudent } = require('../middleware/auth');
 
 const router = express.Router();
 router.use(authenticateStudent);
 
-const STORAGE_BUCKET = 'certificate-evidence';
 const MAX_CERTIFICATE_BYTES = 400 * 1024;
 const STUDENT_CERTIFICATE_QUOTA_BYTES = 15 * 1024 * 1024;
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_CERTIFICATE_BYTES, files: 1 } });
 
 function storage() {
-    if (db.isLocal()) return null;
-    return db.supabaseClient()?.storage?.from(STORAGE_BUCKET) || null;
+    return globalThis.cloudflareEnv?.CERTIFICATE_VAULT || null;
 }
 
 function detectImageMime(buffer) {
@@ -68,8 +67,7 @@ async function removeObject(path) {
     if (!path) return;
     const evidenceStorage = storage();
     if (!evidenceStorage) return;
-    const { error } = await evidenceStorage.remove([path]);
-    if (error) throw error;
+    await evidenceStorage.delete(path);
 }
 
 router.get('/certificate-evidence/status', async (req, res) => {
@@ -80,7 +78,7 @@ router.get('/certificate-evidence/status', async (req, res) => {
         return res.json({ success: true, data: {
             configured: ready,
             storage_ready: ready,
-            storage_provider: ready ? 'supabase' : 'unavailable',
+            storage_provider: ready ? 'cloudflare-r2' : 'unavailable',
             max_file_bytes: MAX_CERTIFICATE_BYTES,
             quota_bytes: STUDENT_CERTIFICATE_QUOTA_BYTES,
             used_bytes: used,
@@ -115,12 +113,7 @@ router.post('/certificate-evidence/:id', acceptEvidence, async (req, res) => {
         if (duplicate) return res.status(409).json({ success: false, error: { code: 'DUPLICATE_CERTIFICATE_PROOF', message: 'The same certificate image is already attached to another certificate record.' } });
 
         const objectPath = `certificates/${studentId}/${certificate.id}.${extensionForMime(mime)}`;
-        const { error: uploadError } = await evidenceStorage.upload(objectPath, req.file.buffer, {
-            contentType: mime,
-            cacheControl: '0',
-            upsert: true
-        });
-        if (uploadError) throw uploadError;
+        await evidenceStorage.put(objectPath, req.file.buffer, { httpMetadata: { contentType: mime, cacheControl: 'private, no-store' } });
 
         let updated;
         try {
@@ -133,7 +126,19 @@ router.post('/certificate-evidence/:id', acceptEvidence, async (req, res) => {
                 verification_status: 'pending',
                 verification_note: null,
                 verified_at: null,
-                verified_by: null
+                verified_by: null,
+                review_status: 'pending_review',
+                flagged_reasons: [],
+                fraud_processed_at: null,
+                fraud_processing_error: null,
+                duplicate_of_cert_id: null,
+                duplicate_matches: [],
+                ocr_extracted_name: null,
+                name_match_score: null,
+                tamper_score: null,
+                phash: null,
+                layout_anomaly_score: null,
+                ela_diff_path: null
             });
         } catch (error) {
             await removeObject(objectPath).catch(() => {});
@@ -142,8 +147,9 @@ router.post('/certificate-evidence/:id', acceptEvidence, async (req, res) => {
         if (certificate.evidence_path && certificate.evidence_path !== objectPath) {
             await removeObject(certificate.evidence_path).catch(() => {});
         }
+        const analysis_queue = await enqueueCertificateAnalysis(certificate.id);
         await clearStudentCache();
-        return res.json({ success: true, message: certificate.evidence_path ? 'Certificate proof replaced.' : 'Certificate proof uploaded.', data: { certificate: updated } });
+        return res.status(202).json({ success: true, message: certificate.evidence_path ? 'Certificate proof replaced and queued for fraud checks.' : 'Certificate proof uploaded and queued for fraud checks.', data: { certificate: updated, analysis_queue } });
     } catch (error) {
         console.error('Certificate evidence upload failed:', error.message);
         return res.status(500).json({ success: false, error: { code: 'VAULT_UPLOAD_FAILED', message: 'Could not upload certificate proof.' } });
@@ -156,10 +162,10 @@ router.get('/certificate-evidence/:id', async (req, res) => {
     try {
         const certificate = await ownedCertificate(req.student.studentId, req.params.id);
         if (!certificate?.evidence_path) return res.status(404).json({ success: false, error: { code: 'NO_EVIDENCE', message: 'Certificate proof has not been uploaded.' } });
-        const { data, error } = await evidenceStorage.download(certificate.evidence_path);
-        if (error || !data) return res.status(404).json({ success: false, error: { code: 'EVIDENCE_MISSING', message: 'Certificate proof file is unavailable.' } });
-        const bytes = Buffer.from(await data.arrayBuffer());
-        res.setHeader('Content-Type', certificate.evidence_mime || data.type || 'image/jpeg');
+        const object = await evidenceStorage.get(certificate.evidence_path);
+        if (!object) return res.status(404).json({ success: false, error: { code: 'EVIDENCE_MISSING', message: 'Certificate proof file is unavailable.' } });
+        const bytes = Buffer.from(await object.arrayBuffer());
+        res.setHeader('Content-Type', certificate.evidence_mime || object.httpMetadata?.contentType || 'image/jpeg');
         res.setHeader('Content-Length', String(bytes.length));
         res.setHeader('Cache-Control', 'private, no-store, max-age=0');
         res.setHeader('Pragma', 'no-cache');
@@ -187,7 +193,19 @@ router.delete('/certificate-evidence/:id', async (req, res) => {
             verification_status: 'pending',
             verification_note: null,
             verified_at: null,
-            verified_by: null
+            verified_by: null,
+            review_status: 'pending_review',
+            flagged_reasons: [],
+            fraud_processed_at: null,
+            fraud_processing_error: null,
+            duplicate_of_cert_id: null,
+            duplicate_matches: [],
+            ocr_extracted_name: null,
+            name_match_score: null,
+            tamper_score: null,
+            phash: null,
+            layout_anomaly_score: null,
+            ela_diff_path: null
         });
         if (oldPath) await removeObject(oldPath).catch(() => {});
         await clearStudentCache();
