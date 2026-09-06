@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths:
       - '.github/workflows/certificate-fraud-runtime-recovery.yml'
+      - '.github/runtime-recovery-hotfix.cjs'
       - 'src/services/certificateFraudDetection.js'
       - 'worker/index.mjs'
       - 'wrangler.jsonc'
@@ -28,42 +29,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Apply direct recovery hotfix
-        run: |
-          node <<'NODE'
-          const fs = require('fs');
-          function replace(path, before, after) {
-            let s = fs.readFileSync(path, 'utf8');
-            if (s.includes(after)) return;
-            if (!s.includes(before)) throw new Error(`Pattern missing in ${path}`);
-            s = s.replace(before, after);
-            fs.writeFileSync(path, s);
-          }
-
-          const queueFn = "async function processQueueBatch(batch){ for(const message of batch.messages||[]){ const id=message?.body?.certificateId; if(!id){message.ack?.();continue;} try{await processCertificate(id);message.ack?.();}catch(e){await failAnalysis(id,e).catch(()=>{});message.retry?.();} } }";
-          replace('src/services/certificateFraudDetection.js', queueFn,
-          queueFn + "\nasync function processPendingCertificatesDirect(limit=2,{recognizer}={}){\n  const pending=(await db.select('certificates')).filter(c=>c.evidence_path && !c.fraud_processed_at).slice(0,Math.max(1,limit));\n  let processed=0, failed=0; const results=[];\n  for(const cert of pending){\n    try{ const result=await processCertificate(cert.id,{recognizer}); processed++; results.push({id:cert.id,status:'processed',review_status:result.review_status}); }\n    catch(error){ failed++; const message=await failAnalysis(cert.id,error); results.push({id:cert.id,status:'failed',error:message}); }\n  }\n  return {selected:pending.length,processed,failed,results};\n}");
-
-          replace('src/services/certificateFraudDetection.js',
-          'enqueuePendingCertificates,processQueueBatch,monthlyAuditSelected',
-          'enqueuePendingCertificates,processQueueBatch,processPendingCertificatesDirect,monthlyAuditSelected');
-
-          const expiryLine = "            if (event.cron === (env.PROOF_EXPIRY_CRON || '0 * * * *')) { const { default: proofExpiry } = await import('../src/services/proofExpiry.js'); console.log('Proof expiry cleanup complete:', JSON.stringify(await proofExpiry.runProofExpiryCleanup())); const { default: fraud } = await import('../src/services/certificateFraudDetection.js'); console.log('Certificate fraud backlog enqueue complete:', JSON.stringify(await fraud.enqueuePendingCertificates(100))); }";
-          replace('worker/index.mjs', expiryLine,
-          expiryLine + "\n            if (event.cron === (env.FRAUD_RECOVERY_CRON || '*/5 * * * *')) { const { default: fraud } = await import('../src/services/certificateFraudDetection.js'); console.log('Certificate fraud direct recovery complete:', JSON.stringify(await fraud.processPendingCertificatesDirect(2))); }");
-
-          replace('wrangler.jsonc',
-          '"MANUAL_AUDIT_CRON": "15 0 * * *"',
-          '"MANUAL_AUDIT_CRON": "15 0 * * *",\n    "FRAUD_RECOVERY_CRON": "*/5 * * * *"');
-          replace('wrangler.jsonc',
-          '"15 0 * * *"]',
-          '"15 0 * * *", "*/5 * * * *"]');
-
-          const testPath='test/certificate-fraud-detection.test.js';
-          let t=fs.readFileSync(testPath,'utf8');
-          if(!t.includes('direct recovery processes pending certificate without queue dependency')) t += `\n\ntest('direct recovery processes pending certificate without queue dependency', async()=>{\n  for(const row of await db.select('certificates')){ if(row.evidence_path && !row.fraud_processed_at) await db.update('certificates',{id:row.id},{fraud_processed_at:new Date().toISOString()}); }\n  const student=await db.insert('students',{prn:'RECOVERY-1',name:'Recovery Student',dob:'2000-01-01',branch:'CT',class:'Final Year',year:'Final Year'});\n  const cert=await db.insert('certificates',{student_id:student.id,name:'Recovery Test',issuer:'AIT',date:'2026-09-06',evidence_path:'certificates/recovery/test.jpg',evidence_mime:'image/jpeg',evidence_bytes:1,verification_status:'pending',review_status:'pending_review'});\n  const oldEnv=globalThis.cloudflareEnv; const jpeg=makeSyntheticCertificate({edited:false});\n  globalThis.cloudflareEnv={CERTIFICATE_VAULT:{async get(){return {arrayBuffer:async()=>jpeg,httpMetadata:{contentType:'image/jpeg'}};},async put(){}}};\n  try { const result=await fraud.processPendingCertificatesDirect(1,{recognizer:async()=> 'RECOVERY STUDENT'}); assert.equal(result.selected,1); assert.equal(result.processed,1); const updated=await db.selectOne('certificates',{id:cert.id}); assert.ok(updated.fraud_processed_at); }\n  finally { globalThis.cloudflareEnv=oldEnv; }\n});\n`;
-          fs.writeFileSync(testPath,t);
-          NODE
+      - name: Apply tested runtime recovery patch
+        run: node .github/runtime-recovery-hotfix.cjs
       - name: Install dependencies
         run: npm ci
       - name: Full test suite
@@ -77,7 +44,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git rm .github/workflows/certificate-fraud-runtime-recovery.yml
+          git rm .github/workflows/certificate-fraud-runtime-recovery.yml .github/runtime-recovery-hotfix.cjs
           git rm -f .runtime-recovery-trigger .runtime-recovery-trigger2 || true
           git add src/services/certificateFraudDetection.js worker/index.mjs wrangler.jsonc test/certificate-fraud-detection.test.js
           git commit -m 'fix: add certificate fraud runtime recovery'
