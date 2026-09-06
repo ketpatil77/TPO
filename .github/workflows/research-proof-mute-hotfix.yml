@@ -1,0 +1,53 @@
+name: Research Proof Mute Hotfix
+on:
+  push:
+    branches: [hotfix/research-proof-mute]
+permissions:
+  contents: write
+jobs:
+  verify-and-commit:
+    if: github.event.head_commit.message != 'fix: research proof mute regressions'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout hotfix branch
+        uses: actions/checkout@v7
+        with:
+          ref: hotfix/research-proof-mute
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply hotfix
+        run: node .github/hotfix-research-proof-mute.cjs
+      - name: Remove bootstrap tooling
+        run: rm .github/hotfix-research-proof-mute.cjs .github/workflows/research-proof-mute-hotfix.yml
+      - name: Install dependencies
+        run: npm ci
+      - name: Dependency security gate
+        run: npm audit --audit-level=high
+      - name: Full current test suite
+        run: npm run check
+      - name: Syntax check application JavaScript
+        run: find src worker public/js scripts test -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) -print0 | sort -z | xargs -0 -n1 node --check
+      - name: Cloudflare Worker dry run
+        run: npm run deploy:dry-run
+      - name: Verify exact hotfix scope
+        run: |
+          git diff --exit-code -- .github || true
+          changed="$(git status --short | awk '{print $2}' | sort)"
+          printf '%s\n' "$changed"
+          test "$changed" = "public/js/student-experience-v1.js
+src/routes/proofReview.js
+src/services/submissionRisk.js
+test/anti-cheat-duplicate-impersonation-v3.test.js
+test/proof-review-layout.test.js
+test/student-engagement-features.test.js"
+      - name: Commit verified hotfix
+        run: |
+          git config user.name 'KET ⚡'
+          git config user.email 'ket.patil77@gmail.com'
+          git add public/js/student-experience-v1.js src/routes/proofReview.js src/services/submissionRisk.js test/anti-cheat-duplicate-impersonation-v3.test.js test/proof-review-layout.test.js test/student-engagement-features.test.js
+          git commit -m 'fix: research proof mute regressions'
+          git push origin HEAD:hotfix/research-proof-mute
