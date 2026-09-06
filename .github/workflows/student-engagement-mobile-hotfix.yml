@@ -1,0 +1,44 @@
+name: Student Engagement Mobile Hotfix
+
+on:
+  push:
+    branches: [hotfix/student-engagement-mobile-polish]
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout hotfix branch
+        uses: actions/checkout@v7
+        with:
+          ref: hotfix/student-engagement-mobile-polish
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply mobile engagement hotfix
+        run: node scripts/apply-engagement-mobile-hotfix.cjs
+      - name: Remove bootstrap tooling
+        run: git rm .github/workflows/student-engagement-mobile-hotfix.yml scripts/apply-engagement-mobile-hotfix.cjs
+      - name: Install dependencies
+        run: npm ci
+      - name: Full current test suite
+        run: npm run check
+      - name: Syntax check application JavaScript
+        run: find src worker public/js test -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) -print0 | xargs -0 -n1 node --check
+      - name: Cloudflare Worker dry run
+        run: npm run deploy:dry-run
+      - name: Commit verified hotfix
+        run: |
+          git config user.name "KET ⚡"
+          git config user.email "ket.patil77@gmail.com"
+          git add public/js/student-experience-v1.js public/css/student-experience-v1.css test/student-engagement-features.test.js
+          git status --short
+          git commit -m "fix: polish student engagement mobile UI"
+          git push origin HEAD:hotfix/student-engagement-mobile-polish
