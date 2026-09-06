@@ -9,6 +9,9 @@ on:
       - 'package-lock.json'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   lock:
     runs-on: ubuntu-latest
@@ -16,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
@@ -29,19 +34,17 @@ jobs:
         run: npm ci
       - name: Run full test suite
         run: npm run check
-      - name: Pack tested workspace
-        run: tar --exclude=.git --exclude='data/db*.json' -czf /tmp/certificate-fraud-workspace.tgz .
-      - name: Upload tested workspace
-        uses: actions/upload-artifact@v6
-        with:
-          name: certificate-fraud-workspace
-          path: /tmp/certificate-fraud-workspace.tgz
-          if-no-files-found: error
-      - name: Upload generated manifests
-        uses: actions/upload-artifact@v6
-        with:
-          name: certificate-fraud-manifests
-          path: |
-            package.json
-            package-lock.json
-          if-no-files-found: error
+      - name: Cloudflare dry run with dependencies
+        run: npm run deploy:dry-run
+      - name: Commit validated manifests
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          if git diff --quiet -- package.json package-lock.json; then
+            echo 'Dependency manifests already exact.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json
+          git commit -m 'build: lock certificate fraud detection dependencies'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
