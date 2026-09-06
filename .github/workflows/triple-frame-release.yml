@@ -97,35 +97,43 @@ jobs:
           fs.mkdirSync('frame-evidence', { recursive: true });
           const browser = await chromium.launch({ headless: true });
           for (const [name, width, height] of [['mobile',390,844],['desktop',1440,900]]) {
-            const context = await browser.newContext({ viewport: { width, height }, javaScriptEnabled: false, colorScheme: 'dark' });
+            const context = await browser.newContext({ viewport: { width, height }, colorScheme: 'dark' });
             const page = await context.newPage();
-            await page.goto('http://127.0.0.1:4173/dashboard.html', { waitUntil: 'networkidle' });
-            await page.evaluate(() => {
-              const avatar = document.getElementById('studentAvatar');
-              avatar.classList.add('rank-frame','rank-frame-triple');
-              avatar.dataset.triple = 'true';
-              avatar.style.background = 'linear-gradient(135deg,var(--surface-muted),var(--bg-card))';
-              avatar.querySelector('.student-avatar-initial').textContent = 'KP';
-              document.getElementById('studentName').textContent = 'KETAN VILAS PATIL';
-              document.getElementById('studentBranch').textContent = 'CT';
-              document.getElementById('studentClass').textContent = 'BE-A';
-              document.getElementById('studentYear').textContent = 'Final Year';
-            });
+            await page.setContent(`<!doctype html><html data-theme="dark"><head>
+              <meta name="viewport" content="width=device-width,initial-scale=1">
+              <link rel="stylesheet" href="http://127.0.0.1:4173/css/styles.css?v=20260901-motion1">
+              <link rel="stylesheet" href="http://127.0.0.1:4173/css/portal-layout-20260814.css?v=20260818-uifinal1">
+              <link rel="stylesheet" href="http://127.0.0.1:4173/css/portal-responsive.css?v=20260901-student-gold1">
+              <link rel="stylesheet" href="http://127.0.0.1:4173/css/student-experience-v1.css?v=20260906-engagement3">
+              <style>body{padding:24px}.fixture{max-width:760px;margin:0 auto}.student-avatar{width:72px;height:72px;display:grid;place-items:center;border-radius:50%;background:var(--surface-muted);font-weight:800}</style>
+            </head><body class="student-dashboard-page">
+              <div class="glass-card header-banner fixture">
+                <div class="student-meta">
+                  <div id="studentAvatar" class="student-avatar rank-frame rank-frame-triple" data-triple="true"><span class="student-avatar-initial">KP</span></div>
+                  <div class="student-info"><h2>KETAN VILAS PATIL</h2><p>Branch: CT &nbsp;•&nbsp; Class: BE-A &nbsp;•&nbsp; Year: Final Year</p><span class="experience-greeting">Triple #1 · College · Branch · Class</span></div>
+                </div>
+              </div>
+            </body></html>`, { waitUntil: 'networkidle' });
+            await page.waitForFunction(() => getComputedStyle(document.getElementById('studentAvatar')).animationName === 'rank-frame-shimmer');
             const audit = await page.evaluate(() => {
               const avatar = document.getElementById('studentAvatar');
               const style = getComputedStyle(avatar);
               const before = getComputedStyle(avatar, '::before');
+              const after = getComputedStyle(avatar, '::after');
               return {
                 animation: style.animationName,
                 border: style.borderColor,
                 beforeContent: before.content,
+                afterContent: after.content,
+                transform: style.transform,
                 overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth
               };
             });
             if (audit.animation !== 'rank-frame-shimmer') throw new Error(`${name}: shimmer animation missing`);
-            if (audit.beforeContent !== 'none') throw new Error(`${name}: pseudo-element still paints over avatar: ${audit.beforeContent}`);
+            if (audit.beforeContent !== 'none' || audit.afterContent !== 'none') throw new Error(`${name}: pseudo-element still paints over avatar`);
+            if (audit.transform !== 'none') throw new Error(`${name}: avatar geometry is transforming: ${audit.transform}`);
             if (audit.overflowX > 1) throw new Error(`${name}: horizontal overflow ${audit.overflowX}px`);
-            await page.locator('.header-banner').screenshot({ path: `frame-evidence/${name}.png` });
+            await page.locator('.fixture').screenshot({ path: `frame-evidence/${name}.png` });
             await context.close();
           }
           await browser.close();
