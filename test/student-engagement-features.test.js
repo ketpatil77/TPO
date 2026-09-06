@@ -59,7 +59,7 @@ test('engagement CSS uses tokens, touch targets, reduced motion and bounded tran
 });
 
 test('versioned engagement assets load on login, student, TPO and TPC pages',()=>{
-  for(const page of pages){ assert.match(page,/student-experience-v1\.css\?v=20260906-engagement3/); assert.match(page,/student-experience-v1\.js\?v=20260906-engagement3/); }
+  for(const page of pages){ assert.match(page,/student-experience-v1\.css\?v=20260906-engagement4/); assert.match(page,/student-experience-v1\.js\?v=20260906-engagement4/); }
 });
 
 
@@ -91,4 +91,9 @@ test('triple frame never paints rotating geometry over the profile photo', () =>
   assert.match(css, /@keyframes rank-frame-shimmer[\s\S]*border-color:[\s\S]*box-shadow/);
   assert.doesNotMatch(css, /rank-frame-triple::before|rank-frame-triple::after/);
   assert.doesNotMatch(css, /rotate\(|conic-gradient|mask-composite/);
+});
+
+
+test('student rank frame keeps a fixed square avatar geometry', () => {
+  assert.match(css,/\.student-avatar\.rank-frame \{[^}]*width:64px;[^}]*height:64px;[^}]*min-width:64px;[^}]*flex:0 0 64px;[^}]*aspect-ratio:1 \/ 1;/);
 });

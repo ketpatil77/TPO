@@ -14,6 +14,7 @@
 
 .student-avatar.rank-frame,
 .candidate-rank-avatar.rank-frame { position: relative; isolation: isolate; border: 3px solid transparent; box-shadow: var(--shadow-sm); transition: border-color var(--experience-transition), box-shadow var(--experience-transition); }
+.student-avatar.rank-frame { width:64px; height:64px; min-width:64px; flex:0 0 64px; aspect-ratio:1 / 1; }
 .student-avatar.rank-frame-gold,
 .candidate-rank-avatar.rank-frame-gold { border-color: var(--experience-gold); }
 .student-avatar.rank-frame-silver,
