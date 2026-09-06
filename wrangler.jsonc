@@ -16,7 +16,8 @@
     "PUSH_COMPLETION_THRESHOLD": "80",
     "PUSH_REMINDER_CRON": "0 4 */3 * *",
     "PROOF_EXPIRY_CRON": "0 * * * *",
-    "MANUAL_AUDIT_CRON": "15 0 * * *"
+    "MANUAL_AUDIT_CRON": "15 0 * * *",
+    "FRAUD_RECOVERY_CRON": "*/10 * * * *"
   },
   "assets": {
     "directory": "./public",
@@ -41,7 +42,7 @@
     "consumers": [{ "queue": "ait-certificate-fraud", "max_batch_size": 1, "max_batch_timeout": 5, "max_retries": 3 }]
   },
   "triggers": {
-    "crons": ["0 * * * *", "0 4 */3 * *", "15 0 * * *"]
+    "crons": ["0 * * * *", "0 4 */3 * *", "15 0 * * *", "*/10 * * * *"]
   },
   "observability": { "enabled": true, "head_sampling_rate": 1 }
 }

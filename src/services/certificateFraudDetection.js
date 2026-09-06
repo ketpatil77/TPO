@@ -174,10 +174,19 @@ async function enqueuePendingCertificates(limit=100){
   return {queued:0,reason:'queue_unavailable'};
 }
 async function processQueueBatch(batch){ for(const message of batch.messages||[]){ const id=message?.body?.certificateId; if(!id){message.ack?.();continue;} try{await processCertificate(id);message.ack?.();}catch(e){await failAnalysis(id,e).catch(()=>{});message.retry?.();} } }
+async function processPendingCertificatesDirect(limit=2,{recognizer}={}){
+  const pending=(await db.select('certificates')).filter(c=>c.evidence_path && !c.fraud_processed_at).sort((a,b)=>String(b.evidence_uploaded_at||'').localeCompare(String(a.evidence_uploaded_at||''))).slice(0,Math.max(1,limit));
+  let processed=0, failed=0; const results=[];
+  for(const cert of pending){
+    try{ const result=await processCertificate(cert.id,{recognizer}); processed++; results.push({id:cert.id,status:'processed',review_status:result.review_status}); }
+    catch(error){ failed++; const message=await failAnalysis(cert.id,error); results.push({id:cert.id,status:'failed',error:message}); }
+  }
+  return {selected:pending.length,processed,failed,results};
+}
 function monthlyAuditSelected(certificateId,month=new Date().toISOString().slice(0,7),rate=0.12){ const hex=require('node:crypto').createHash('sha256').update(`${month}:${certificateId}`).digest('hex').slice(0,8); return parseInt(hex,16)/0xffffffff < rate; }
 async function seedMonthlyManualAudits(now=new Date()) {
   const month=now.toISOString().slice(0,7); const certs=(await db.select('certificates')).filter(c=>['verified','approved'].includes(c.verification_status)); let added=0;
   for(const cert of certs){ if(!monthlyAuditSelected(cert.id,month,.12))continue; const existing=await db.selectOne('certificate_manual_audits',{certificate_id:cert.id,audit_month:month}); if(existing)continue; await db.insert('certificate_manual_audits',{certificate_id:cert.id,student_id:cert.student_id,audit_month:month,reason:'random_monthly',status:'pending',created_at:now.toISOString()}); added++; }
   return {month,added};
 }
-module.exports={NAME_MATCH_THRESHOLD,TAMPER_THRESHOLD,PHASH_HAMMING_THRESHOLD,LAYOUT_THRESHOLD,normalizeText,levenshtein,similarity,extractNameCandidate,analyzeNameMatch,hammingDistance,dctHash,elaFromRaw,layoutAnomalyFromRaw,encodeBmp,analyzeImage,runOcr,readEvidence,processCertificate,failAnalysis,enqueueCertificateAnalysis,enqueuePendingCertificates,processQueueBatch,monthlyAuditSelected,seedMonthlyManualAudits};
+module.exports={NAME_MATCH_THRESHOLD,TAMPER_THRESHOLD,PHASH_HAMMING_THRESHOLD,LAYOUT_THRESHOLD,normalizeText,levenshtein,similarity,extractNameCandidate,analyzeNameMatch,hammingDistance,dctHash,elaFromRaw,layoutAnomalyFromRaw,encodeBmp,analyzeImage,runOcr,readEvidence,processCertificate,failAnalysis,enqueueCertificateAnalysis,enqueuePendingCertificates,processQueueBatch,processPendingCertificatesDirect,monthlyAuditSelected,seedMonthlyManualAudits};
