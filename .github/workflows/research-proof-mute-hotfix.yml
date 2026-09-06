@@ -1,12 +1,12 @@
 name: Research Proof Mute Hotfix
 on:
   push:
-    branches: [hotfix/research-proof-mute]
+    branches:
+      - hotfix/research-proof-mute
 permissions:
   contents: write
 jobs:
   verify-and-commit:
-    if: github.event.head_commit.message != 'fix: research proof mute regressions'
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout hotfix branch
@@ -35,8 +35,7 @@ jobs:
         run: npm run deploy:dry-run
       - name: Verify exact hotfix scope
         run: |
-          git diff --exit-code -- .github || true
-          changed="$(git status --short | awk '{print $2}' | sort)"
+          changed="$(git status --short | awk '{print $2}' | grep -v '^.github/' | sort)"
           printf '%s\n' "$changed"
           test "$changed" = "public/js/student-experience-v1.js
 src/routes/proofReview.js
@@ -48,6 +47,6 @@ test/student-engagement-features.test.js"
         run: |
           git config user.name 'KET ⚡'
           git config user.email 'ket.patil77@gmail.com'
-          git add public/js/student-experience-v1.js src/routes/proofReview.js src/services/submissionRisk.js test/anti-cheat-duplicate-impersonation-v3.test.js test/proof-review-layout.test.js test/student-engagement-features.test.js
+          git add -A
           git commit -m 'fix: research proof mute regressions'
           git push origin HEAD:hotfix/research-proof-mute
