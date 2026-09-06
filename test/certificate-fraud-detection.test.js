@@ -109,3 +109,14 @@ test('opening TPO certificate review queues unprocessed legacy proofs immediatel
   try { await request(app).get(`/api/admin/certificates/student/${studentId}`).set(writeHeaders(token('admin',{adminId:'fraud-admin'}))).expect(200); assert.ok(queued.some(x=>x.certificateId===cert.id)); }
   finally { globalThis.cloudflareEnv=oldEnv; }
 });
+
+
+test('direct recovery processes pending certificate without queue dependency', async()=>{
+  for(const row of await db.select('certificates')){ if(row.evidence_path && !row.fraud_processed_at) await db.update('certificates',{id:row.id},{fraud_processed_at:new Date().toISOString()}); }
+  const student=await db.insert('students',{prn:'RECOVERY-1',name:'Recovery Student',dob:'2000-01-01',branch:'CT',class:'Final Year',year:'Final Year'});
+  const cert=await db.insert('certificates',{student_id:student.id,name:'Recovery Test',issuer:'AIT',date:'2026-09-06',evidence_path:'certificates/recovery/test.jpg',evidence_mime:'image/jpeg',evidence_bytes:1,evidence_uploaded_at:new Date().toISOString(),verification_status:'pending',review_status:'pending_review'});
+  const oldEnv=globalThis.cloudflareEnv; const jpeg=await jpegFixture({edited:false});
+  globalThis.cloudflareEnv={CERTIFICATE_VAULT:{async get(){return {arrayBuffer:async()=>jpeg,httpMetadata:{contentType:'image/jpeg'}};},async put(){}}};
+  try { const result=await fraud.processPendingCertificatesDirect(1,{recognizer:async()=> 'RECOVERY STUDENT'}); assert.equal(result.selected,1); assert.equal(result.processed,1); const updated=await db.selectOne('certificates',{id:cert.id}); assert.ok(updated.fraud_processed_at); }
+  finally { globalThis.cloudflareEnv=oldEnv; }
+});
