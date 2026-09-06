@@ -14,7 +14,7 @@ let localData = {
     roster: [], students: [], internships: [], certificates: [], student_projects: [], research_papers: [], diploma: [], audit_log: [],
     profiles: [], login_attempts: [], student_skills: [], placement_drives: [], drive_criteria: [], drive_matches: [], shortlists: [],
     correction_requests: [], drive_applications: [], notifications: [], saved_filters: [], assessments: [], interviews: [], offers: [],
-    calendar_events: [], notification_reads: [], import_batches: [], launch_backups: [], dob_corrections: [], student_push_subscriptions: []
+    calendar_events: [], notification_reads: [], import_batches: [], launch_backups: [], dob_corrections: [], student_push_subscriptions: [], certificate_manual_audits: []
 };
 
 const dataDir = path.join(process.cwd(), 'data');
@@ -38,7 +38,7 @@ function init() {
             try { localData = JSON.parse(fs.readFileSync(dataFilePath, 'utf8')); }
             catch (e) { console.error('Error loading db.json, re-initializing:', e.message); }
         }
-        ['roster','students','internships','certificates','student_projects','research_papers','diploma','audit_log','profiles','login_attempts','student_skills','placement_drives','drive_criteria','drive_matches','shortlists','correction_requests','drive_applications','notifications','saved_filters','assessments','interviews','offers','calendar_events','notification_reads','import_batches','launch_backups','student_push_subscriptions'].forEach(table => {
+        ['roster','students','internships','certificates','student_projects','research_papers','diploma','audit_log','profiles','login_attempts','student_skills','placement_drives','drive_criteria','drive_matches','shortlists','correction_requests','drive_applications','notifications','saved_filters','assessments','interviews','offers','calendar_events','notification_reads','import_batches','launch_backups','student_push_subscriptions','certificate_manual_audits'].forEach(table => {
             if (!localData[table]) localData[table] = [];
         });
         if (localData.roster.length === 0) {

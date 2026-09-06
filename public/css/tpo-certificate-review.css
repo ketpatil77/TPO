@@ -64,3 +64,22 @@
   .certificate-review-grid { grid-template-columns:1fr; }
   .certificate-review-actions .btn { flex:1 1 auto; }
 }
+.certificate-fraud-panel { margin:.65rem 0; padding:.65rem; border:1px solid var(--border-color); border-radius:10px; background:rgba(0,0,0,.12); }
+.certificate-fraud-panel.pending { border-style:dashed; }
+.certificate-fraud-state { display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-bottom:.45rem; }
+.certificate-fraud-flags { display:flex; flex-wrap:wrap; gap:.35rem; margin:.45rem 0; }
+.certificate-fraud-flags span { border-radius:999px; padding:.2rem .45rem; font-size:.68rem; font-weight:700; background:rgba(255,156,156,.1); border:1px solid rgba(255,156,156,.35); color:#ffb1b1; text-transform:capitalize; }
+.certificate-auto-clear { color:#75d5a1!important; font-weight:600; }
+.certificate-score-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.4rem; margin:.55rem 0; }
+.certificate-score-grid div { min-width:0; padding:.4rem; border-radius:8px; background:rgba(255,255,255,.025); }
+.certificate-score-grid dt { color:var(--text-muted); font-size:.68rem; }
+.certificate-score-grid dd { margin:.1rem 0 0; font-weight:700; font-size:.8rem; overflow-wrap:anywhere; }
+.certificate-score-grid .mono { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.7rem; }
+.certificate-review-status.auto_clear { color:#75d5a1; border-color:rgba(117,213,161,.35); background:rgba(117,213,161,.08); }
+.certificate-review-status.pending_review { color:#d9b96e; border-color:rgba(217,185,110,.35); background:rgba(217,185,110,.08); }
+.certificate-review-status.approved { color:#75d5a1; border-color:rgba(117,213,161,.35); background:rgba(117,213,161,.08); }
+@media (max-width:760px) {
+  .certificate-fraud-state { align-items:flex-start; flex-direction:column; }
+  .certificate-score-grid { grid-template-columns:1fr; }
+  .certificate-review-actions .btn { min-height:42px; }
+}
