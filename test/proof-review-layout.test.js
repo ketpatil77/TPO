@@ -1,3 +1,8 @@
+process.env.NODE_ENV='test';
+process.env.SUPABASE_URL='';
+process.env.SUPABASE_KEY='';
+process.env.JWT_SECRET=process.env.JWT_SECRET||'test-secret-at-least-thirty-two-characters';
+
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -28,4 +33,15 @@ test('proof viewing uses a short-lived signed storage URL before proxy fallback'
   assert.match(route, /proofRedirectHtml\(signedData\.signedUrl\)/);
   assert.match(route, /Loading directly from secure storage/);
   assert.match(route, /evidenceStorage\.download\(entry\.evidence_path\)/);
+});
+
+test('proof viewing reads current R2 evidence before legacy Supabase fallback', async () => {
+  const { readR2Proof } = require('../src/routes/proofReview');
+  const bytes = Uint8Array.from([1,2,3,4]);
+  const proof = await readR2Proof('certificates/student/proof.jpg', { CERTIFICATE_VAULT:{ get: async () => ({ size:4, httpMetadata:{contentType:'image/jpeg'}, arrayBuffer:async()=>bytes.buffer }) } });
+  assert.equal(proof.mime, 'image/jpeg');
+  assert.equal(proof.size, 4);
+  assert.deepEqual([...proof.bytes], [1,2,3,4]);
+  const route = read('src/routes/proofReview.js');
+  assert.ok(route.indexOf('readR2Proof(entry.evidence_path)') < route.indexOf('createSignedUrl(entry.evidence_path, 120)'));
 });

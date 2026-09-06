@@ -11,6 +11,14 @@ test('same research title inside one student profile is a duplicate even when UR
   assert.equal(submissionFingerprints('research',a).some(v => v.startsWith('research-title:')), true);
 });
 
+test('same journal and same collaborators with different paper titles are not duplicates', () => {
+  const shared = { publication:'IJVRA - International Journal of Versatile Research and Analysis', authors:'Dr.Nitin Santosh Patil, Dr.Sandip Niranjan Vende, Mr.Ketan V.Patil', paper_url:'https://www.ijvra.org/' };
+  const first = { id:'a', title:'Multi-Angle Industrial Inspection Fusion: A Unified Deep Learning Framework for Viewpoint-Invariant Defect Detection', ...shared };
+  const second = { id:'b', title:'A Different Industrial Inspection Research Paper', ...shared };
+  assert.deepEqual([...duplicateIds('research',[first,second])], []);
+  assert.equal(submissionFingerprints('research',first).some(v => v === 'research-url:https://www.ijvra.org'), false);
+});
+
 test('research exact repeated evidence URL is a high-confidence duplicate', () => {
   const a = { id:'a', title:'Paper A', doi_url:'https://journal.example.org/article/1?utm=one' };
   const b = { id:'b', title:'Paper B', doi_url:'https://journal.example.org/article/1#section' };

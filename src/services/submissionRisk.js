@@ -64,9 +64,19 @@ function evidenceFingerprints(type,item = {}) {
     if (repo) out.push(`project-url:${repo}`);
     if (live) out.push(`project-url:${live}`);
   } else if (type === 'research') {
-    const doi = normalizedUrl(item.doi_url); const paper = normalizedUrl(item.paper_url);
-    if (doi) out.push(`research-url:${doi}`);
-    if (paper) out.push(`research-url:${paper}`);
+    // Journal homepages are shared by many legitimate papers and are not unique evidence.
+    // Treat only paper-specific paths (or a real doi.org DOI) as duplicate evidence.
+    for (const value of [item.doi_url, item.paper_url]) {
+      const raw = text(value);
+      const normalized = normalizedUrl(raw);
+      if (!normalized) continue;
+      try {
+        const url = new URL(raw);
+        const pathParts = url.pathname.split('/').filter(Boolean);
+        const isDoi = /(^|\.)doi\.org$/i.test(url.hostname) && pathParts.length > 0;
+        if (isDoi || pathParts.length > 0) out.push(`research-url:${normalized}`);
+      } catch (_) {}
+    }
   } else if (type === 'internship') {
     const proof = text(item.evidence_sha256 || item.evidence_path);
     if (proof) out.push(`intern-proof:${proof}`);

@@ -15,6 +15,15 @@ function storage() {
     return db.supabaseClient()?.storage?.from('certificate-evidence') || null;
 }
 
+async function readR2Proof(path, env = globalThis.cloudflareEnv) {
+    const bucket = env?.CERTIFICATE_VAULT;
+    if (!path || !bucket?.get) return null;
+    const object = await bucket.get(path);
+    if (!object) return null;
+    const bytes = Buffer.from(await object.arrayBuffer());
+    return { bytes, mime: object.httpMetadata?.contentType || null, size: Number(object.size) || bytes.length };
+}
+
 function tableFor(type) {
     if (type === 'internship') return 'internships';
     if (type === 'certificate') return 'certificates';
@@ -124,13 +133,27 @@ function createRouter(role) {
         const table = tableFor(req.params.type);
         if (!table) return res.status(400).json({ success: false, error: { code: 'INVALID_TYPE', message: 'Invalid proof type.' } });
         const evidenceStorage = storage();
-        if (!evidenceStorage) return res.status(503).json({ success: false, error: { code: 'VAULT_NOT_CONFIGURED', message: 'Proof storage is not configured.' } });
         const entry = await db.selectOne(table, { id: req.params.id });
         if (!entry?.evidence_path) return res.status(404).json({ success: false, error: { code: 'NO_EVIDENCE', message: 'No proof uploaded.' } });
         if (isObserver) {
             const student = await studentForId(entry.student_id);
             if (student?.branch !== req.observer.department) return res.status(403).json({ success: false, error: { code: 'OUT_OF_SCOPE', message: 'This entry belongs to another department.' } });
         }
+
+        // Current certificate uploads live in R2. Read R2 first, then fall back to legacy Supabase Storage.
+        try {
+            const r2Proof = await readR2Proof(entry.evidence_path);
+            if (r2Proof) {
+                res.setHeader('Content-Type', entry.evidence_mime || r2Proof.mime || 'application/octet-stream');
+                res.setHeader('Content-Length', String(r2Proof.size));
+                res.setHeader('Cache-Control', 'private, no-store, max-age=0');
+                res.setHeader('X-Content-Type-Options', 'nosniff');
+                res.setHeader('Content-Disposition', 'inline');
+                return res.end(r2Proof.bytes);
+            }
+        } catch (error) { console.error('R2 proof read failed, using legacy storage fallback:', error.message); }
+
+        if (!evidenceStorage) return res.status(503).json({ success: false, error: { code: 'VAULT_NOT_CONFIGURED', message: 'Proof storage is not configured.' } });
 
         // Fast path: authorize here, then let the browser fetch the private object directly
         // from Supabase's storage edge. This avoids downloading the complete proof into the
@@ -237,4 +260,4 @@ function createRouter(role) {
     return router;
 }
 
-module.exports = { admin: createRouter('admin'), observer: createRouter('observer'), normalizeStoredStatus, statusForDatabase, notifyVerifiedStudent, proofRedirectHtml };
+module.exports = { admin: createRouter('admin'), observer: createRouter('observer'), normalizeStoredStatus, statusForDatabase, notifyVerifiedStudent, proofRedirectHtml, readR2Proof };

@@ -32,6 +32,9 @@ test('engagement UI covers all requested interactions without list/table frame r
   assert.match(js,/Good morning/); assert.match(js,/Good afternoon/); assert.match(js,/Good evening/);
   assert.match(js,/since-last-card|sinceLastVisitCard/); assert.match(js,/verification-snapshot/); assert.match(js,/rank_movement/);
   assert.match(js,/AudioContext/); assert.match(js,/navigator\.vibrate/); assert.match(js,/experienceMuteToggle/);
+  assert.match(js,/function userMuted\(\)/);
+  assert.match(js,/setMuted\(next, button\)/);
+  assert.match(js,/renderMuteToggle\(button\)/);
   assert.match(js,/friendly-empty/); assert.match(js,/rank-photo-reveal/); assert.match(js,/login-ambient/);
   assert.doesNotMatch(js,/querySelectorAll\([^\n]*table[^\n]*rank-frame/i);
   assert.match(candidate,/decorateCandidateProfile/);
