@@ -1,0 +1,96 @@
+name: Certificate Fraud Legacy Hotfix
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - '.github/workflows/certificate-fraud-legacy-hotfix.yml'
+      - 'src/services/certificateFraudDetection.js'
+      - 'src/routes/certificateReview.js'
+      - 'worker/index.mjs'
+      - 'test/certificate-fraud-detection.test.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  hotfix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout hotfix branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply legacy storage and backlog hotfix
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          function replace(path, before, after) {
+            let s = fs.readFileSync(path, 'utf8');
+            if (s.includes(after)) return;
+            if (!s.includes(before)) throw new Error(`Pattern missing in ${path}`);
+            s = s.replace(before, after);
+            fs.writeFileSync(path, s);
+          }
+
+          replace('src/services/certificateFraudDetection.js',
+          "function bucket(){ return globalThis.cloudflareEnv?.CERTIFICATE_VAULT || null; }\nasync function processCertificate",
+          "function bucket(){ return globalThis.cloudflareEnv?.CERTIFICATE_VAULT || null; }\nasync function readLegacyEvidence(path){\n  if(db.isLocal()) return null;\n  const client=db.supabaseClient?.(); if(!client?.storage) return null;\n  const {data,error}=await client.storage.from('certificate-evidence').download(path);\n  if(error || !data) return null;\n  return Buffer.from(await data.arrayBuffer());\n}\nasync function readEvidence(path){\n  const r2=bucket();\n  if(r2?.get){ const object=await r2.get(path); if(object) return Buffer.from(await object.arrayBuffer()); }\n  return readLegacyEvidence(path);\n}\nasync function processCertificate");
+
+          replace('src/services/certificateFraudDetection.js',
+          "  const r2=bucket(); if(!r2) throw new Error('CERTIFICATE_VAULT_NOT_CONFIGURED');\n  const object=await r2.get(cert.evidence_path); if(!object) throw new Error('CERTIFICATE_EVIDENCE_OBJECT_MISSING');\n  const bytes=Buffer.from(await object.arrayBuffer());",
+          "  const r2=bucket(); if(!r2) throw new Error('CERTIFICATE_VAULT_NOT_CONFIGURED');\n  const bytes=await readEvidence(cert.evidence_path); if(!bytes) throw new Error('CERTIFICATE_EVIDENCE_OBJECT_MISSING');");
+
+          replace('src/services/certificateFraudDetection.js',
+          "async function processQueueBatch(batch){",
+          "async function enqueuePendingCertificates(limit=100){\n  const q=globalThis.cloudflareEnv?.CERTIFICATE_FRAUD_QUEUE; if(!q) return {queued:0,reason:'queue_unavailable'};\n  const pending=(await db.select('certificates')).filter(c=>c.evidence_path && !c.fraud_processed_at).slice(0,Math.max(1,limit));\n  if(!pending.length) return {queued:0};\n  if(q.sendBatch){ await q.sendBatch(pending.map(c=>({body:{certificateId:c.id}}))); return {queued:pending.length}; }\n  if(q.send){ for(const cert of pending) await q.send({certificateId:cert.id}); return {queued:pending.length}; }\n  return {queued:0,reason:'queue_unavailable'};\n}\nasync function processQueueBatch(batch){");
+
+          replace('src/services/certificateFraudDetection.js',
+          "module.exports={NAME_MATCH_THRESHOLD,TAMPER_THRESHOLD,PHASH_HAMMING_THRESHOLD,LAYOUT_THRESHOLD,normalizeText,levenshtein,similarity,extractNameCandidate,analyzeNameMatch,hammingDistance,dctHash,elaFromRaw,layoutAnomalyFromRaw,encodeBmp,analyzeImage,runOcr,processCertificate,failAnalysis,enqueueCertificateAnalysis,processQueueBatch,monthlyAuditSelected,seedMonthlyManualAudits};",
+          "module.exports={NAME_MATCH_THRESHOLD,TAMPER_THRESHOLD,PHASH_HAMMING_THRESHOLD,LAYOUT_THRESHOLD,normalizeText,levenshtein,similarity,extractNameCandidate,analyzeNameMatch,hammingDistance,dctHash,elaFromRaw,layoutAnomalyFromRaw,encodeBmp,analyzeImage,runOcr,readEvidence,processCertificate,failAnalysis,enqueueCertificateAnalysis,enqueuePendingCertificates,processQueueBatch,monthlyAuditSelected,seedMonthlyManualAudits};");
+
+          replace('src/routes/certificateReview.js',
+          "const db = require('../config/database');",
+          "const db = require('../config/database');\nconst { enqueueCertificateAnalysis } = require('../services/certificateFraudDetection');");
+
+          replace('src/routes/certificateReview.js',
+          "router.get('/student/:studentId', async (req, res) => {\n    try { const rows = await db.select('certificates', { student_id: req.params.studentId }); return res.json({ success: true, data: (rows || []).map(reviewFields) }); }",
+          "router.get('/student/:studentId', async (req, res) => {\n    try {\n        const rows = await db.select('certificates', { student_id: req.params.studentId });\n        const pending=(rows||[]).filter(item=>item.evidence_path && !item.fraud_processed_at);\n        await Promise.allSettled(pending.map(item=>enqueueCertificateAnalysis(item.id)));\n        return res.json({ success: true, data: (rows || []).map(reviewFields) });\n    }");
+
+          replace('src/routes/certificateReview.js',
+          "async function streamR2(path, res, fallbackType='image/jpeg') {\n    const r2=bucket(); if(!r2) return res.status(503).json({success:false,error:{code:'VAULT_NOT_CONFIGURED',message:'Certificate Vault storage is not configured.'}});\n    const object=await r2.get(path); if(!object) return res.status(404).json({success:false,error:{code:'EVIDENCE_MISSING',message:'Certificate proof file is unavailable.'}});\n    const bytes=await object.arrayBuffer(); res.setHeader('Content-Type',object.httpMetadata?.contentType||fallbackType);",
+          "async function streamR2(path, res, fallbackType='image/jpeg') {\n    const r2=bucket(); let bytes=null; let contentType=fallbackType;\n    if(r2?.get){ const object=await r2.get(path); if(object){ bytes=await object.arrayBuffer(); contentType=object.httpMetadata?.contentType||fallbackType; } }\n    if(!bytes && !db.isLocal()){ const client=db.supabaseClient?.(); if(client?.storage){ const {data,error}=await client.storage.from('certificate-evidence').download(path); if(!error && data){ bytes=await data.arrayBuffer(); contentType=data.type||fallbackType; } } }\n    if(!bytes) return res.status(404).json({success:false,error:{code:'EVIDENCE_MISSING',message:'Certificate proof file is unavailable.'}});\n    res.setHeader('Content-Type',contentType);");
+
+          replace('worker/index.mjs',
+          "if (event.cron === (env.PROOF_EXPIRY_CRON || '0 * * * *')) { const { default: proofExpiry } = await import('../src/services/proofExpiry.js'); console.log('Proof expiry cleanup complete:', JSON.stringify(await proofExpiry.runProofExpiryCleanup())); }",
+          "if (event.cron === (env.PROOF_EXPIRY_CRON || '0 * * * *')) { const { default: proofExpiry } = await import('../src/services/proofExpiry.js'); console.log('Proof expiry cleanup complete:', JSON.stringify(await proofExpiry.runProofExpiryCleanup())); const { default: fraud } = await import('../src/services/certificateFraudDetection.js'); console.log('Certificate fraud backlog enqueue complete:', JSON.stringify(await fraud.enqueuePendingCertificates(100))); }");
+
+          const testPath='test/certificate-fraud-detection.test.js';
+          let t=fs.readFileSync(testPath,'utf8');
+          if(!t.includes('legacy evidence falls back to Supabase Storage when R2 object is absent')) t += `\n\ntest('legacy evidence falls back to Supabase Storage when R2 object is absent', async()=>{\n  const oldEnv=globalThis.cloudflareEnv; const oldIsLocal=db.isLocal; const oldClient=db.supabaseClient;\n  const legacy=Buffer.from('legacy-certificate-bytes');\n  globalThis.cloudflareEnv={CERTIFICATE_VAULT:{async get(){return null;}}};\n  db.isLocal=()=>false;\n  db.supabaseClient=()=>({storage:{from(bucket){assert.equal(bucket,'certificate-evidence');return {async download(path){assert.equal(path,'certificates/student/legacy.jpg');return {data:new Blob([legacy],{type:'image/jpeg'}),error:null};}};}}});\n  try { const bytes=await fraud.readEvidence('certificates/student/legacy.jpg'); assert.deepEqual(Buffer.from(bytes),legacy); }\n  finally { globalThis.cloudflareEnv=oldEnv; db.isLocal=oldIsLocal; db.supabaseClient=oldClient; }\n});\n\ntest('backlog enqueue batches certificates that have proof but no fraud result', async()=>{\n  const oldEnv=globalThis.cloudflareEnv; const sent=[];\n  globalThis.cloudflareEnv={CERTIFICATE_FRAUD_QUEUE:{async sendBatch(messages){sent.push(...messages);}}};\n  const studentId=\`backfill-student-\${Date.now()}\`;\n  const a=await db.insert('certificates',{student_id:studentId,name:'Backfill A',evidence_path:\`certificates/\${studentId}/a.jpg\`,fraud_processed_at:null});\n  const b=await db.insert('certificates',{student_id:studentId,name:'Backfill B',evidence_path:\`certificates/\${studentId}/b.jpg\`,fraud_processed_at:null});\n  try { const result=await fraud.enqueuePendingCertificates(100); const ids=sent.map(x=>x.body.certificateId); assert.ok(result.queued>=2); assert.ok(ids.includes(a.id)); assert.ok(ids.includes(b.id)); }\n  finally { globalThis.cloudflareEnv=oldEnv; }\n});\n\ntest('opening TPO certificate review queues unprocessed legacy proofs immediately', async()=>{\n  const oldEnv=globalThis.cloudflareEnv; const queued=[];\n  globalThis.cloudflareEnv={CERTIFICATE_FRAUD_QUEUE:{async send(message){queued.push(message);}}};\n  const studentId=\`review-backfill-\${Date.now()}\`;\n  const cert=await db.insert('certificates',{student_id:studentId,name:'Legacy Review',evidence_path:\`certificates/\${studentId}/legacy.jpg\`,verification_status:'pending',fraud_processed_at:null});\n  try { await request(app).get(\`/api/admin/certificates/student/\${studentId}\`).set(writeHeaders(token('admin',{adminId:'fraud-admin'}))).expect(200); assert.ok(queued.some(x=>x.certificateId===cert.id)); }\n  finally { globalThis.cloudflareEnv=oldEnv; }\n});\n`;
+          fs.writeFileSync(testPath,t);
+          NODE
+      - name: Install dependencies
+        run: npm ci
+      - name: Full test suite
+        run: npm run check
+      - name: Syntax check all application JavaScript
+        run: find src worker public/js scripts test -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) -print0 | xargs -0 -n1 node --check
+      - name: Cloudflare dry run
+        run: npm run deploy:dry-run
+      - name: Commit tested hotfix
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/certificate-fraud-legacy-hotfix.yml
+          git add src/services/certificateFraudDetection.js src/routes/certificateReview.js worker/index.mjs test/certificate-fraud-detection.test.js
+          git commit -m 'fix: process legacy certificate fraud backlog'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
