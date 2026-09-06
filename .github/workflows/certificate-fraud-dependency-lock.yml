@@ -1,0 +1,39 @@
+name: Certificate Fraud Dependency Lock
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - '.github/workflows/certificate-fraud-dependency-lock.yml'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - name: Verify clean baseline install
+        run: npm ci
+      - name: Generate exact dependency lock
+        run: npm install --package-lock-only --ignore-scripts --save-exact @cf-wasm/photon@0.4.0 tesseract.js@7.0.0
+      - name: Verify generated lock installs
+        run: npm ci
+      - name: Run full test suite
+        run: npm run check
+      - name: Upload generated manifests
+        uses: actions/upload-artifact@v6
+        with:
+          name: certificate-fraud-manifests
+          path: |
+            package.json
+            package-lock.json
+          if-no-files-found: error
