@@ -1,0 +1,102 @@
+:root {
+  --experience-gold: var(--student-gold);
+  --experience-silver: color-mix(in srgb, var(--border-color) 72%, var(--accent) 28%);
+  --experience-bronze: color-mix(in srgb, var(--warning) 70%, var(--primary) 30%);
+  --experience-accent: var(--accent);
+  --experience-transition: var(--transition-fast);
+}
+
+.student-dashboard-page[data-profile-mood="needs"] { --experience-accent: var(--danger); }
+.student-dashboard-page[data-profile-mood="building"] { --experience-accent: var(--warning); }
+.student-dashboard-page[data-profile-mood="strong"] { --experience-accent: var(--accent); }
+.student-dashboard-page[data-profile-mood="ready"] { --experience-accent: var(--primary); }
+.student-dashboard-page .header-banner { border-color: color-mix(in srgb, var(--experience-accent) 38%, var(--border-color)); box-shadow: var(--shadow-sm); transition: border-color var(--experience-transition), box-shadow var(--experience-transition); }
+
+.student-avatar.rank-frame,
+.candidate-rank-avatar.rank-frame { position: relative; isolation: isolate; border: 3px solid transparent; box-shadow: var(--shadow-sm); transition: border-color var(--experience-transition), box-shadow var(--experience-transition); }
+.student-avatar.rank-frame-gold,
+.candidate-rank-avatar.rank-frame-gold { border-color: var(--experience-gold); }
+.student-avatar.rank-frame-silver,
+.candidate-rank-avatar.rank-frame-silver { border-color: var(--experience-branch-silver, var(--experience-silver)); }
+[data-branch-frame="CT"] { --experience-branch-silver: color-mix(in srgb, var(--experience-silver) 74%, var(--primary) 26%); }
+[data-branch-frame="AIML"] { --experience-branch-silver: color-mix(in srgb, var(--experience-silver) 74%, var(--accent) 26%); }
+[data-branch-frame="EE"] { --experience-branch-silver: color-mix(in srgb, var(--experience-silver) 74%, var(--warning) 26%); }
+[data-branch-frame="ME"] { --experience-branch-silver: color-mix(in srgb, var(--experience-silver) 74%, var(--success) 26%); }
+[data-branch-frame="CE"] { --experience-branch-silver: color-mix(in srgb, var(--experience-silver) 78%, var(--text-secondary) 22%); }
+[data-branch-frame="E-C"] { --experience-branch-silver: color-mix(in srgb, var(--experience-silver) 74%, var(--info) 26%); }
+.student-avatar.rank-frame-bronze,
+.candidate-rank-avatar.rank-frame-bronze { border-color: var(--experience-bronze); }
+.student-avatar.rank-frame-triple,
+.candidate-rank-avatar.rank-frame-triple { border-color: transparent; }
+.student-avatar.rank-frame-triple::before,
+.candidate-rank-avatar.rank-frame-triple::before { content:""; position:absolute; inset:-4px; z-index:-1; border-radius:inherit; background: conic-gradient(from 0turn, var(--experience-gold), var(--accent), var(--experience-gold)); animation: rank-frame-shimmer 2.4s linear infinite; }
+.student-avatar.rank-frame-triple::after,
+.candidate-rank-avatar.rank-frame-triple::after { content:""; position:absolute; inset:-1px; z-index:-1; border-radius:inherit; background:var(--bg-card); }
+@keyframes rank-frame-shimmer { to { transform: rotate(1turn); } }
+
+.student-avatar[data-rank-reveal] { cursor:pointer; min-width:44px; min-height:44px; overflow:hidden; }
+.student-avatar .rank-photo-reveal { position:absolute; inset:auto 0 0; z-index:3; padding:var(--space-xs) var(--space-sm); background:color-mix(in srgb,var(--primary) 88%,transparent); color:var(--text-heading); font-size:.7rem; font-weight:700; line-height:1.25; opacity:0; transform:translateY(100%); transition:opacity var(--experience-transition), transform var(--experience-transition); pointer-events:none; }
+.student-avatar:hover .rank-photo-reveal,
+.student-avatar:focus-visible .rank-photo-reveal,
+.student-avatar.is-rank-reveal-open .rank-photo-reveal { opacity:1; transform:translateY(0); }
+.student-avatar:focus-visible,
+.candidate-rank-avatar:focus-visible,
+.experience-mute-toggle:focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
+
+.experience-greeting { display:block; margin-top:var(--space-xs); color:var(--text-muted); font-size:.82rem; }
+.experience-mute-toggle { min-width:44px; min-height:44px; display:inline-grid; place-items:center; border:1px solid var(--border-color); border-radius:var(--radius-md); background:var(--bg-card); color:var(--text-body); cursor:pointer; transition:background var(--experience-transition), border-color var(--experience-transition); }
+.experience-mute-toggle svg { width:20px; height:20px; }
+
+.since-last-card { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-md); align-items:start; margin-bottom:var(--space-md); border-left:4px solid var(--experience-accent); }
+.since-last-card h3 { margin:.15rem 0 .35rem; }
+.since-last-card p { margin:0; color:var(--text-muted); }
+.since-last-grid { grid-column:1/-1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-sm); }
+.since-last-item { padding:var(--space-sm) var(--space-md); border:1px solid var(--border-color); border-radius:var(--radius-md); background:color-mix(in srgb,var(--bg-card) 86%,var(--surface-muted) 14%); }
+.since-last-item strong { display:block; font-size:1.1rem; color:var(--text-heading); }
+.since-last-item span { color:var(--text-muted); font-size:.75rem; }
+
+.friendly-empty { display:grid; justify-items:center; text-align:center; gap:var(--space-sm); padding:var(--space-xl) var(--space-md); border:1px dashed var(--border-color); border-radius:var(--radius-lg); color:var(--text-muted); }
+.friendly-empty svg { width:48px; height:48px; color:var(--experience-accent); }
+.friendly-empty strong { color:var(--text-heading); font-size:1rem; }
+.friendly-empty p { margin:0; max-width:42ch; }
+
+.student-dashboard-page .tab-content.active { animation: experience-section-enter 240ms ease both; }
+@keyframes experience-section-enter { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+.candidate-profile-hero.has-rank-avatar { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:var(--space-md); }
+.candidate-rank-avatar { width:72px; height:72px; min-width:44px; min-height:44px; padding:0; border-radius:50%; background:var(--surface-muted); color:var(--text-heading); overflow:hidden; display:grid; place-items:center; cursor:pointer; }
+.candidate-rank-avatar img { width:100%; height:100%; object-fit:cover; }
+.candidate-rank-avatar .candidate-avatar-fallback { font-weight:700; }
+.candidate-rank-badge { display:block; margin-top:var(--space-xs); color:var(--text-muted); font-size:.72rem; }
+.candidate-rank-avatar[data-triple="true"].rank-frame-triple { animation:none; }
+.candidate-rank-avatar[data-triple="true"].rank-frame-triple::before { animation-play-state:paused; }
+.candidate-rank-avatar[data-triple="true"].rank-frame-triple:hover::before,
+.candidate-rank-avatar[data-triple="true"].rank-frame-triple:focus-visible::before,
+.candidate-rank-avatar[data-triple="true"].rank-frame-triple.is-rank-reveal-open::before { animation-play-state:running; }
+
+.unified-auth-shell .portal-story { position:relative; overflow:hidden; }
+.login-ambient { position:absolute; inset:0; pointer-events:none; overflow:hidden; opacity:.55; }
+.login-ambient i { position:absolute; width:6px; height:6px; border-radius:50%; background:var(--accent); opacity:.16; animation:login-ambient-drift 9s ease-in-out infinite alternate; }
+.login-ambient i:nth-child(3n) { background:var(--student-gold); animation-duration:12s; }
+.login-ambient i:nth-child(2n) { width:4px; height:4px; animation-duration:10.5s; }
+@keyframes login-ambient-drift { from { transform:translate3d(0,6px,0); } to { transform:translate3d(12px,-10px,0); } }
+
+@media (max-width:768px) {
+  .since-last-card { grid-template-columns:1fr; }
+  .since-last-grid { grid-template-columns:1fr; }
+  .candidate-profile-hero.has-rank-avatar { grid-template-columns:auto minmax(0,1fr); }
+  .candidate-profile-hero.has-rank-avatar .candidate-profile-actions { grid-column:1/-1; }
+}
+@media (max-width:414px) {
+  .since-last-card { padding:var(--space-md); }
+  .candidate-rank-avatar { width:64px; height:64px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .student-dashboard-page .tab-content.active,
+  .student-avatar.rank-frame-triple::before,
+  .candidate-rank-avatar.rank-frame-triple::before,
+  .login-ambient i { animation:none !important; }
+  .student-avatar .rank-photo-reveal,
+  .student-dashboard-page .header-banner,
+  .experience-mute-toggle { transition:none; }
+}

@@ -90,6 +90,7 @@
       const content = document.getElementById('modalContent');
       if (content) content.innerHTML = renderProfile(student, 'admin');
       document.getElementById('studentDetailModal')?.classList.add('active');
+      window.PortalStudentExperience?.decorateCandidateProfile(student, 'admin');
     };
   }
 
@@ -103,6 +104,7 @@
       if (title) title.textContent = 'Student profile';
       const body = document.getElementById('observerModalBody');
       if (body) body.innerHTML = renderProfile(student, 'observer');
+      window.PortalStudentExperience?.decorateCandidateProfile(student, 'observer');
       const form = document.getElementById('observerCorrectionForm');
       if (form && typeof submitObserverCorrection === 'function') form.addEventListener('submit', submitObserverCorrection);
       document.getElementById('observerModal')?.classList.add('active');

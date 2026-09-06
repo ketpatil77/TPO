@@ -23,6 +23,7 @@ const freeLearningV2Routes = require('./routes/freeLearningV2');
 const freeLearningRoutes = require('./routes/freeLearning');
 const competitionReviewRoutes = require('./routes/competitionReview');
 const profileRankingViewRoutes = require('./routes/profileRankingView');
+const engagementRankRoutes = require('./routes/engagementRank');
 const { createStudentAvatarDirectory } = require('./routes/studentAvatarDirectory');
 
 const adminAuthRoutes = require('./routes/adminAuth');
@@ -105,6 +106,7 @@ app.use('/api/student/profile-links', profileLinksRoutes);
 app.use('/api/student/free-learning', freeLearningV2Routes);
 app.use('/api/student/free-learning', freeLearningRoutes);
 app.use('/api/student/rankings-view', profileRankingViewRoutes);
+app.use('/api/student/engagement', engagementRankRoutes.student);
 app.use('/api/student/workflow', workflowRoutes.student);
 app.use('/api/student/advanced', advancedRoutes.student);
 
@@ -119,6 +121,7 @@ app.use('/api/admin/moderation-queue', moderationQueueRoutes.admin);
 // impersonation endpoint and record moderation actions are authoritative.
 app.use('/api/admin/students', adminModerationRoutes);
 app.use('/api/admin/students', adminStudentsRoutes);
+app.use('/api/admin/engagement', engagementRankRoutes.admin);
 app.use('/api/admin/profile-completion', profileCompletionRoutes.admin);
 app.use('/api/admin/audit-logs', adminAuditRoutes);
 app.use('/api/admin/drives', adminDriveRoutes);
@@ -133,6 +136,7 @@ app.use('/api/observer/proof-review', proofReviewRoutes.observer);
 app.use('/api/observer/moderation-queue', moderationQueueRoutes.observer);
 app.use('/api/observer/profile-completion', profileCompletionRoutes.observer);
 app.use('/api/observer/competitions', competitionReviewRoutes.observer);
+app.use('/api/observer/engagement', engagementRankRoutes.observer);
 app.use('/api/observer', observerRoutes);
 
 if (!isCloudflareWorker) app.get('/', (req, res) => res.sendFile(path.join(process.cwd(), 'public/index.html')));
