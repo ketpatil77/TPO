@@ -1,0 +1,77 @@
+name: Engagement Audit Repair
+on:
+  push:
+    branches: [hotfix/engagement-audit-repair]
+permissions:
+  contents: write
+jobs:
+  verify-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repair branch
+        uses: actions/checkout@v4
+        with:
+          ref: hotfix/engagement-audit-repair
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply audited repair
+        run: node .github/engagement-audit-repair.cjs
+      - name: Remove bootstrap tooling
+        run: rm -f .github/engagement-audit-repair.cjs .github/workflows/engagement-audit-repair.yml
+      - name: Install dependencies
+        run: npm ci
+      - name: Full current test suite
+        run: npm run check
+      - name: Syntax check application JavaScript
+        run: |
+          set -e
+          find src public/js worker -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | while IFS= read -r -d '' f; do node --check "$f"; done
+      - name: Cloudflare Worker dry run
+        run: npm run deploy:dry-run
+      - name: Visual evidence setup
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Capture mobile tablet desktop evidence
+        run: |
+          mkdir -p evidence
+          cat > evidence/engagement-audit.html <<'HTML'
+          <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="../public/css/styles.css"><link rel="stylesheet" href="../public/css/student-experience-v1.css"><style>body{padding:var(--space-md);background:var(--bg-body)}.evidence-shell{max-width:900px;margin:auto}.student-avatar{width:92px;height:92px;border-radius:50%;background:var(--surface-muted);display:grid;place-items:center}.candidate-rank-avatar{margin-top:var(--space-lg)}.ranking-rules{margin-top:var(--space-lg)}.candidate-profile-hero{margin-top:var(--space-lg);padding:var(--space-lg)}</style></head><body class="student-dashboard-page"><main class="evidence-shell"><section class="glass-card header-banner"><div class="student-meta"><div id="studentAvatar" class="student-avatar rank-frame rank-frame-triple" data-rank-reveal="true" tabindex="0"><span class="student-avatar-initial">K</span><span class="rank-photo-reveal">#1 college · 94% complete</span></div><div class="student-info"><h2>KETAN VILAS PATIL</h2><p>CT · BE-A · Final Year</p><span class="experience-greeting">Good evening, KETAN.</span></div></div></section><section class="glass-card ranking-rules"><button class="ranking-rules-toggle" aria-expanded="true">How Profile Points work</button><div class="ranking-rules-panel"><p>Verified achievements contribute according to the published scoring rules.</p></div></section><section class="glass-card candidate-profile-hero has-rank-avatar"><button class="candidate-rank-avatar rank-frame rank-frame-gold"><span class="candidate-avatar-fallback">DG</span></button><div><h2>Candidate profile</h2><span class="candidate-rank-badge">College #2 · Branch #2 · Class/year #2</span></div></section></main></body></html>
+          HTML
+          python3 -m http.server 4173 >/tmp/evidence-http.log 2>&1 &
+          SERVER_PID=$!
+          sleep 1
+          cat > evidence/capture.mjs <<'JS'
+          import { chromium } from 'playwright';
+          const browser=await chromium.launch({headless:true});
+          for (const [name,width,height] of [['mobile',390,844],['tablet',768,1024],['desktop',1440,1000]]) {
+            const page=await browser.newPage({viewport:{width,height}});
+            await page.goto('http://127.0.0.1:4173/evidence/engagement-audit.html',{waitUntil:'networkidle'});
+            const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth);
+            if(overflow) throw new Error(`${name} has horizontal overflow`);
+            await page.screenshot({path:`evidence/${name}.png`,fullPage:true});
+            await page.close();
+          }
+          await browser.close();
+          JS
+          node evidence/capture.mjs
+          kill $SERVER_PID || true
+      - name: Upload visual evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: engagement-audit-evidence
+          path: evidence/*.png
+      - name: Commit verified repair
+        run: |
+          rm -rf evidence
+          git config user.name 'KET ⚡'
+          git config user.email 'ket.patil77@gmail.com'
+          git add -A
+          if git diff --cached --quiet; then echo 'No repair diff'; exit 1; fi
+          git commit -m 'fix: stabilize engagement ranking and points UI'
+          git push origin hotfix/engagement-audit-repair
