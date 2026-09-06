@@ -1,6 +1,7 @@
 const express = require('express');
 const { z } = require('zod');
 const db = require('../config/database');
+const { enqueueCertificateAnalysis } = require('../services/certificateFraudDetection');
 const { authenticateAdmin } = require('../middleware/auth');
 const { validate } = require('../middleware/security');
 
@@ -25,14 +26,21 @@ function reviewFields(item) {
 }
 
 router.get('/student/:studentId', async (req, res) => {
-    try { const rows = await db.select('certificates', { student_id: req.params.studentId }); return res.json({ success: true, data: (rows || []).map(reviewFields) }); }
+    try {
+        const rows = await db.select('certificates', { student_id: req.params.studentId });
+        const pending=(rows||[]).filter(item=>item.evidence_path && !item.fraud_processed_at);
+        await Promise.allSettled(pending.map(item=>enqueueCertificateAnalysis(item.id)));
+        return res.json({ success: true, data: (rows || []).map(reviewFields) });
+    }
     catch (error) { console.error('Certificate review list failed:', error.message); return res.status(500).json({ success:false,error:{code:'CERTIFICATE_REVIEW_LIST_FAILED',message:'Could not load certificate proofs.'} }); }
 });
 
 async function streamR2(path, res, fallbackType='image/jpeg') {
-    const r2=bucket(); if(!r2) return res.status(503).json({success:false,error:{code:'VAULT_NOT_CONFIGURED',message:'Certificate Vault storage is not configured.'}});
-    const object=await r2.get(path); if(!object) return res.status(404).json({success:false,error:{code:'EVIDENCE_MISSING',message:'Certificate proof file is unavailable.'}});
-    const bytes=await object.arrayBuffer(); res.setHeader('Content-Type',object.httpMetadata?.contentType||fallbackType); res.setHeader('Content-Length',String(bytes.byteLength)); res.setHeader('Cache-Control','private, no-store, max-age=0'); res.setHeader('X-Content-Type-Options','nosniff'); res.setHeader('Content-Disposition','inline'); return res.end(Buffer.from(bytes));
+    const r2=bucket(); let bytes=null; let contentType=fallbackType;
+    if(r2?.get){ const object=await r2.get(path); if(object){ bytes=await object.arrayBuffer(); contentType=object.httpMetadata?.contentType||fallbackType; } }
+    if(!bytes && !db.isLocal()){ const client=db.supabaseClient?.(); if(client?.storage){ const {data,error}=await client.storage.from('certificate-evidence').download(path); if(!error && data){ bytes=await data.arrayBuffer(); contentType=data.type||fallbackType; } } }
+    if(!bytes) return res.status(404).json({success:false,error:{code:'EVIDENCE_MISSING',message:'Certificate proof file is unavailable.'}});
+    res.setHeader('Content-Type',contentType); res.setHeader('Content-Length',String(bytes.byteLength)); res.setHeader('Cache-Control','private, no-store, max-age=0'); res.setHeader('X-Content-Type-Options','nosniff'); res.setHeader('Content-Disposition','inline'); return res.end(Buffer.from(bytes));
 }
 router.get('/:id/proof', async (req,res)=>{ try { const c=await db.selectOne('certificates',{id:req.params.id}); if(!c?.evidence_path)return res.status(404).json({success:false,error:{code:'NO_EVIDENCE',message:'No certificate proof uploaded.'}}); return await streamR2(c.evidence_path,res,c.evidence_mime||'image/jpeg'); } catch(error){console.error('Certificate proof review open failed:',error.message);return res.status(500).json({success:false,error:{code:'CERTIFICATE_PROOF_OPEN_FAILED',message:'Could not open certificate proof.'}});} });
 router.get('/:id/ela-diff', async (req,res)=>{ try { const c=await db.selectOne('certificates',{id:req.params.id}); if(!c?.ela_diff_path)return res.status(404).json({success:false,error:{code:'NO_ELA_DIFF',message:'ELA diff is not available.'}}); return await streamR2(c.ela_diff_path,res,'image/png'); } catch(error){console.error('ELA diff open failed:',error.message);return res.status(500).json({success:false,error:{code:'ELA_DIFF_OPEN_FAILED',message:'Could not open ELA diff.'}});} });
