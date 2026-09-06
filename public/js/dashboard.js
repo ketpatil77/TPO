@@ -423,7 +423,11 @@ function renderDashboard(data) {
 
     // 1. Header & Meta
     document.getElementById('navStudentPrn').innerText = `PRN: ${student.prn}`;
-    document.getElementById('studentAvatar').innerText = student.name ? student.name.charAt(0).toUpperCase() : 'S';
+    const avatarInitial = document.querySelector('#studentAvatar .student-avatar-initial');
+    if (avatarInitial) avatarInitial.textContent = student.name ? student.name.charAt(0).toUpperCase() : 'S';
+    // The engagement layer owns rank overlays inside #studentAvatar. Never replace the
+    // avatar element's full text/content here or the tap/hover reveal gets destroyed.
+    window.queueMicrotask?.(() => window.PortalStudentExperience?.refreshStudentExperience?.(data));
     if ('requestIdleCallback' in window) {
         window.requestIdleCallback(() => loadStudentAvatar(), { timeout: 1000 });
     } else {
