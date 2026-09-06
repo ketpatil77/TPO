@@ -1,0 +1,150 @@
+name: Triple Frame Verified Release
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-commit:
+    if: github.head_ref == 'hotfix/triple-frame-clean-shimmer'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout hotfix branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply clean triple-frame patch
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          function update(path, transform) {
+            const before = fs.readFileSync(path, 'utf8');
+            const after = transform(before);
+            if (after === before) throw new Error(`No change applied to ${path}`);
+            fs.writeFileSync(path, after);
+          }
+
+          update('public/css/student-experience-v1.css', css => {
+            const oldFrame = `.student-avatar.rank-frame-triple,\n.candidate-rank-avatar.rank-frame-triple { border-color: transparent; }\n.student-avatar.rank-frame-triple::before,\n.candidate-rank-avatar.rank-frame-triple::before { content:\"\"; position:absolute; inset:0; z-index:4; padding:3px; border-radius:inherit; pointer-events:none; background:conic-gradient(from 0turn, var(--experience-gold), var(--accent), var(--experience-gold)); -webkit-mask:linear-gradient(var(--text-heading) 0 0) content-box,linear-gradient(var(--text-heading) 0 0); -webkit-mask-composite:xor; mask-composite:exclude; animation:rank-frame-shimmer 2.4s linear infinite; }\n@keyframes rank-frame-shimmer { to { transform: rotate(1turn); } }`;
+            const newFrame = `.student-avatar.rank-frame-triple,\n.candidate-rank-avatar.rank-frame-triple {\n  border-color: var(--experience-gold);\n  box-shadow: var(--shadow-sm);\n  animation: rank-frame-shimmer 2.4s ease-in-out infinite;\n}\n@keyframes rank-frame-shimmer {\n  0%, 100% { border-color: var(--experience-gold); box-shadow: var(--shadow-sm); }\n  50% { border-color: var(--accent); box-shadow: var(--shadow-md); }\n}`;
+            if (!css.includes(oldFrame)) throw new Error('Old rotating triple-frame block not found');
+            css = css.replace(oldFrame, newFrame);
+
+            const oldCandidate = `.candidate-rank-avatar[data-triple=\"true\"].rank-frame-triple { animation:none; }\n.candidate-rank-avatar[data-triple=\"true\"].rank-frame-triple::before { animation-play-state:paused; }\n.candidate-rank-avatar[data-triple=\"true\"].rank-frame-triple:hover::before,\n.candidate-rank-avatar[data-triple=\"true\"].rank-frame-triple:focus-visible::before,\n.candidate-rank-avatar[data-triple=\"true\"].rank-frame-triple.is-rank-reveal-open::before { animation-play-state:running; }`;
+            const newCandidate = `.candidate-rank-avatar[data-triple=\"true\"].rank-frame-triple { animation-play-state:paused; }\n.candidate-rank-avatar[data-triple=\"true\"].rank-frame-triple:hover,\n.candidate-rank-avatar[data-triple=\"true\"].rank-frame-triple:focus-visible,\n.candidate-rank-avatar[data-triple=\"true\"].rank-frame-triple.is-rank-reveal-open { animation-play-state:running; }`;
+            if (!css.includes(oldCandidate)) throw new Error('Old candidate triple-frame pause block not found');
+            css = css.replace(oldCandidate, newCandidate);
+
+            css = css.replace(`  .student-avatar.rank-frame-triple::before,\n  .candidate-rank-avatar.rank-frame-triple::before,`, `  .student-avatar.rank-frame-triple,\n  .candidate-rank-avatar.rank-frame-triple,`);
+            return css;
+          });
+
+          for (const path of ['public/index.html','public/dashboard.html','public/admin-dashboard.html','public/observer-dashboard.html']) {
+            update(path, html => {
+              if (!html.includes('20260906-engagement2')) throw new Error(`engagement2 cache token missing in ${path}`);
+              return html.replaceAll('20260906-engagement2', '20260906-engagement3');
+            });
+          }
+
+          update('test/student-engagement-features.test.js', test => {
+            test = test.replaceAll('20260906-engagement2', '20260906-engagement3');
+            test = test.replace(`  assert.match(css,/rank-frame-triple/);\n  assert.match(css,/-webkit-mask-composite:xor/);\n  assert.doesNotMatch(css,/rank-frame-triple::after/);`, `  assert.match(css,/rank-frame-triple/);\n  assert.match(css,/animation: rank-frame-shimmer 2\\.4s ease-in-out infinite/);\n  assert.match(css,/animation-play-state:paused/);\n  assert.doesNotMatch(css,/rank-frame-triple::before/);\n  assert.doesNotMatch(css,/-webkit-mask-composite|mask-composite|conic-gradient/);\n  assert.doesNotMatch(css,/transform:\\s*rotate/);`);
+            test += `\n\ntest('triple frame never paints rotating geometry over the profile photo', () => {\n  assert.match(css, /\\.student-avatar\\.rank-frame-triple,[\\s\\S]*border-color: var\\(--experience-gold\\)/);\n  assert.match(css, /@keyframes rank-frame-shimmer[\\s\\S]*border-color:[\\s\\S]*box-shadow/);\n  assert.doesNotMatch(css, /rank-frame-triple::before|rank-frame-triple::after/);\n  assert.doesNotMatch(css, /rotate\\(|conic-gradient|mask-composite/);\n});\n`;
+            return test;
+          });
+          NODE
+
+      - name: Full test suite
+        run: npm run check
+
+      - name: Syntax check all application JavaScript
+        run: |
+          find src worker public/js scripts test -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) -print0 \
+            | sort -z \
+            | xargs -0 -n1 node --check
+
+      - name: Dependency security gate
+        run: npm audit --audit-level=high
+
+      - name: Cloudflare dry run
+        run: npm run deploy:dry-run
+
+      - name: Install browser for visual evidence
+        run: npm install --no-save --package-lock=false playwright@1.55.0 && npx playwright install --with-deps chromium
+
+      - name: Mobile and desktop triple-frame evidence
+        run: |
+          python3 -m http.server 4173 --directory public >/tmp/tpo-frame-http.log 2>&1 &
+          cat > frame-evidence.mjs <<'NODE'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+          fs.mkdirSync('frame-evidence', { recursive: true });
+          const browser = await chromium.launch({ headless: true });
+          for (const [name, width, height] of [['mobile',390,844],['desktop',1440,900]]) {
+            const context = await browser.newContext({ viewport: { width, height }, javaScriptEnabled: false, colorScheme: 'dark' });
+            const page = await context.newPage();
+            await page.goto('http://127.0.0.1:4173/dashboard.html', { waitUntil: 'networkidle' });
+            await page.evaluate(() => {
+              const avatar = document.getElementById('studentAvatar');
+              avatar.classList.add('rank-frame','rank-frame-triple');
+              avatar.dataset.triple = 'true';
+              avatar.style.background = 'linear-gradient(135deg,var(--surface-muted),var(--bg-card))';
+              avatar.querySelector('.student-avatar-initial').textContent = 'KP';
+              document.getElementById('studentName').textContent = 'KETAN VILAS PATIL';
+              document.getElementById('studentBranch').textContent = 'CT';
+              document.getElementById('studentClass').textContent = 'BE-A';
+              document.getElementById('studentYear').textContent = 'Final Year';
+            });
+            const audit = await page.evaluate(() => {
+              const avatar = document.getElementById('studentAvatar');
+              const style = getComputedStyle(avatar);
+              const before = getComputedStyle(avatar, '::before');
+              return {
+                animation: style.animationName,
+                border: style.borderColor,
+                beforeContent: before.content,
+                overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth
+              };
+            });
+            if (audit.animation !== 'rank-frame-shimmer') throw new Error(`${name}: shimmer animation missing`);
+            if (audit.beforeContent !== 'none') throw new Error(`${name}: pseudo-element still paints over avatar: ${audit.beforeContent}`);
+            if (audit.overflowX > 1) throw new Error(`${name}: horizontal overflow ${audit.overflowX}px`);
+            await page.locator('.header-banner').screenshot({ path: `frame-evidence/${name}.png` });
+            await context.close();
+          }
+          await browser.close();
+          NODE
+          node frame-evidence.mjs
+
+      - name: Upload visual evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: triple-frame-evidence
+          path: frame-evidence/*.png
+
+      - name: Commit only after every gate passed
+        run: |
+          rm -f frame-evidence.mjs
+          rm -rf frame-evidence
+          git rm .github/workflows/triple-frame-release.yml
+          git add public/css/student-experience-v1.css public/index.html public/dashboard.html public/admin-dashboard.html public/observer-dashboard.html test/student-engagement-features.test.js
+          git config user.name "KET ⚡"
+          git config user.email "ket.patil77@gmail.com"
+          git commit -m "Fix triple-rank avatar shimmer"
+          git push origin HEAD:${{ github.head_ref }}
