@@ -79,3 +79,33 @@ test('upload-to-analysis pipeline auto-clears clean proof and flags edited proof
     const listed=admin.body.data.find(x=>x.id===editedCert.id);assert.ok(listed.flagged_reasons.includes('possibly_edited'));assert.equal(listed.has_ela_diff,true);
   } finally {globalThis.cloudflareEnv=oldEnv;}
 });
+
+
+test('legacy evidence falls back to Supabase Storage when R2 object is absent', async()=>{
+  const oldEnv=globalThis.cloudflareEnv; const oldIsLocal=db.isLocal; const oldClient=db.supabaseClient;
+  const legacy=Buffer.from('legacy-certificate-bytes');
+  globalThis.cloudflareEnv={CERTIFICATE_VAULT:{async get(){return null;}}};
+  db.isLocal=()=>false;
+  db.supabaseClient=()=>({storage:{from(bucket){assert.equal(bucket,'certificate-evidence');return {async download(path){assert.equal(path,'certificates/student/legacy.jpg');return {data:new Blob([legacy],{type:'image/jpeg'}),error:null};}};}}});
+  try { const bytes=await fraud.readEvidence('certificates/student/legacy.jpg'); assert.deepEqual(Buffer.from(bytes),legacy); }
+  finally { globalThis.cloudflareEnv=oldEnv; db.isLocal=oldIsLocal; db.supabaseClient=oldClient; }
+});
+
+test('backlog enqueue batches certificates that have proof but no fraud result', async()=>{
+  const oldEnv=globalThis.cloudflareEnv; const sent=[];
+  globalThis.cloudflareEnv={CERTIFICATE_FRAUD_QUEUE:{async sendBatch(messages){sent.push(...messages);}}};
+  const studentId=`backfill-student-${Date.now()}`;
+  const a=await db.insert('certificates',{student_id:studentId,name:'Backfill A',evidence_path:`certificates/${studentId}/a.jpg`,fraud_processed_at:null});
+  const b=await db.insert('certificates',{student_id:studentId,name:'Backfill B',evidence_path:`certificates/${studentId}/b.jpg`,fraud_processed_at:null});
+  try { const result=await fraud.enqueuePendingCertificates(100); const ids=sent.map(x=>x.body.certificateId); assert.ok(result.queued>=2); assert.ok(ids.includes(a.id)); assert.ok(ids.includes(b.id)); }
+  finally { globalThis.cloudflareEnv=oldEnv; }
+});
+
+test('opening TPO certificate review queues unprocessed legacy proofs immediately', async()=>{
+  const oldEnv=globalThis.cloudflareEnv; const queued=[];
+  globalThis.cloudflareEnv={CERTIFICATE_FRAUD_QUEUE:{async send(message){queued.push(message);}}};
+  const studentId=`review-backfill-${Date.now()}`;
+  const cert=await db.insert('certificates',{student_id:studentId,name:'Legacy Review',evidence_path:`certificates/${studentId}/legacy.jpg`,verification_status:'pending',fraud_processed_at:null});
+  try { await request(app).get(`/api/admin/certificates/student/${studentId}`).set(writeHeaders(token('admin',{adminId:'fraud-admin'}))).expect(200); assert.ok(queued.some(x=>x.certificateId===cert.id)); }
+  finally { globalThis.cloudflareEnv=oldEnv; }
+});

@@ -132,11 +132,22 @@ async function findDuplicateMatches(phash,certificateId) {
   return (rows||[]).filter(x=>x.id!==certificateId && x.phash && hammingDistance(phash,x.phash)<=PHASH_HAMMING_THRESHOLD).sort((a,b)=>hammingDistance(phash,a.phash)-hammingDistance(phash,b.phash));
 }
 function bucket(){ return globalThis.cloudflareEnv?.CERTIFICATE_VAULT || null; }
+async function readLegacyEvidence(path){
+  if(db.isLocal()) return null;
+  const client=db.supabaseClient?.(); if(!client?.storage) return null;
+  const {data,error}=await client.storage.from('certificate-evidence').download(path);
+  if(error || !data) return null;
+  return Buffer.from(await data.arrayBuffer());
+}
+async function readEvidence(path){
+  const r2=bucket();
+  if(r2?.get){ const object=await r2.get(path); if(object) return Buffer.from(await object.arrayBuffer()); }
+  return readLegacyEvidence(path);
+}
 async function processCertificate(certificateId,{recognizer}={}) {
   const cert=await db.selectOne('certificates',{id:certificateId}); if(!cert?.evidence_path) throw new Error('CERTIFICATE_EVIDENCE_MISSING');
   const r2=bucket(); if(!r2) throw new Error('CERTIFICATE_VAULT_NOT_CONFIGURED');
-  const object=await r2.get(cert.evidence_path); if(!object) throw new Error('CERTIFICATE_EVIDENCE_OBJECT_MISSING');
-  const bytes=Buffer.from(await object.arrayBuffer());
+  const bytes=await readEvidence(cert.evidence_path); if(!bytes) throw new Error('CERTIFICATE_EVIDENCE_OBJECT_MISSING');
   const roster=await db.selectOne('roster',{id:cert.student_id}) || await db.selectOne('students',{id:cert.student_id});
   const rosterName=roster?.name || '';
   const [ocrText,image] = await Promise.all([runOcr(bytes,{recognizer}),analyzeImage(bytes)]);
@@ -154,6 +165,14 @@ async function enqueueCertificateAnalysis(certificateId) {
   await db.update('certificates',{id:certificateId},{review_status:'pending_review',flagged_reasons:['analysis_queue_unavailable'],fraud_processing_error:'Certificate analysis queue is unavailable.'});
   return 'unavailable';
 }
+async function enqueuePendingCertificates(limit=100){
+  const q=globalThis.cloudflareEnv?.CERTIFICATE_FRAUD_QUEUE; if(!q) return {queued:0,reason:'queue_unavailable'};
+  const pending=(await db.select('certificates')).filter(c=>c.evidence_path && !c.fraud_processed_at).slice(0,Math.max(1,limit));
+  if(!pending.length) return {queued:0};
+  if(q.sendBatch){ await q.sendBatch(pending.map(c=>({body:{certificateId:c.id}}))); return {queued:pending.length}; }
+  if(q.send){ for(const cert of pending) await q.send({certificateId:cert.id}); return {queued:pending.length}; }
+  return {queued:0,reason:'queue_unavailable'};
+}
 async function processQueueBatch(batch){ for(const message of batch.messages||[]){ const id=message?.body?.certificateId; if(!id){message.ack?.();continue;} try{await processCertificate(id);message.ack?.();}catch(e){await failAnalysis(id,e).catch(()=>{});message.retry?.();} } }
 function monthlyAuditSelected(certificateId,month=new Date().toISOString().slice(0,7),rate=0.12){ const hex=require('node:crypto').createHash('sha256').update(`${month}:${certificateId}`).digest('hex').slice(0,8); return parseInt(hex,16)/0xffffffff < rate; }
 async function seedMonthlyManualAudits(now=new Date()) {
@@ -161,4 +180,4 @@ async function seedMonthlyManualAudits(now=new Date()) {
   for(const cert of certs){ if(!monthlyAuditSelected(cert.id,month,.12))continue; const existing=await db.selectOne('certificate_manual_audits',{certificate_id:cert.id,audit_month:month}); if(existing)continue; await db.insert('certificate_manual_audits',{certificate_id:cert.id,student_id:cert.student_id,audit_month:month,reason:'random_monthly',status:'pending',created_at:now.toISOString()}); added++; }
   return {month,added};
 }
-module.exports={NAME_MATCH_THRESHOLD,TAMPER_THRESHOLD,PHASH_HAMMING_THRESHOLD,LAYOUT_THRESHOLD,normalizeText,levenshtein,similarity,extractNameCandidate,analyzeNameMatch,hammingDistance,dctHash,elaFromRaw,layoutAnomalyFromRaw,encodeBmp,analyzeImage,runOcr,processCertificate,failAnalysis,enqueueCertificateAnalysis,processQueueBatch,monthlyAuditSelected,seedMonthlyManualAudits};
+module.exports={NAME_MATCH_THRESHOLD,TAMPER_THRESHOLD,PHASH_HAMMING_THRESHOLD,LAYOUT_THRESHOLD,normalizeText,levenshtein,similarity,extractNameCandidate,analyzeNameMatch,hammingDistance,dctHash,elaFromRaw,layoutAnomalyFromRaw,encodeBmp,analyzeImage,runOcr,readEvidence,processCertificate,failAnalysis,enqueueCertificateAnalysis,enqueuePendingCertificates,processQueueBatch,monthlyAuditSelected,seedMonthlyManualAudits};
