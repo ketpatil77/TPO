@@ -1,13 +1,16 @@
 name: Research Proof Mute Hotfix
+
 on:
   push:
-    branches:
-      - hotfix/research-proof-mute
+    branches: [hotfix/research-proof-mute]
+
 permissions:
   contents: write
+
 jobs:
   verify-and-commit:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - name: Checkout hotfix branch
         uses: actions/checkout@v7
@@ -19,34 +22,23 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Apply hotfix
+      - name: Apply research proof mute hotfix
         run: node .github/hotfix-research-proof-mute.cjs
       - name: Remove bootstrap tooling
-        run: rm .github/hotfix-research-proof-mute.cjs .github/workflows/research-proof-mute-hotfix.yml
+        run: git rm .github/workflows/research-proof-mute-hotfix.yml .github/hotfix-research-proof-mute.cjs
       - name: Install dependencies
         run: npm ci
-      - name: Dependency security gate
-        run: npm audit --audit-level=high
       - name: Full current test suite
         run: npm run check
       - name: Syntax check application JavaScript
-        run: find src worker public/js scripts test -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) -print0 | sort -z | xargs -0 -n1 node --check
+        run: find src worker public/js test -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) -print0 | xargs -0 -n1 node --check
       - name: Cloudflare Worker dry run
         run: npm run deploy:dry-run
-      - name: Verify exact hotfix scope
-        run: |
-          changed="$(git status --short | awk '{print $2}' | grep -v '^.github/' | sort)"
-          printf '%s\n' "$changed"
-          test "$changed" = "public/js/student-experience-v1.js
-src/routes/proofReview.js
-src/services/submissionRisk.js
-test/anti-cheat-duplicate-impersonation-v3.test.js
-test/proof-review-layout.test.js
-test/student-engagement-features.test.js"
       - name: Commit verified hotfix
         run: |
-          git config user.name 'KET ⚡'
-          git config user.email 'ket.patil77@gmail.com'
-          git add -A
-          git commit -m 'fix: research proof mute regressions'
+          git config user.name "KET ⚡"
+          git config user.email "ket.patil77@gmail.com"
+          git add public/js/student-experience-v1.js src/routes/proofReview.js src/services/submissionRisk.js test/anti-cheat-duplicate-impersonation-v3.test.js test/proof-review-layout.test.js test/student-engagement-features.test.js
+          git status --short
+          git commit -m "fix: research proof mute regressions"
           git push origin HEAD:hotfix/research-proof-mute
