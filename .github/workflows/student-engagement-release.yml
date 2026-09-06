@@ -7,11 +7,10 @@ on:
 permissions:
   contents: write
 
-timeout-minutes: 35
-
 jobs:
   verify-and-commit:
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - name: Checkout feature branch
         uses: actions/checkout@v7
