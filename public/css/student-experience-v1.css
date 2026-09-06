@@ -29,9 +29,7 @@
 .student-avatar.rank-frame-triple,
 .candidate-rank-avatar.rank-frame-triple { border-color: transparent; }
 .student-avatar.rank-frame-triple::before,
-.candidate-rank-avatar.rank-frame-triple::before { content:""; position:absolute; inset:-4px; z-index:-1; border-radius:inherit; background: conic-gradient(from 0turn, var(--experience-gold), var(--accent), var(--experience-gold)); animation: rank-frame-shimmer 2.4s linear infinite; }
-.student-avatar.rank-frame-triple::after,
-.candidate-rank-avatar.rank-frame-triple::after { content:""; position:absolute; inset:-1px; z-index:-1; border-radius:inherit; background:var(--bg-card); }
+.candidate-rank-avatar.rank-frame-triple::before { content:""; position:absolute; inset:0; z-index:4; padding:3px; border-radius:inherit; pointer-events:none; background:conic-gradient(from 0turn, var(--experience-gold), var(--accent), var(--experience-gold)); -webkit-mask:linear-gradient(var(--text-heading) 0 0) content-box,linear-gradient(var(--text-heading) 0 0); -webkit-mask-composite:xor; mask-composite:exclude; animation:rank-frame-shimmer 2.4s linear infinite; }
 @keyframes rank-frame-shimmer { to { transform: rotate(1turn); } }
 
 .student-avatar[data-rank-reveal] { cursor:pointer; min-width:44px; min-height:44px; overflow:hidden; }
@@ -47,7 +45,10 @@
 .experience-mute-toggle { min-width:44px; min-height:44px; display:inline-grid; place-items:center; border:1px solid var(--border-color); border-radius:var(--radius-md); background:var(--bg-card); color:var(--text-body); cursor:pointer; transition:background var(--experience-transition), border-color var(--experience-transition); }
 .experience-mute-toggle svg { width:20px; height:20px; }
 
-.since-last-card { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-md); align-items:start; margin-bottom:var(--space-md); border-left:4px solid var(--experience-accent); }
+.since-last-card { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-md); align-items:start; margin-bottom:var(--space-md); padding:var(--space-lg); border-left:4px solid var(--experience-accent); }
+.since-last-card.is-quiet { display:block; padding:var(--space-md) var(--space-lg); }
+.since-last-summary h3 { margin:.1rem 0 .2rem; font-size:1rem; }
+.since-last-summary p { font-size:.8rem; }
 .since-last-card h3 { margin:.15rem 0 .35rem; }
 .since-last-card p { margin:0; color:var(--text-muted); }
 .since-last-grid { grid-column:1/-1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-sm); }
@@ -82,13 +83,18 @@
 @keyframes login-ambient-drift { from { transform:translate3d(0,6px,0); } to { transform:translate3d(12px,-10px,0); } }
 
 @media (max-width:768px) {
-  .since-last-card { grid-template-columns:1fr; }
-  .since-last-grid { grid-template-columns:1fr; }
+  .since-last-card { grid-template-columns:1fr; padding:var(--space-md); }
+  .since-last-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .since-last-item { padding:var(--space-sm); }
+  .since-last-item strong { font-size:1rem; }
+  .since-last-item span { font-size:.68rem; line-height:1.25; }
   .candidate-profile-hero.has-rank-avatar { grid-template-columns:auto minmax(0,1fr); }
   .candidate-profile-hero.has-rank-avatar .candidate-profile-actions { grid-column:1/-1; }
 }
 @media (max-width:414px) {
-  .since-last-card { padding:var(--space-md); }
+  .student-meta { align-items:flex-start; }
+  .student-avatar { flex:0 0 64px; }
+  .experience-greeting { font-size:.78rem; line-height:1.35; }
   .candidate-rank-avatar { width:64px; height:64px; }
 }
 @media (prefers-reduced-motion:reduce) {
