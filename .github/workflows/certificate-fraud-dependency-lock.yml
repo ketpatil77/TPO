@@ -29,6 +29,14 @@ jobs:
         run: npm ci
       - name: Run full test suite
         run: npm run check
+      - name: Pack tested workspace
+        run: tar --exclude=.git --exclude='data/db*.json' -czf /tmp/certificate-fraud-workspace.tgz .
+      - name: Upload tested workspace
+        uses: actions/upload-artifact@v6
+        with:
+          name: certificate-fraud-workspace
+          path: /tmp/certificate-fraud-workspace.tgz
+          if-no-files-found: error
       - name: Upload generated manifests
         uses: actions/upload-artifact@v6
         with:
