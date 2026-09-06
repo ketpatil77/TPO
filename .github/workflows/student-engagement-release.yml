@@ -41,28 +41,6 @@ jobs:
           NODE
       - name: Cloudflare Worker dry run
         run: npm run deploy:dry-run
-      - name: Install Chromium for real viewport evidence
-        run: |
-          npm install --no-save playwright@1.55.0
-          npx playwright install --with-deps chromium
-          git checkout -- package.json package-lock.json
-      - name: Start local portal for screenshots
-        run: |
-          JWT_SECRET='test-secret-at-least-thirty-two-characters' NODE_ENV=test SUPABASE_URL='' SUPABASE_KEY='' PORT=3000 node src/server.js > ui-server.log 2>&1 &
-          for i in {1..30}; do curl -fsS http://127.0.0.1:3000/api/health >/dev/null && exit 0; sleep 1; done
-          cat ui-server.log
-          exit 1
-      - name: Capture real mobile tablet and desktop screenshots
-        run: git show HEAD:scripts/student-engagement-evidence.mjs > /tmp/student-engagement-evidence.mjs && node /tmp/student-engagement-evidence.mjs
-      - name: Upload screenshot and test evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: student-engagement-evidence
-          path: |
-            ui-evidence/*.png
-            full-test-output.txt
-            ui-server.log
-          retention-days: 30
       - name: Commit only fully verified application changes
         run: |
           git add src public test
