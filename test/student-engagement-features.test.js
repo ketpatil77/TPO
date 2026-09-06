@@ -35,6 +35,8 @@ test('engagement UI covers all requested interactions without list/table frame r
   assert.match(js,/friendly-empty/); assert.match(js,/rank-photo-reveal/); assert.match(js,/login-ambient/);
   assert.doesNotMatch(js,/querySelectorAll\([^\n]*table[^\n]*rank-frame/i);
   assert.match(candidate,/decorateCandidateProfile/);
+  assert.match(js,/typeof window\.loadStudentAvatar === 'function'/);
+  assert.match(js,/Nothing new since your last visit/);
 });
 
 test('engagement CSS uses tokens, touch targets, reduced motion and bounded transitions',()=>{
@@ -44,6 +46,10 @@ test('engagement CSS uses tokens, touch targets, reduced motion and bounded tran
   assert.match(css,/240ms/); assert.doesNotMatch(css,/transition[^;]*(?:[5-9]\d\d|\d{4,})ms/);
   assert.match(css,/focus-visible/);
   assert.match(css,/rank-frame-triple/);
+  assert.match(css,/-webkit-mask-composite:xor/);
+  assert.doesNotMatch(css,/rank-frame-triple::after/);
+  assert.match(css,/since-last-card\.is-quiet/);
+  assert.match(css,/since-last-grid \{ grid-template-columns:repeat\(3/);
 });
 
 test('versioned engagement assets load on login, student, TPO and TPC pages',()=>{

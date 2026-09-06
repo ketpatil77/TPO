@@ -92,6 +92,9 @@
     const avatar = document.getElementById('studentAvatar');
     if (!avatar) return;
     applyFrame(avatar, context);
+    // The rank frame shares the avatar element with the signed background image.
+    // Re-run the existing loader after decorating so mobile Chromium never leaves the blank fallback painted.
+    if (typeof window.loadStudentAvatar === 'function') window.loadStudentAvatar();
     avatar.dataset.rankReveal = 'true';
     avatar.tabIndex = 0;
     avatar.setAttribute('role', 'button');
@@ -168,7 +171,13 @@
     let card = document.getElementById('sinceLastVisitCard');
     if (!card) { card = document.createElement('section'); card.id = 'sinceLastVisitCard'; card.className = 'glass-card since-last-card'; overview.prepend(card); }
     const visitedLabel = lastVisit ? `Since ${lastVisit.toLocaleString(undefined,{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}` : 'First visit snapshot';
-    card.innerHTML = `<div><span class="eyebrow">Since you last visited</span><h3>${lastVisit ? 'Here is what changed' : 'Your baseline is ready'}</h3><p>${esc(visitedLabel)}</p></div><div class="readiness-chip">Live snapshot</div><div class="since-last-grid"><div class="since-last-item"><strong>${newMatches}</strong><span>new placement/JD updates</span></div><div class="since-last-item"><strong>${movement === 0 ? '—' : movement > 0 ? `↑ ${movement}` : `↓ ${Math.abs(movement)}`}</strong><span>rank movement</span></div><div class="since-last-item"><strong>${verificationChanges}</strong><span>verification changes</span></div></div>`;
+    const hasChanges = newMatches > 0 || movement !== 0 || verificationChanges > 0;
+    card.classList.toggle('is-quiet', !hasChanges);
+    if (!hasChanges) {
+      card.innerHTML = `<div class="since-last-summary"><span class="eyebrow">Since you last visited</span><h3>Nothing new since your last visit</h3><p>${esc(visitedLabel)} · Your placement, rank and verification snapshot is unchanged.</p></div>`;
+    } else {
+      card.innerHTML = `<div><span class="eyebrow">Since you last visited</span><h3>Here is what changed</h3><p>${esc(visitedLabel)}</p></div><div class="readiness-chip">Live snapshot</div><div class="since-last-grid"><div class="since-last-item"><strong>${newMatches}</strong><span>new placement/JD updates</span></div><div class="since-last-item"><strong>${movement === 0 ? '—' : movement > 0 ? `↑ ${movement}` : `↓ ${Math.abs(movement)}`}</strong><span>rank movement</span></div><div class="since-last-item"><strong>${verificationChanges}</strong><span>verification changes</span></div></div>`;
+    }
     localStorage.setItem(storageKey('verification-snapshot', studentId), JSON.stringify(nextStatuses));
     localStorage.setItem(storageKey('last-visit', studentId), new Date().toISOString());
   }
