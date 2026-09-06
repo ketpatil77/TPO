@@ -32,6 +32,8 @@
 .candidate-rank-avatar.rank-frame-triple::before { content:""; position:absolute; inset:0; z-index:4; padding:3px; border-radius:inherit; pointer-events:none; background:conic-gradient(from 0turn, var(--experience-gold), var(--accent), var(--experience-gold)); -webkit-mask:linear-gradient(var(--text-heading) 0 0) content-box,linear-gradient(var(--text-heading) 0 0); -webkit-mask-composite:xor; mask-composite:exclude; animation:rank-frame-shimmer 2.4s linear infinite; }
 @keyframes rank-frame-shimmer { to { transform: rotate(1turn); } }
 
+.student-avatar-initial { position:relative; z-index:1; }
+.student-avatar.has-image .student-avatar-initial { opacity:0; }
 .student-avatar[data-rank-reveal] { cursor:pointer; min-width:44px; min-height:44px; overflow:hidden; }
 .student-avatar .rank-photo-reveal { position:absolute; inset:auto 0 0; z-index:3; padding:var(--space-xs) var(--space-sm); background:color-mix(in srgb,var(--primary) 88%,transparent); color:var(--text-heading); font-size:.7rem; font-weight:700; line-height:1.25; opacity:0; transform:translateY(100%); transition:opacity var(--experience-transition), transform var(--experience-transition); pointer-events:none; }
 .student-avatar:hover .rank-photo-reveal,
@@ -106,3 +108,11 @@
   .student-dashboard-page .header-banner,
   .experience-mute-toggle { transition:none; }
 }
+
+/* Explicit scoring-rules control avoids native <details> interaction regressions on mobile. */
+.ranking-rules-toggle { width:100%; min-height:44px; display:flex; align-items:center; justify-content:space-between; gap:var(--space-sm); padding:var(--space-md); border:0; background:transparent; color:var(--text-heading); font:inherit; font-weight:700; text-align:left; cursor:pointer; }
+.ranking-rules-toggle::after { content:'+'; color:var(--primary); font-size:1.35rem; line-height:1; }
+.ranking-rules-toggle[aria-expanded='true']::after { content:'−'; }
+.ranking-rules-toggle:focus-visible { outline:3px solid var(--primary); outline-offset:-3px; }
+.ranking-rules-panel { padding:0 var(--space-md) var(--space-md); }
+.ranking-rules-panel[hidden] { display:none !important; }

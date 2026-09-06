@@ -240,23 +240,49 @@
     return json.data;
   }
 
-  async function bootStudent() {
-    renderMuteToggle();
-    wrapSuccessToasts();
-    wrapFetchFeedback();
-    try {
-      const [profile, context, competitions, notifications] = await Promise.all([
-        api('/api/student/profile'), api('/api/student/engagement/context'), api('/api/student/competitions').catch(() => []), api('/api/student/workflow/notifications').catch(() => [])
-      ]);
-      currentContext = context;
+  let refreshPromise = null;
+  async function refreshStudentExperience(profile = null) {
+    if (refreshPromise) return refreshPromise;
+    refreshPromise = (async () => {
+      try {
+        profile ||= await api('/api/student/profile');
+      } catch (error) {
+        console.warn('Student experience profile unavailable:', error.message);
+        return;
+      }
       currentCompletion = completionModel(profile);
       document.body.dataset.profileMood = mood(currentCompletion);
       installGreeting(profile);
-      installStudentAvatar(profile, context, currentCompletion);
       installEmptyStates(profile);
-      installSinceLast(profile, context, competitions, notifications);
-      milestoneCheck(context);
-    } catch (error) { console.warn('Student experience enhancements unavailable:', error.message); }
+
+      // Rank decoration is optional, never a single point of failure for the rest of the dashboard.
+      // Retry once because this request competes with initial profile/avatar requests on mobile.
+      let context = null;
+      try { context = await api('/api/student/engagement/context'); }
+      catch (_) { try { await new Promise(resolve => setTimeout(resolve, 180)); context = await api('/api/student/engagement/context'); } catch (error) { console.warn('Rank frame data unavailable:', error.message); } }
+      if (context) {
+        currentContext = context;
+        installStudentAvatar(profile, context, currentCompletion);
+        milestoneCheck(context);
+      } else {
+        installStudentAvatar(profile, null, currentCompletion);
+      }
+
+      const [competitionsResult, notificationsResult] = await Promise.allSettled([
+        api('/api/student/competitions'), api('/api/student/workflow/notifications')
+      ]);
+      installSinceLast(profile, context || currentContext, competitionsResult.status === 'fulfilled' ? competitionsResult.value : [], notificationsResult.status === 'fulfilled' ? notificationsResult.value : []);
+    })().finally(() => { refreshPromise = null; });
+    return refreshPromise;
+  }
+
+  function bootStudent() {
+    renderMuteToggle();
+    wrapSuccessToasts();
+    wrapFetchFeedback();
+    // dashboard.js owns the authoritative profile fetch and calls refreshStudentExperience(data).
+    // A delayed fallback keeps enhancements available if that base render path ever fails to call us.
+    setTimeout(() => { if (!currentCompletion) refreshStudentExperience(); }, 1200);
   }
 
   function initials(name) { return String(name || 'Student').split(/\s+/).filter(Boolean).slice(0,2).map(part => part[0]).join('').toUpperCase(); }
@@ -314,6 +340,7 @@
     if (document.body.classList.contains('student-dashboard-page')) bootStudent();
   }
 
-  window.PortalStudentExperience = { applyFrame, decorateCandidateProfile, feedback, installLoginAmbient };
+  window.PortalStudentExperience = { applyFrame, decorateCandidateProfile, feedback, installLoginAmbient, refreshStudentExperience };
+  document.dispatchEvent(new CustomEvent('portal:student-experience-ready'));
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once:true }); else boot();
 })();

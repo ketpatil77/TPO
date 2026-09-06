@@ -56,5 +56,28 @@ test('engagement CSS uses tokens, touch targets, reduced motion and bounded tran
 });
 
 test('versioned engagement assets load on login, student, TPO and TPC pages',()=>{
-  for(const page of pages){ assert.match(page,/student-experience-v1\.css\?v=20260906-engagement1/); assert.match(page,/student-experience-v1\.js\?v=20260906-engagement1/); }
+  for(const page of pages){ assert.match(page,/student-experience-v1\.css\?v=20260906-engagement2/); assert.match(page,/student-experience-v1\.js\?v=20260906-engagement2/); }
+});
+
+
+test('engagement audit keeps avatar overlay stable and rank failure non-fatal', () => {
+  const dashboard = fs.readFileSync(path.join(__dirname,'../public/dashboard.html'),'utf8');
+  const dashboardJs = fs.readFileSync(path.join(__dirname,'../public/js/dashboard.js'),'utf8');
+  const experience = fs.readFileSync(path.join(__dirname,'../public/js/student-experience-v1.js'),'utf8');
+  assert.match(dashboard,/student-avatar-initial/);
+  assert.doesNotMatch(dashboardJs,/getElementById\('studentAvatar'\)\.innerText/);
+  assert.match(dashboardJs,/refreshStudentExperience/);
+  assert.match(experience,/async function refreshStudentExperience/);
+  assert.match(experience,/Rank frame data unavailable/);
+  assert.match(experience,/Promise\.allSettled/);
+  assert.match(experience,/if \(refreshPromise\) return refreshPromise/);
+  assert.doesNotMatch(experience,/const \[profile, context, competitions, notifications\] = await Promise\.all/);
+});
+
+test('profile point rules use explicit mobile-safe button disclosure', () => {
+  const ranking = fs.readFileSync(path.join(__dirname,'../public/js/profile-ranking.js'),'utf8');
+  assert.match(ranking,/id=\"rankingRulesToggle\"/);
+  assert.match(ranking,/aria-controls=\"rankingRules\"/);
+  assert.match(ranking,/rulesPanel\.hidden = !open/);
+  assert.doesNotMatch(ranking,/<details class=\"glass-card ranking-rules\">/);
 });

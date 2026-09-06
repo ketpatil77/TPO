@@ -82,7 +82,7 @@
         </section>
 
         <div id="rankingPersonalBar" class="glass-card leaderboard-personal-bar" hidden></div>
-        <details class="glass-card ranking-rules"><summary>How Profile Points work</summary><div id="rankingRules"></div></details>
+        <section class="glass-card ranking-rules"><button id="rankingRulesToggle" class="ranking-rules-toggle" type="button" aria-expanded="false" aria-controls="rankingRules">How Profile Points work</button><div id="rankingRules" class="ranking-rules-panel" hidden></div></section>
       </div>`;
     dashboard.appendChild(panel);
 
@@ -91,6 +91,13 @@
     document.getElementById('rankingYear').addEventListener('change', filterChanged);
     document.getElementById('rankingRefresh').addEventListener('click', () => ensureSnapshot(true));
     document.getElementById('rankingShowMore').addEventListener('click', () => { visibleCount += PAGE_SIZE; renderFiltered(false); });
+    const rulesToggle = document.getElementById('rankingRulesToggle');
+    const rulesPanel = document.getElementById('rankingRules');
+    rulesToggle.addEventListener('click', () => {
+      const open = rulesToggle.getAttribute('aria-expanded') !== 'true';
+      rulesToggle.setAttribute('aria-expanded', String(open));
+      rulesPanel.hidden = !open;
+    });
     panel.querySelectorAll('.leaderboard-scope').forEach(button => button.addEventListener('click', () => applyScope(button.dataset.scope)));
 
     installOverviewSpotlight();
