@@ -148,7 +148,7 @@
             loadScript('/js/student-directory-avatars.js?v=20260903-2', 'student-directory-avatars-js');
             loadScript('/js/candidate-profile-v2.js?v=20260901-2', 'candidate-profile-v2-js');
             loadScript('/js/competition-review.js?v=20260901-1', 'competition-review-module');
-            loadScript('/js/proof-review-ui.js?v=20260903-3', 'proof-review-ui-js');
+            loadScript('/js/proof-review-ui.js?v=20260907-cert-removal1', 'proof-review-ui-js');
         }
     });
 })();
