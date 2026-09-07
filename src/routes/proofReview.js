@@ -111,10 +111,10 @@ async function clearStudentCache() {
     } catch (_) {}
 }
 
-async function notifyVerifiedStudent({ entry, actorRole }) {
+async function notifyVerifiedStudent({ type, entry, actorRole }) {
     const reviewer = actorRole === 'tpc' ? 'TPC' : 'TPO';
-    const label = entryLabel('internship', entry);
-    const kind = 'Internship proof';
+    const label = entryLabel(type, entry);
+    const kind = type === 'certificate' ? 'Certificate proof' : 'Internship proof';
     try {
         const result = await createStudentNotification({
             student_id: entry.student_id,
@@ -250,7 +250,7 @@ function createRouter(role) {
                 changed_at: now
             });
             const notificationPromise = req.body.status === 'approved' && oldStatus !== 'approved'
-                ? notifyVerifiedStudent({ entry: persisted, actorRole })
+                ? notifyVerifiedStudent({ type, entry: persisted, actorRole })
                 : Promise.resolve(null);
 
             const [cacheResult, auditResult, notificationResult] = await Promise.allSettled([
