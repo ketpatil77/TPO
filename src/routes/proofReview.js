@@ -25,9 +25,7 @@ async function readR2Proof(path, env = globalThis.cloudflareEnv) {
 }
 
 function tableFor(type) {
-    if (type === 'internship') return 'internships';
-    if (type === 'certificate') return 'certificates';
-    return null;
+    return type === 'internship' ? 'internships' : null;
 }
 
 function normalizeStoredStatus(_type, status) {
@@ -40,9 +38,8 @@ function statusForDatabase(_type, status) {
     return status;
 }
 
-function entryLabel(type, entry) {
-    if (type === 'internship') return `${entry.company || 'Internship'}${entry.role ? ` - ${entry.role}` : ''}`;
-    return entry.name || 'Certificate';
+function entryLabel(_type, entry) {
+    return `${entry.company || 'Internship'}${entry.role ? ` - ${entry.role}` : ''}`;
 }
 
 function proofRedirectHtml(signedUrl) {
@@ -56,30 +53,29 @@ async function studentForId(studentId) {
 }
 
 async function pendingRows({ branch = null } = {}) {
-    const [internships, certificates, students] = await Promise.all([
-        db.select('internships'), db.select('certificates'), db.select('students')
+    const [internships, students] = await Promise.all([
+        db.select('internships'), db.select('students')
     ]);
     const byId = new Map(students.map(student => [student.id, student]));
-    const build = (type, rows) => rows
-        .filter(entry => entry.evidence_path && normalizeStoredStatus(type, entry.verification_status) === 'pending')
+    return (internships || [])
+        .filter(entry => entry.evidence_path && normalizeStoredStatus('internship', entry.verification_status) === 'pending')
         .map(entry => {
             const student = byId.get(entry.student_id);
             return {
-                type,
+                type: 'internship',
                 id: entry.id,
                 student_id: entry.student_id,
                 student_prn: student?.prn || '',
                 student_name: student?.name || '',
                 branch: student?.branch || '',
                 class: student?.class || '',
-                entry_name: type === 'internship' ? `${entry.company}${entry.role ? ` - ${entry.role}` : ''}` : entry.name,
-                details: type === 'internship' ? entry.company : entry.issuer,
+                entry_name: `${entry.company}${entry.role ? ` - ${entry.role}` : ''}`,
+                details: entry.company,
                 evidence_uploaded_at: entry.evidence_uploaded_at || null,
                 verification_status: 'pending'
             };
         })
-        .filter(row => !branch || row.branch === branch);
-    return [...build('internship', internships || []), ...build('certificate', certificates || [])]
+        .filter(row => !branch || row.branch === branch)
         .sort((a, b) => String(a.evidence_uploaded_at || '').localeCompare(String(b.evidence_uploaded_at || '')));
 }
 
@@ -90,10 +86,10 @@ async function clearStudentCache() {
     } catch (_) {}
 }
 
-async function notifyVerifiedStudent({ type, entry, actorRole }) {
+async function notifyVerifiedStudent({ entry, actorRole }) {
     const reviewer = actorRole === 'tpc' ? 'TPC' : 'TPO';
-    const label = entryLabel(type, entry);
-    const kind = type === 'internship' ? 'Internship proof' : 'Certificate';
+    const label = entryLabel('internship', entry);
+    const kind = 'Internship proof';
     try {
         const result = await createStudentNotification({
             student_id: entry.student_id,
@@ -117,9 +113,12 @@ function createRouter(role) {
 
     router.get('/pending', async (req, res) => {
         try {
+            const requestedType = String(req.query.type || 'all').toLowerCase();
+            if (!['all', 'internship'].includes(requestedType)) {
+                return res.status(400).json({ success: false, error: { code: 'INVALID_TYPE', message: 'Only internship proofs can be reviewed.' } });
+            }
             const branch = isObserver ? req.observer.department : (req.query.branch && req.query.branch !== 'all' ? String(req.query.branch).toUpperCase() : null);
-            let rows = await pendingRows({ branch });
-            if (req.query.type === 'internship' || req.query.type === 'certificate') rows = rows.filter(row => row.type === req.query.type);
+            const rows = await pendingRows({ branch });
             res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
             res.setHeader('Pragma', 'no-cache');
             return res.json({ success: true, data: rows, scope: { role, branch: branch || 'all' } });
@@ -131,7 +130,7 @@ function createRouter(role) {
 
     router.get('/:type/:id/proof', async (req, res) => {
         const table = tableFor(req.params.type);
-        if (!table) return res.status(400).json({ success: false, error: { code: 'INVALID_TYPE', message: 'Invalid proof type.' } });
+        if (!table) return res.status(400).json({ success: false, error: { code: 'INVALID_TYPE', message: 'Only internship proofs can be reviewed.' } });
         const evidenceStorage = storage();
         const entry = await db.selectOne(table, { id: req.params.id });
         if (!entry?.evidence_path) return res.status(404).json({ success: false, error: { code: 'NO_EVIDENCE', message: 'No proof uploaded.' } });
@@ -140,7 +139,6 @@ function createRouter(role) {
             if (student?.branch !== req.observer.department) return res.status(403).json({ success: false, error: { code: 'OUT_OF_SCOPE', message: 'This entry belongs to another department.' } });
         }
 
-        // Current certificate uploads live in R2. Read R2 first, then fall back to legacy Supabase Storage.
         try {
             const r2Proof = await readR2Proof(entry.evidence_path);
             if (r2Proof) {
@@ -155,9 +153,6 @@ function createRouter(role) {
 
         if (!evidenceStorage) return res.status(503).json({ success: false, error: { code: 'VAULT_NOT_CONFIGURED', message: 'Proof storage is not configured.' } });
 
-        // Fast path: authorize here, then let the browser fetch the private object directly
-        // from Supabase's storage edge. This avoids downloading the complete proof into the
-        // Worker, buffering it, sending it again, and waiting for response.blob() in the UI.
         if (typeof evidenceStorage.createSignedUrl === 'function') {
             try {
                 const { data: signedData, error: signedError } = await evidenceStorage.createSignedUrl(entry.evidence_path, 120);
@@ -174,7 +169,6 @@ function createRouter(role) {
             }
         }
 
-        // Compatibility fallback if signed URLs are temporarily unavailable.
         const { data, error } = await evidenceStorage.download(entry.evidence_path);
         if (error || !data) return res.status(404).json({ success: false, error: { code: 'EVIDENCE_MISSING', message: 'Proof file is unavailable.' } });
         const bytes = Buffer.from(await data.arrayBuffer());
@@ -190,7 +184,7 @@ function createRouter(role) {
         try {
             const type = req.params.type;
             const table = tableFor(type);
-            if (!table) return res.status(400).json({ success: false, error: { code: 'INVALID_TYPE', message: 'Invalid proof type.' } });
+            if (!table) return res.status(400).json({ success: false, error: { code: 'INVALID_TYPE', message: 'Only internship proofs can be reviewed.' } });
             const entry = await db.selectOne(table, { id: req.params.id });
             if (!entry) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Entry not found.' } });
             if (!entry.evidence_path && req.body.status === 'approved') return res.status(400).json({ success: false, error: { code: 'PROOF_REQUIRED', message: 'Proof must be attached before approval.' } });
@@ -231,7 +225,7 @@ function createRouter(role) {
                 changed_at: now
             });
             const notificationPromise = req.body.status === 'approved' && oldStatus !== 'approved'
-                ? notifyVerifiedStudent({ type, entry: persisted, actorRole })
+                ? notifyVerifiedStudent({ entry: persisted, actorRole })
                 : Promise.resolve(null);
 
             const [cacheResult, auditResult, notificationResult] = await Promise.allSettled([
@@ -249,7 +243,7 @@ function createRouter(role) {
                 success: true,
                 data: { ...persisted, verification_status: persistedStatus },
                 notification_delivery: notificationDelivery,
-                message: `${type === 'internship' ? 'Internship' : 'Certificate'} ${req.body.status}.`
+                message: `Internship ${req.body.status}.`
             });
         } catch (error) {
             console.error('Proof review update failed:', error.message);
