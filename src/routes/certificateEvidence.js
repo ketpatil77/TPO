@@ -126,6 +126,7 @@ router.post('/certificate-evidence/:id', acceptEvidence, async (req, res) => {
                 verification_note: null,
                 verified_at: null,
                 verified_by: null,
+                verified_role: null
             });
         } catch (error) {
             await removeObject(objectPath).catch(() => {});
@@ -180,6 +181,7 @@ router.delete('/certificate-evidence/:id', async (req, res) => {
             verification_note: null,
             verified_at: null,
             verified_by: null,
+            verified_role: null
         });
         if (oldPath) await removeObject(oldPath).catch(() => {});
         await clearStudentCache();

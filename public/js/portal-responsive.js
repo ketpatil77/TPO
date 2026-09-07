@@ -135,6 +135,7 @@
 
         if (document.body.classList.contains('admin-dashboard-page')) {
             loadScript('/js/calendar-polish.js?v=20260901-1', 'calendar-polish');
+            loadStylesheet('/css/tpo-student-table.css?v=20260907-table1', 'tpo-student-table');
         }
         if (document.body.classList.contains('observer-shell')) {
             loadStylesheet('/css/tpc-layout-v2.css?v=20260902-4', 'tpc-layout-v2');

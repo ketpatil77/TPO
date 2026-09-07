@@ -127,6 +127,19 @@ test('TPO can approve and reject uploaded internship proofs', async () => {
     assert.equal(response.body.data.verification_status, 'rejected');
 });
 
+test('TPO can approve uploaded certificate proof', async () => {
+    const studentId = `certificate-proof-tpo-student-${Date.now()}`;
+    const adminId = `certificate-proof-admin-${Date.now()}`;
+    await db.insert('students', { id: studentId, prn: `CP-${Date.now()}`, name: 'Certificate Review Student', branch: 'EE' });
+    const entry = await db.insert('certificates', { student_id: studentId, name: 'Verified Certificate', issuer: 'Issuer', date: '2026-01-01', mode: 'online', evidence_path: 'certificates/verify.jpg', verification_status: 'pending' });
+    const response = await request(app)
+        .post(`/api/admin/proof-review/certificate/${entry.id}/review`)
+        .set(writeHeaders(token('admin', { adminId })))
+        .send({ status: 'approved', note: 'Readable proof' })
+        .expect(200);
+    assert.equal(response.body.data.verification_status, 'approved');
+});
+
 test('TPC can approve/reject only own department entries', async () => {
     const observerId = `proof-tpc-${Date.now()}`;
     const ctStudent = `proof-ct-${Date.now()}`;
