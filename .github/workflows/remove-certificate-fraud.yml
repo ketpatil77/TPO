@@ -1,15 +1,14 @@
 name: Remove certificate fraud subsystem
 on:
+  push:
+    branches: [hotfix/remove-certificate-fraud]
   pull_request:
     branches: [master]
     types: [opened, synchronize, reopened]
-  push:
-    branches: [hotfix/remove-certificate-fraud]
 permissions:
   contents: write
 jobs:
   remove:
-    if: github.event_name == 'pull_request' || github.ref_name == 'hotfix/remove-certificate-fraud'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -32,7 +31,7 @@ jobs:
         run: npm test
       - name: Syntax check all application JavaScript
         run: find src worker public/js scripts test -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) -print0 | sort -z | xargs -0 -n1 node --check
-      - name: Assert fraud runtime is gone
+      - name: Assert certificate fraud runtime is gone
         shell: bash
         run: |
           set -euo pipefail
