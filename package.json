@@ -16,7 +16,6 @@
     "deploy:dry-run": "npx wrangler deploy --dry-run"
   },
   "dependencies": {
-    "@cf-wasm/photon": "0.4.0",
     "@supabase/supabase-js": "^2.48.0",
     "chart.js": "^4.5.1",
     "cookie-parser": "^1.4.7",
