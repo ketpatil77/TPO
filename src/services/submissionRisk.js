@@ -1,6 +1,7 @@
 'use strict';
 
 const JUNK = new Set(['test','testing','abc','abcd','asdf','none','na','n/a','nil','sample','demo','project','research','paper','certificate','internship','hello','hi','xyz','123']);
+const TRACKING_QUERY_KEYS = new Set(['gclid','fbclid','msclkid']);
 
 function text(value) { return String(value || '').trim(); }
 function tokens(value) { return text(value).toLowerCase().split(/[^a-z0-9+#.]+/).filter(Boolean); }
@@ -9,8 +10,14 @@ function normalizedUrl(value) {
   try {
     const url = new URL(text(value));
     url.hash = '';
-    url.search = '';
-    return `${url.protocol}//${url.hostname.toLowerCase()}${url.pathname.replace(/\/+$/,'')}`.toLowerCase();
+    for (const key of [...url.searchParams.keys()]) {
+      const lower = key.toLowerCase();
+      if (/^utm_/i.test(key) || TRACKING_QUERY_KEYS.has(lower)) url.searchParams.delete(key);
+    }
+    url.searchParams.sort();
+    const pathname = url.pathname.replace(/\/+$/,'');
+    const query = url.searchParams.toString();
+    return `${url.protocol}//${url.hostname.toLowerCase()}${pathname}${query ? `?${query}` : ''}`.toLowerCase();
   } catch (_) { return ''; }
 }
 function isJunk(value) {
@@ -66,6 +73,8 @@ function evidenceFingerprints(type,item = {}) {
   } else if (type === 'research') {
     // Journal homepages are shared by many legitimate papers and are not unique evidence.
     // Treat only paper-specific paths (or a real doi.org DOI) as duplicate evidence.
+    // Some journals identify a paper in the query string (for example ?paper=IJVRA2603948),
+    // so normalizedUrl must preserve identity-bearing query parameters.
     for (const value of [item.doi_url, item.paper_url]) {
       const raw = text(value);
       const normalized = normalizedUrl(raw);
