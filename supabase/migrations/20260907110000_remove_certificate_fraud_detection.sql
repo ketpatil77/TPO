@@ -3,7 +3,7 @@ returns trigger
 language plpgsql
 as $fn$
 begin
-  if (to_jsonb(new) - array['verification_status','verified_by','verified_role','verified_at','verification_note']) is distinct from (to_jsonb(old) - array['verification_status','verified_by','verified_role','verified_at','verification_note']) then
+  if (to_jsonb(new) - array['verification_status','verified_by','verified_role','verified_at','verification_note','updated_at']) is distinct from (to_jsonb(old) - array['verification_status','verified_by','verified_role','verified_at','verification_note','updated_at']) then
     new.verification_status := 'pending';
     new.verified_by := null;
     new.verified_role := null;
