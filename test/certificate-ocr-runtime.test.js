@@ -5,6 +5,11 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fraud = require('../src/services/certificateFraudDetection');
 
+test('issuer omission of middle name matches first and last names but not surname alone', () => {
+  assert.equal(fraud.analyzeNameMatch('Ketan Patil','Ketan Vilas Patil').flagged,false);
+  assert.equal(fraud.analyzeNameMatch('Vikas Patil','Ketan Vilas Patil').flagged,true);
+});
+
 test('production OCR uses AI binding without browser Worker or supplied recognizer', async () => {
   const old = globalThis.cloudflareEnv;
   let called = false;

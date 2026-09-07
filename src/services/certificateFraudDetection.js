@@ -54,6 +54,10 @@ function extractNameCandidate(ocrText, rosterName='') {
 }
 function analyzeNameMatch(ocrText, rosterName) {
   const best=extractNameCandidate(ocrText,rosterName);
+  const rosterTokens=normalizeText(rosterName).split(' ').filter(Boolean);
+  const candidateTokens=normalizeText(best.name).split(' ').filter(Boolean);
+  // Issuers often omit middle names. Require both first and last names, never one shared surname.
+  if(rosterTokens.length>=2 && candidateTokens.length===2 && candidateTokens[0]===rosterTokens[0] && candidateTokens[1]===rosterTokens[rosterTokens.length-1]) best.score=Math.max(best.score,90);
   return { ocr_extracted_name: best.name || null, name_match_score: best.score || 0, flagged: (best.score||0)<NAME_MATCH_THRESHOLD };
 }
 function hammingDistance(a,b) {
