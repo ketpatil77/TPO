@@ -13,10 +13,10 @@
         return String(value ?? '').replace(/[&<>\'\"]/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '\"':'&quot;' })[ch]);
     }
 
-    function keyFor(id) { return `internship:${String(id)}`; }
-    function rememberResolved(id) { recentlyResolved.set(keyFor(id), Date.now()); }
-    function isRecentlyResolved(id) {
-        const key = keyFor(id);
+    function keyFor(type, id) { return `${String(type)}:${String(id)}`; }
+    function rememberResolved(type, id) { recentlyResolved.set(keyFor(type, id), Date.now()); }
+    function isRecentlyResolved(type, id) {
+        const key = keyFor(type, id);
         const at = recentlyResolved.get(key);
         if (!at) return false;
         if (Date.now() - at > RESOLVED_GUARD_MS) { recentlyResolved.delete(key); return false; }
@@ -60,16 +60,16 @@
     }
 
     function sectionMarkup(showBranch) {
-        return `<div class="section-header proof-review-header"><div><span class="eyebrow">Evidence review</span><h2>Proof verification</h2><p class="section-note">Review uploaded internship proofs.</p></div><button type="button" class="btn btn-secondary btn-sm" data-proof-refresh>Refresh</button></div>
-        <div class="glass-card proof-review-panel"><div class="proof-review-toolbar"><div class="form-group"><label class="form-label">Type</label><select class="form-select" data-proof-type><option value="internship">Internships</option></select></div>${showBranch ? '<div class="form-group"><label class="form-label">Branch</label><select class="form-select" data-proof-branch><option value="all">All branches</option><option>AIML</option><option>CT</option><option>EE</option><option>ME</option><option>CE</option><option>E&amp;C</option></select></div>' : ''}<span class="proof-review-count" data-proof-count>0 pending</span></div><div class="proof-review-table-shell"><table class="proof-review-table"><thead><tr><th>Student</th><th>Branch</th><th>Type</th><th>Entry</th><th>Uploaded</th><th>Action</th></tr></thead><tbody data-proof-body><tr><td colspan="6" class="proof-review-empty">Loading pending proofs…</td></tr></tbody></table></div></div>`;
+        return `<div class="section-header proof-review-header"><div><span class="eyebrow">Evidence review</span><h2>Proof verification</h2><p class="section-note">Review uploaded internship &amp; certificate proofs.</p></div><button type="button" class="btn btn-secondary btn-sm" data-proof-refresh>Refresh</button></div>
+        <div class="glass-card proof-review-panel"><div class="proof-review-toolbar"><div class="form-group"><label class="form-label">Type</label><select class="form-select" data-proof-type><option value="all">All proofs</option><option value="internship">Internships</option><option value="certificate">Certificates</option></select></div>${showBranch ? '<div class="form-group"><label class="form-label">Branch</label><select class="form-select" data-proof-branch><option value="all">All branches</option><option>AIML</option><option>CT</option><option>EE</option><option>ME</option><option>CE</option><option>E&amp;C</option></select></div>' : ''}<span class="proof-review-count" data-proof-count>0 pending</span></div><div class="proof-review-table-shell"><table class="proof-review-table"><thead><tr><th>Student</th><th>Branch</th><th>Type</th><th>Entry</th><th>Uploaded</th><th>Action</th></tr></thead><tbody data-proof-body><tr><td colspan="6" class="proof-review-empty">Loading pending proofs…</td></tr></tbody></table></div></div>`;
     }
 
     function scopeRoot() { return document.getElementById(isAdmin ? 'tab-proof-review' : 'observerTab-proof-review'); }
     function updateCount() { const count = scopeRoot()?.querySelector('[data-proof-count]'); if (count) count.textContent = `${rows.length} pending`; }
 
-    function removeResolvedRow(id, action, rowElement) {
-        rememberResolved(id);
-        rows = rows.filter(row => String(row.id) !== String(id));
+    function removeResolvedRow(type, id, action, rowElement) {
+        rememberResolved(type, id);
+        rows = rows.filter(row => !(String(row.type) === String(type) && String(row.id) !== String(id)));
         updateCount();
         if (!rowElement) { renderRows(); return; }
         rowElement.classList.remove('is-resolving'); rowElement.classList.add(action === 'approved' ? 'is-approved' : 'is-rejected'); rowElement.setAttribute('aria-hidden', 'true');
@@ -79,7 +79,7 @@
     function showEmptyIfNeeded() {
         const body = scopeRoot()?.querySelector('[data-proof-body]');
         if (!body || rows.length || body.querySelector('[data-proof-row]')) return;
-        body.innerHTML = '<tr><td colspan="6" class="proof-review-empty">No pending uploaded internship proofs in this scope.</td></tr>';
+        body.innerHTML = '<tr><td colspan="6" class="proof-review-empty">No pending uploaded proofs in this scope.</td></tr>';
     }
 
     function writeProofLoadingPage(tab) {
@@ -91,11 +91,11 @@
         } catch (_) {}
     }
 
-    async function openProof(button, id) {
+    async function openProof(button, type, id) {
         const originalText = button.textContent; button.disabled = true; button.textContent = 'Opening…';
         const proofTab = window.open('about:blank', '_blank'); writeProofLoadingPage(proofTab);
         try {
-            const response = await fetch(`${apiBase}/internship/${encodeURIComponent(id)}/proof`, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
+            const response = await fetch(`${apiBase}/${encodeURIComponent(type)}/${encodeURIComponent(id)}/proof`, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
             if (!response.ok) {
                 let data = null; try { data = await response.json(); } catch (_) {}
                 throw new Error(data?.error?.message || 'Could not load proof.');
@@ -116,19 +116,19 @@
         root.querySelector('[data-proof-branch]')?.addEventListener('change', () => loadQueue());
         root.addEventListener('click', async event => {
             const button = event.target.closest('[data-proof-action]'); if (!button) return;
-            const id = button.dataset.id, action = button.dataset.proofAction;
-            if (action === 'view') { await openProof(button, id); return; }
+            const type = button.dataset.type, id = button.dataset.id, action = button.dataset.proofAction;
+            if (action === 'view') { await openProof(button, type, id); return; }
             let note = '';
             if (action === 'rejected') { const response = window.prompt('Reason for rejection (optional):', ''); if (response === null) return; note = response; }
             const rowElement = button.closest('[data-proof-row]'); const actionButtons = rowElement?.querySelectorAll('[data-proof-action]') || [button];
             actionButtons.forEach(node => { node.disabled = true; }); rowElement?.classList.add('is-resolving'); button.textContent = action === 'approved' ? 'Approving…' : 'Rejecting…';
             try {
-                const response = await fetch(`${apiBase}/internship/${encodeURIComponent(id)}/review`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' }, body: JSON.stringify({ status: action, note }), cache: 'no-store' });
+                const response = await fetch(`${apiBase}/${encodeURIComponent(type)}/${encodeURIComponent(id)}/review`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' }, body: JSON.stringify({ status: action, note }), cache: 'no-store' });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok || !data.success) throw new Error(window.apiError ? window.apiError(data) : (data?.error?.message || 'Review failed.'));
                 if (String(data?.data?.verification_status || '') !== String(action)) throw new Error('Review was not persisted. Please retry.');
-                removeResolvedRow(id, action, rowElement);
-                if (window.showToast) window.showToast(data.message || 'Internship proof review updated.', 'success');
+                removeResolvedRow(type, id, action, rowElement);
+                if (window.showToast) window.showToast(data.message || 'Proof review updated.', 'success');
                 window.setTimeout(() => loadQueue({ silent: true }), 1200);
             } catch (error) {
                 rowElement?.classList.remove('is-resolving'); actionButtons.forEach(node => { node.disabled = false; }); renderRows();
@@ -139,21 +139,22 @@
 
     async function loadQueue({ silent = false } = {}) {
         const root = scopeRoot(); if (!root) return;
-        const sequence = ++loadSequence; const branch = root.querySelector('[data-proof-branch]')?.value || 'all';
-        const params = new URLSearchParams({ type: 'internship', _ts: String(Date.now()) });
+        const sequence = ++loadSequence; const type = root.querySelector('[data-proof-type]')?.value || 'all'; const branch = root.querySelector('[data-proof-branch]')?.value || 'all';
+        const params = new URLSearchParams({ _ts: String(Date.now()) });
+        if (type !== 'all') params.set('type', type);
         if (isAdmin && branch !== 'all') params.set('branch', branch);
         const body = root.querySelector('[data-proof-body]'); if (!silent && body) body.innerHTML = '<tr><td colspan="6" class="proof-review-empty">Loading pending proofs…</td></tr>';
         try {
             const response = await fetch(`${apiBase}/pending?${params}`, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } });
             const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(window.apiError ? window.apiError(data) : 'Could not load pending proofs.'); if (sequence !== loadSequence) return;
-            rows = (Array.isArray(data.data) ? data.data : []).filter(row => row.type === 'internship' && !isRecentlyResolved(row.id)); renderRows();
+            rows = (Array.isArray(data.data) ? data.data : []).filter(row => !isRecentlyResolved(row.type, row.id)); renderRows();
         } catch (error) { if (sequence !== loadSequence) return; if (!silent && body) body.innerHTML = `<tr><td colspan="6" class="proof-review-empty">${esc(error.message)}</td></tr>`; }
     }
 
     function renderRows() {
         const root = scopeRoot(); if (!root) return; const body = root.querySelector('[data-proof-body]'); updateCount(); if (!body) return;
-        if (!rows.length) { body.innerHTML = '<tr><td colspan="6" class="proof-review-empty">No pending uploaded internship proofs in this scope.</td></tr>'; return; }
-        body.innerHTML = rows.map(row => `<tr data-proof-row data-type="internship" data-id="${esc(row.id)}"><td class="proof-review-student" data-label="Student"><strong>${esc(row.student_name)}</strong><small>${esc(row.student_prn)}</small></td><td class="proof-review-branch" data-label="Branch"><strong>${esc(row.branch)}</strong>${row.class ? `<small>${esc(row.class)}</small>` : ''}</td><td class="proof-review-type-cell" data-label="Type"><span class="proof-review-type">Internship</span></td><td class="proof-review-entry" data-label="Entry"><strong>${esc(row.entry_name)}</strong>${row.details ? `<small>${esc(row.details)}</small>` : ''}</td><td class="proof-review-uploaded" data-label="Uploaded"><span class="proof-review-mobile-label">Uploaded</span>${row.evidence_uploaded_at ? esc(new Date(row.evidence_uploaded_at).toLocaleString()) : '—'}</td><td class="proof-review-action-cell" data-label="Action"><div class="proof-review-actions"><button class="proof-action-btn proof-action-view" data-proof-action="view" data-id="${esc(row.id)}">View</button><button class="proof-action-btn proof-action-approve" data-proof-action="approved" data-id="${esc(row.id)}">Approve</button><button class="proof-action-btn proof-action-reject" data-proof-action="rejected" data-id="${esc(row.id)}">Reject</button></div></td></tr>`).join('');
+        if (!rows.length) { body.innerHTML = '<tr><td colspan="6" class="proof-review-empty">No pending uploaded proofs in this scope.</td></tr>'; return; }
+        body.innerHTML = rows.map(row => `<tr data-proof-row data-type="${esc(row.type)}" data-id="${esc(row.id)}"><td class="proof-review-student" data-label="Student"><strong>${esc(row.student_name)}</strong><small>${esc(row.student_prn)}</small></td><td class="proof-review-branch" data-label="Branch"><strong>${esc(row.branch)}</strong>${row.class ? `<small>${esc(row.class)}</small>` : ''}</td><td class="proof-review-type-cell" data-label="Type"><span class="proof-review-type">${row.type === 'certificate' ? 'Certificate' : 'Internship'}</span></td><td class="proof-review-entry" data-label="Entry"><strong>${esc(row.entry_name)}</strong>${row.details ? `<small>${esc(row.details)}</small>` : ''}</td><td class="proof-review-uploaded" data-label="Uploaded"><span class="proof-review-mobile-label">Uploaded</span>${row.evidence_uploaded_at ? esc(new Date(row.evidence_uploaded_at).toLocaleString()) : '—'}</td><td class="proof-review-action-cell" data-label="Action"><div class="proof-review-actions"><button class="proof-action-btn proof-action-view" data-proof-action="view" data-type="${esc(row.type)}" data-id="${esc(row.id)}">View</button><button class="proof-action-btn proof-action-approve" data-proof-action="approved" data-type="${esc(row.type)}" data-id="${esc(row.id)}">Approve</button><button class="proof-action-btn proof-action-reject" data-proof-action="rejected" data-type="${esc(row.type)}" data-id="${esc(row.id)}">Reject</button></div></td></tr>`).join('');
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', makeSection, { once: true }); else makeSection();

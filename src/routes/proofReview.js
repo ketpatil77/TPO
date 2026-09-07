@@ -25,7 +25,9 @@ async function readR2Proof(path, env = globalThis.cloudflareEnv) {
 }
 
 function tableFor(type) {
-    return type === 'internship' ? 'internships' : null;
+    if (type === 'internship') return 'internships';
+    if (type === 'certificate') return 'certificates';
+    return null;
 }
 
 function normalizeStoredStatus(_type, status) {
@@ -38,7 +40,8 @@ function statusForDatabase(_type, status) {
     return status;
 }
 
-function entryLabel(_type, entry) {
+function entryLabel(type, entry) {
+    if (type === 'certificate') return `${entry.name || 'Certificate'}${entry.issuer ? ` (${entry.issuer})` : ''}`;
     return `${entry.company || 'Internship'}${entry.role ? ` - ${entry.role}` : ''}`;
 }
 
@@ -53,11 +56,12 @@ async function studentForId(studentId) {
 }
 
 async function pendingRows({ branch = null } = {}) {
-    const [internships, students] = await Promise.all([
-        db.select('internships'), db.select('students')
+    const [internships, certificates, students] = await Promise.all([
+        db.select('internships'), db.select('certificates'), db.select('students')
     ]);
     const byId = new Map(students.map(student => [student.id, student]));
-    return (internships || [])
+    
+    const internshipRows = (internships || [])
         .filter(entry => entry.evidence_path && normalizeStoredStatus('internship', entry.verification_status) === 'pending')
         .map(entry => {
             const student = byId.get(entry.student_id);
@@ -74,7 +78,28 @@ async function pendingRows({ branch = null } = {}) {
                 evidence_uploaded_at: entry.evidence_uploaded_at || null,
                 verification_status: 'pending'
             };
-        })
+        });
+
+    const certificateRows = (certificates || [])
+        .filter(entry => entry.evidence_path && normalizeStoredStatus('certificate', entry.verification_status) === 'pending')
+        .map(entry => {
+            const student = byId.get(entry.student_id);
+            return {
+                type: 'certificate',
+                id: entry.id,
+                student_id: entry.student_id,
+                student_prn: student?.prn || '',
+                student_name: student?.name || '',
+                branch: student?.branch || '',
+                class: student?.class || '',
+                entry_name: entry.name || 'Certificate',
+                details: entry.issuer || '',
+                evidence_uploaded_at: entry.evidence_uploaded_at || null,
+                verification_status: 'pending'
+            };
+        });
+
+    return [...internshipRows, ...certificateRows]
         .filter(row => !branch || row.branch === branch)
         .sort((a, b) => String(a.evidence_uploaded_at || '').localeCompare(String(b.evidence_uploaded_at || '')));
 }
@@ -114,8 +139,8 @@ function createRouter(role) {
     router.get('/pending', async (req, res) => {
         try {
             const requestedType = String(req.query.type || 'all').toLowerCase();
-            if (!['all', 'internship'].includes(requestedType)) {
-                return res.status(400).json({ success: false, error: { code: 'INVALID_TYPE', message: 'Only internship proofs can be reviewed.' } });
+            if (!['all', 'internship', 'certificate'].includes(requestedType)) {
+                return res.status(400).json({ success: false, error: { code: 'INVALID_TYPE', message: 'Invalid proof type requested.' } });
             }
             const branch = isObserver ? req.observer.department : (req.query.branch && req.query.branch !== 'all' ? String(req.query.branch).toUpperCase() : null);
             const rows = await pendingRows({ branch });
@@ -184,7 +209,7 @@ function createRouter(role) {
         try {
             const type = req.params.type;
             const table = tableFor(type);
-            if (!table) return res.status(400).json({ success: false, error: { code: 'INVALID_TYPE', message: 'Only internship proofs can be reviewed.' } });
+            if (!table) return res.status(400).json({ success: false, error: { code: 'INVALID_TYPE', message: 'Invalid proof review type.' } });
             const entry = await db.selectOne(table, { id: req.params.id });
             if (!entry) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Entry not found.' } });
             if (!entry.evidence_path && req.body.status === 'approved') return res.status(400).json({ success: false, error: { code: 'PROOF_REQUIRED', message: 'Proof must be attached before approval.' } });
@@ -243,7 +268,7 @@ function createRouter(role) {
                 success: true,
                 data: { ...persisted, verification_status: persistedStatus },
                 notification_delivery: notificationDelivery,
-                message: `Internship ${req.body.status}.`
+                message: `${type === 'certificate' ? 'Certificate' : 'Internship'} ${req.body.status}.`
             });
         } catch (error) {
             console.error('Proof review update failed:', error.message);

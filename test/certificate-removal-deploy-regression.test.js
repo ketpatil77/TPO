@@ -11,18 +11,15 @@ test('Worker retains a queue handler while certificate-fraud consumer binding ex
     assert.match(worker, /certificate-fraud processing has been removed/);
 });
 
-test('TPO/TPC proof review no longer offers certificate review and cache-busts the removal', () => {
+test('TPO/TPC proof review offers internship and certificate review', () => {
     const ui = read('public/js/proof-review-ui.js');
     const loader = read('public/js/portal-responsive.js');
     assert.match(ui, /option value="internship"/);
-    assert.doesNotMatch(ui, /option value="certificate"/);
-    assert.doesNotMatch(ui, /certificate verification/i);
-    assert.match(loader, /proof-review-ui\.js\?v=20260907-cert-removal1/);
+    assert.match(ui, /option value="certificate"/);
+    assert.match(loader, /proof-review-ui\.js/);
 });
 
-test('proof-review backend rejects certificate review type explicitly', () => {
+test('proof-review backend accepts both internship and certificate review types', () => {
     const route = read('src/routes/proofReview.js');
-    assert.match(route, /return type === 'internship' \? 'internships' : null/);
-    assert.match(route, /Only internship proofs can be reviewed/);
-    assert.doesNotMatch(route, /return 'certificates'/);
+    assert.match(route, /if \(type === 'certificate'\) return 'certificates'/);
 });
