@@ -2,9 +2,9 @@ import { httpServerHandler } from 'cloudflare:node';
 import { contentSecurityPolicy } from './security-headers.mjs';
 
 const pageMap = new Map([
-    ['/','/index.html'],['/login','/index.html'],['/dashboard','/dashboard.html'],
-    ['/admin','/index.html'],['/admin/login','/index.html'],['/admin/dashboard','/admin-dashboard.html'],
-    ['/observer','/index.html'],['/observer/login','/index.html'],['/observer/dashboard','/observer-dashboard.html']
+    ['/', '/index.html'], ['/login', '/index.html'], ['/dashboard', '/dashboard.html'],
+    ['/admin', '/index.html'], ['/admin/login', '/index.html'], ['/admin/dashboard', '/admin-dashboard.html'],
+    ['/observer', '/index.html'], ['/observer/login', '/index.html'], ['/observer/dashboard', '/observer-dashboard.html']
 ]);
 
 let expressHandler;
@@ -26,7 +26,7 @@ function patchLoginHtml(html) {
     return patched;
 }
 function patchDashboardHtml(html, assetPath) {
-    let patched = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260907-cert-removal1');
+    let patched = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260904-interaction1');
     if (assetPath !== '/dashboard.html') patched = patched.replace('</head>', '<script src="/js/request-budget.js?v=20260904-free-tier2"></script></head>');
     if (assetPath === '/admin-dashboard.html') {
         patched = patched.replace(/\/js\/admin-dashboard\.js\?v=[^"']+/g, '/js/admin-dashboard.js?v=20260902-student-activity1');

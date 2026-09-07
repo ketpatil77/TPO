@@ -135,7 +135,7 @@ router.post('/certificate-evidence/:id', acceptEvidence, async (req, res) => {
             await removeObject(certificate.evidence_path).catch(() => {});
         }
         await clearStudentCache();
-        return res.status(202).json({ success: true, message: certificate.evidence_path ? 'Certificate proof replaced.' : 'Certificate proof uploaded.', data: { certificate: updated, analysis_queue } });
+        return res.status(202).json({ success: true, message: certificate.evidence_path ? 'Certificate proof replaced.' : 'Certificate proof uploaded.', data: { certificate: updated } });
     } catch (error) {
         console.error('Certificate evidence upload failed:', error.message);
         return res.status(500).json({ success: false, error: { code: 'VAULT_UPLOAD_FAILED', message: 'Could not upload certificate proof.' } });
