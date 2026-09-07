@@ -182,7 +182,11 @@ async function processCertificate(certificateId,{recognizer}={}) {
   const bytes=await readEvidence(cert.evidence_path); if(!bytes) throw new Error('CERTIFICATE_EVIDENCE_OBJECT_MISSING');
   const roster=await db.selectOne('roster',{id:cert.student_id}) || await db.selectOne('students',{id:cert.student_id});
   const rosterName=roster?.name || '';
-  const [ocrText,image] = await Promise.all([runOcr(bytes,{recognizer}),analyzeImage(bytes)]);
+  let ocrText, image;
+  try { ocrText=await runOcr(bytes,{recognizer}); }
+  catch(error){ throw new Error(`CERTIFICATE_OCR_FAILED: ${String(error?.message||error).slice(0,430)}`); }
+  try { image=await analyzeImage(bytes); }
+  catch(error){ throw new Error(`CERTIFICATE_IMAGE_ANALYSIS_FAILED: ${String(error?.message||error).slice(0,420)}`); }
   const name=analyzeNameMatch(ocrText,rosterName);
   const sha256=require('node:crypto').createHash('sha256').update(bytes).digest('hex');
   const candidates=await db.select('certificates');
