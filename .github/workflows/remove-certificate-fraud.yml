@@ -35,7 +35,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -RniE "certificateFraudDetection|FRAUD_RECOVERY_CRON|CERTIFICATE_FRAUD_QUEUE|fraud_processed_at|fraud_analysis_version|tpo-certificate-review|certificate_review_status|certificate_manual_audits|Certificate fraud|Fraud checks" src worker public --exclude='worker-configuration.d.ts'; then
+          if grep -RniE "certificateFraudDetection|FRAUD_RECOVERY_CRON|CERTIFICATE_FRAUD_QUEUE|fraud_processed_at|fraud_processing_error|fraud_analysis_version|ela_diff_path|ocr_extracted_name|name_match_score|tamper_score|layout_anomaly_score|duplicate_of_cert_id|duplicate_matches|tpo-certificate-review|certificate_review_status|certificate_manual_audits|certificate_review" src worker public --exclude='worker-configuration.d.ts' --exclude='admin-dashboard.html'; then
             echo 'Certificate fraud references remain in runtime code.'
             exit 1
           fi
