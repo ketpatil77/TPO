@@ -155,7 +155,7 @@ function createRouter(role) {
 
     router.get('/:type/:id/proof', async (req, res) => {
         const table = tableFor(req.params.type);
-        if (!table) return res.status(400).json({ success: false, error: { code: 'INVALID_TYPE', message: 'Only internship proofs can be reviewed.' } });
+        if (!table) return res.status(400).json({ success: false, error: { code: 'INVALID_TYPE', message: 'Invalid proof review type.' } });
         const evidenceStorage = storage();
         const entry = await db.selectOne(table, { id: req.params.id });
         if (!entry?.evidence_path) return res.status(404).json({ success: false, error: { code: 'NO_EVIDENCE', message: 'No proof uploaded.' } });
