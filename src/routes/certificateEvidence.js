@@ -12,7 +12,9 @@ const STUDENT_CERTIFICATE_QUOTA_BYTES = 15 * 1024 * 1024;
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_CERTIFICATE_BYTES, files: 1 } });
 
 function storage() {
-    return globalThis.cloudflareEnv?.CERTIFICATE_VAULT || null;
+    if (globalThis.cloudflareEnv?.CERTIFICATE_VAULT) return globalThis.cloudflareEnv.CERTIFICATE_VAULT;
+    if (!db.isLocal()) return db.supabaseClient()?.storage?.from('certificate-evidence') || null;
+    return null;
 }
 
 function detectImageMime(buffer) {
@@ -64,9 +66,12 @@ async function studentUsage(studentId, excludeCertificateId = null) {
 
 async function removeObject(path) {
     if (!path) return;
-    const evidenceStorage = storage();
-    if (!evidenceStorage) return;
-    await evidenceStorage.delete(path);
+    if (globalThis.cloudflareEnv?.CERTIFICATE_VAULT) {
+        await globalThis.cloudflareEnv.CERTIFICATE_VAULT.delete(path).catch(() => {});
+    }
+    if (!db.isLocal()) {
+        await db.supabaseClient()?.storage?.from('certificate-evidence')?.remove([path])?.catch(() => {});
+    }
 }
 
 router.get('/certificate-evidence/status', async (req, res) => {
@@ -77,7 +82,7 @@ router.get('/certificate-evidence/status', async (req, res) => {
         return res.json({ success: true, data: {
             configured: ready,
             storage_ready: ready,
-            storage_provider: ready ? 'cloudflare-r2' : 'unavailable',
+            storage_provider: globalThis.cloudflareEnv?.CERTIFICATE_VAULT ? 'cloudflare-r2' : (ready ? 'supabase-storage' : 'unavailable'),
             max_file_bytes: MAX_CERTIFICATE_BYTES,
             quota_bytes: STUDENT_CERTIFICATE_QUOTA_BYTES,
             used_bytes: used,
@@ -112,7 +117,12 @@ router.post('/certificate-evidence/:id', acceptEvidence, async (req, res) => {
         if (duplicate) return res.status(409).json({ success: false, error: { code: 'DUPLICATE_CERTIFICATE_PROOF', message: 'The same certificate image is already attached to another certificate record.' } });
 
         const objectPath = `certificates/${studentId}/${certificate.id}.${extensionForMime(mime)}`;
-        await evidenceStorage.put(objectPath, req.file.buffer, { httpMetadata: { contentType: mime, cacheControl: 'private, no-store' } });
+        if (globalThis.cloudflareEnv?.CERTIFICATE_VAULT) {
+            await globalThis.cloudflareEnv.CERTIFICATE_VAULT.put(objectPath, req.file.buffer, { httpMetadata: { contentType: mime, cacheControl: 'private, no-store' } });
+        } else {
+            const { error: uploadError } = await db.supabaseClient().storage.from('certificate-evidence').upload(objectPath, req.file.buffer, { contentType: mime, cacheControl: '0', upsert: true });
+            if (uploadError) throw uploadError;
+        }
 
         let updated;
         try {
@@ -149,10 +159,32 @@ router.get('/certificate-evidence/:id', async (req, res) => {
     try {
         const certificate = await ownedCertificate(req.student.studentId, req.params.id);
         if (!certificate?.evidence_path) return res.status(404).json({ success: false, error: { code: 'NO_EVIDENCE', message: 'Certificate proof has not been uploaded.' } });
-        const object = await evidenceStorage.get(certificate.evidence_path);
-        if (!object) return res.status(404).json({ success: false, error: { code: 'EVIDENCE_MISSING', message: 'Certificate proof file is unavailable.' } });
-        const bytes = Buffer.from(await object.arrayBuffer());
-        res.setHeader('Content-Type', certificate.evidence_mime || object.httpMetadata?.contentType || 'image/jpeg');
+        
+        let bytes = null;
+        let mime = certificate.evidence_mime || 'image/jpeg';
+        
+        if (globalThis.cloudflareEnv?.CERTIFICATE_VAULT) {
+            try {
+                const object = await globalThis.cloudflareEnv.CERTIFICATE_VAULT.get(certificate.evidence_path);
+                if (object) {
+                    bytes = Buffer.from(await object.arrayBuffer());
+                    if (object.httpMetadata?.contentType) mime = object.httpMetadata.contentType;
+                }
+            } catch (err) {
+                console.error('R2 certificate read failed, falling back to Supabase:', err.message);
+            }
+        }
+        
+        if (!bytes && !db.isLocal()) {
+            const { data, error } = await db.supabaseClient().storage.from('certificate-evidence').download(certificate.evidence_path);
+            if (!error && data) {
+                bytes = Buffer.from(await data.arrayBuffer());
+                if (data.type) mime = data.type;
+            }
+        }
+
+        if (!bytes) return res.status(404).json({ success: false, error: { code: 'EVIDENCE_MISSING', message: 'Certificate proof file is unavailable.' } });
+        res.setHeader('Content-Type', mime);
         res.setHeader('Content-Length', String(bytes.length));
         res.setHeader('Cache-Control', 'private, no-store, max-age=0');
         res.setHeader('Pragma', 'no-cache');
