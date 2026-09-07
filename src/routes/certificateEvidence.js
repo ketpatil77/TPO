@@ -2,7 +2,6 @@ const express = require('express');
 const multer = require('multer');
 const { createHash } = require('node:crypto');
 const db = require('../config/database');
-const { enqueueCertificateAnalysis } = require('../services/certificateFraudDetection');
 const { authenticateStudent } = require('../middleware/auth');
 
 const router = express.Router();
@@ -127,18 +126,6 @@ router.post('/certificate-evidence/:id', acceptEvidence, async (req, res) => {
                 verification_note: null,
                 verified_at: null,
                 verified_by: null,
-                review_status: 'pending_review',
-                flagged_reasons: [],
-                fraud_processed_at: null,
-                fraud_processing_error: null,
-                duplicate_of_cert_id: null,
-                duplicate_matches: [],
-                ocr_extracted_name: null,
-                name_match_score: null,
-                tamper_score: null,
-                phash: null,
-                layout_anomaly_score: null,
-                ela_diff_path: null
             });
         } catch (error) {
             await removeObject(objectPath).catch(() => {});
@@ -147,9 +134,8 @@ router.post('/certificate-evidence/:id', acceptEvidence, async (req, res) => {
         if (certificate.evidence_path && certificate.evidence_path !== objectPath) {
             await removeObject(certificate.evidence_path).catch(() => {});
         }
-        const analysis_queue = await enqueueCertificateAnalysis(certificate.id);
         await clearStudentCache();
-        return res.status(202).json({ success: true, message: certificate.evidence_path ? 'Certificate proof replaced and queued for fraud checks.' : 'Certificate proof uploaded and queued for fraud checks.', data: { certificate: updated, analysis_queue } });
+        return res.status(202).json({ success: true, message: certificate.evidence_path ? 'Certificate proof replaced.' : 'Certificate proof uploaded.', data: { certificate: updated, analysis_queue } });
     } catch (error) {
         console.error('Certificate evidence upload failed:', error.message);
         return res.status(500).json({ success: false, error: { code: 'VAULT_UPLOAD_FAILED', message: 'Could not upload certificate proof.' } });
@@ -194,18 +180,6 @@ router.delete('/certificate-evidence/:id', async (req, res) => {
             verification_note: null,
             verified_at: null,
             verified_by: null,
-            review_status: 'pending_review',
-            flagged_reasons: [],
-            fraud_processed_at: null,
-            fraud_processing_error: null,
-            duplicate_of_cert_id: null,
-            duplicate_matches: [],
-            ocr_extracted_name: null,
-            name_match_score: null,
-            tamper_score: null,
-            phash: null,
-            layout_anomaly_score: null,
-            ela_diff_path: null
         });
         if (oldPath) await removeObject(oldPath).catch(() => {});
         await clearStudentCache();

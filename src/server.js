@@ -32,7 +32,6 @@ const adminStudentsRoutes = require('./routes/adminStudents');
 const adminModerationRoutes = require('./routes/adminModeration');
 const moderationQueueRoutes = require('./routes/moderationQueue');
 const fullStudentExportRoutes = require('./routes/fullStudentExport');
-const certificateReviewRoutes = require('./routes/certificateReview');
 const proofReviewRoutes = require('./routes/proofReview');
 const profileCompletionRoutes = require('./routes/profileCompletion');
 const adminAuditRoutes = require('./routes/adminAudit');
@@ -115,7 +114,6 @@ app.use('/api/admin/roster', adminRosterRoutes);
 app.use('/api/admin/student-avatars', createStudentAvatarDirectory(authenticateAdmin));
 app.use('/api/admin/students/export', fullStudentExportRoutes);
 app.use('/api/admin/proof-review', proofReviewRoutes.admin);
-app.use('/api/admin/certificates', certificateReviewRoutes);
 app.use('/api/admin/moderation-queue', moderationQueueRoutes.admin);
 // Moderation is mounted before the legacy student router so the corrected
 // impersonation endpoint and record moderation actions are authoritative.

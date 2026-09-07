@@ -11,18 +11,13 @@ let expressHandler;
 
 async function ensureExpress(env) {
     if (expressHandler) return expressHandler;
-    process.env.SUPABASE_URL = env.SUPABASE_URL;
-    process.env.SUPABASE_KEY = env.SUPABASE_KEY;
-    process.env.JWT_SECRET = env.JWT_SECRET;
-    globalThis.cloudflareEnv = env;
-    Object.assign(process.env, env);
+    process.env.SUPABASE_URL = env.SUPABASE_URL; process.env.SUPABASE_KEY = env.SUPABASE_KEY; process.env.JWT_SECRET = env.JWT_SECRET;
+    globalThis.cloudflareEnv = env; Object.assign(process.env, env);
     const { default: app } = await import('../src/server.js');
     const { default: db } = await import('../src/config/database.js');
     db.init();
     if (!db.isLocal()) db.supabaseClient().from('roster').select('id').limit(1).then(() => console.log('Supabase successfully warmed up in background on cold boot.')).catch(error => console.error('Supabase background warmup failed:', error));
-    app.listen(3000);
-    expressHandler = httpServerHandler({ port: 3000 });
-    return expressHandler;
+    app.listen(3000); expressHandler = httpServerHandler({ port: 3000 }); return expressHandler;
 }
 
 function patchLoginHtml(html) {
@@ -30,25 +25,17 @@ function patchLoginHtml(html) {
     patched = patched.replace('</head>', '<script src="/js/student-login-resilience.js?v=20260904-login1" defer></script></head>');
     return patched;
 }
-
 function patchDashboardHtml(html, assetPath) {
     let patched = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260904-interaction1');
-
-    if (assetPath !== '/dashboard.html') {
-        patched = patched.replace('</head>', '<script src="/js/request-budget.js?v=20260904-free-tier2"></script></head>');
-    }
-
+    if (assetPath !== '/dashboard.html') patched = patched.replace('</head>', '<script src="/js/request-budget.js?v=20260904-free-tier2"></script></head>');
     if (assetPath === '/admin-dashboard.html') {
         patched = patched.replace(/\/js\/admin-dashboard\.js\?v=[^"']+/g, '/js/admin-dashboard.js?v=20260902-student-activity1');
         patched = patched.replace('</head>', '<link rel="stylesheet" href="/css/admin-alignment-20260814.css"><link rel="stylesheet" href="/css/student-activity-feed.css?v=20260902-live1"><script src="/js/student-activity-feed.js?v=20260902-live1" defer></script></head>');
     }
     if (assetPath === '/observer-dashboard.html') patched = patched.replace(/\/js\/observer-dashboard\.js\?v=[^"']+/g, '/js/observer-dashboard.js?v=20260819-ssc-hsc');
-    if (assetPath === '/dashboard.html') {
-        patched = patched.replace('</head>', '<link rel="stylesheet" href="/css/profile-requirements-20260814.css"><link rel="stylesheet" href="/css/student-projects-pro.css?v=20260904-projects2"><link rel="stylesheet" href="/css/student-feature-status.css?v=20260904-feature1"><link rel="stylesheet" href="/css/free-learning.css?v=20260906-catalog2"><link rel="stylesheet" href="/css/free-learning-v2.css?v=20260906-catalog2"><script src="/js/student-dashboard-interaction-hotfix.js?v=20260904-unlock6"></script><script src="/js/student-projects-pro.js?v=20260904-projects2" defer></script><script src="/js/student-feature-status.js?v=20260904-feature1" defer></script><script src="/js/free-learning-v2.js?v=20260906-catalog2" defer></script></head>');
-    }
+    if (assetPath === '/dashboard.html') patched = patched.replace('</head>', '<link rel="stylesheet" href="/css/profile-requirements-20260814.css"><link rel="stylesheet" href="/css/student-projects-pro.css?v=20260904-projects2"><link rel="stylesheet" href="/css/student-feature-status.css?v=20260904-feature1"><link rel="stylesheet" href="/css/free-learning.css?v=20260906-catalog2"><link rel="stylesheet" href="/css/free-learning-v2.css?v=20260906-catalog2"><script src="/js/student-dashboard-interaction-hotfix.js?v=20260904-unlock6"></script><script src="/js/student-projects-pro.js?v=20260904-projects2" defer></script><script src="/js/student-feature-status.js?v=20260904-feature1" defer></script><script src="/js/free-learning-v2.js?v=20260906-catalog2" defer></script></head>');
     return patched;
 }
-
 export default {
     async fetch(request, env, context) {
         const url = new URL(request.url);
@@ -58,33 +45,24 @@ export default {
             url.pathname = assetPath;
             const response = await env.ASSETS.fetch(new Request(url, request));
             if (assetPath === '/index.html') return noStore(new Response(patchLoginHtml(await response.text()), { status: response.status, headers: response.headers }), env);
-            if (['/dashboard.html', '/admin-dashboard.html', '/observer-dashboard.html'].includes(assetPath)) return noStore(new Response(patchDashboardHtml(await response.text(), assetPath), { status: response.status, headers: response.headers }), env);
+            if (['/dashboard.html','/admin-dashboard.html','/observer-dashboard.html'].includes(assetPath)) return noStore(new Response(patchDashboardHtml(await response.text(), assetPath), { status: response.status, headers: response.headers }), env);
             return noStore(response, env);
         }
         const response = await env.ASSETS.fetch(request);
         return /\.(?:html|js|css)$/i.test(url.pathname) ? noStore(response, env) : response;
-    },
-    async queue(batch, env) {
-        process.env.SUPABASE_URL = env.SUPABASE_URL; process.env.SUPABASE_KEY = env.SUPABASE_KEY; process.env.JWT_SECRET = env.JWT_SECRET; globalThis.cloudflareEnv = env; Object.assign(process.env, env);
-        const { default: db } = await import('../src/config/database.js'); db.init();
-        const { default: fraud } = await import('../src/services/certificateFraudDetection.js');
-        await fraud.processQueueBatch(batch);
     },
     async scheduled(event, env, context) {
         try {
             process.env.SUPABASE_URL = env.SUPABASE_URL; process.env.SUPABASE_KEY = env.SUPABASE_KEY; process.env.JWT_SECRET = env.JWT_SECRET; globalThis.cloudflareEnv = env; Object.assign(process.env, env);
             const { default: db } = await import('../src/config/database.js'); db.init();
             if (!db.isLocal()) { const { error } = await db.supabaseClient().from('roster').select('id').limit(1); if (error) throw error; console.log('Supabase keep-alive ping successful.'); }
-            if (event.cron === (env.PROOF_EXPIRY_CRON || '0 * * * *')) { const { default: proofExpiry } = await import('../src/services/proofExpiry.js'); console.log('Proof expiry cleanup complete:', JSON.stringify(await proofExpiry.runProofExpiryCleanup())); const { default: fraud } = await import('../src/services/certificateFraudDetection.js'); console.log('Certificate fraud backlog enqueue complete:', JSON.stringify(await fraud.enqueuePendingCertificates(100))); }
-            if (event.cron === (env.FRAUD_RECOVERY_CRON || '*/10 * * * *')) { const { default: fraud } = await import('../src/services/certificateFraudDetection.js'); console.log('Certificate fraud direct recovery complete:', JSON.stringify(await fraud.processPendingCertificatesDirect(2))); }
+            if (event.cron === (env.PROOF_EXPIRY_CRON || '0 * * * *')) { const { default: proofExpiry } = await import('../src/services/proofExpiry.js'); console.log('Proof expiry cleanup complete:', JSON.stringify(await proofExpiry.runProofExpiryCleanup())); }
             if (event.cron === (env.PUSH_REMINDER_CRON || '0 4 */3 * *')) { const { default: pushService } = await import('../src/services/incompleteProfilePush.js'); console.log('Incomplete-profile push job complete:', JSON.stringify(await pushService.runIncompleteProfilePushJob({ env }))); }
-            if (event.cron === (env.MANUAL_AUDIT_CRON || '15 0 * * *')) { const { default: fraud } = await import('../src/services/certificateFraudDetection.js'); console.log('Certificate manual-audit sampling complete:', JSON.stringify(await fraud.seedMonthlyManualAudits(new Date()))); }
         } catch (error) { console.error('Scheduled Worker job failed:', error); throw error; }
     }
 };
-
 function noStore(response, env) {
     const headers = new Headers(response.headers);
-    headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0'); headers.set('Pragma', 'no-cache'); headers.set('Expires', '0'); headers.set('Content-Security-Policy', contentSecurityPolicy(env)); headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains'); headers.set('X-Content-Type-Options', 'nosniff'); headers.set('X-Frame-Options', 'DENY'); headers.set('Referrer-Policy', 'strict-origin-when-cross-origin'); headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
-    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
-}
+    headers.set('Cache-Control','no-store, no-cache, must-revalidate, max-age=0'); headers.set('Pragma','no-cache'); headers.set('Expires','0'); headers.set('Content-Security-Policy',contentSecurityPolicy(env)); headers.set('Strict-Transport-Security','max-age=31536000; includeSubDomains'); headers.set('X-Content-Type-Options','nosniff'); headers.set('X-Frame-Options','DENY'); headers.set('Referrer-Policy','strict-origin-when-cross-origin'); headers.set('Permissions-Policy','camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+    return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
+};
