@@ -75,7 +75,7 @@
       const rows = json.data || [];
       host.innerHTML = rows.length ? `<div class="certificate-review-grid">${rows.map(item => {
         const status = item.verification_status || 'pending';
-        const fraudStatus = item.review_status || 'pending_review';
+        const fraudStatus = item.fraud_processing_error ? 'analysis_failed' : !item.fraud_analysis_version ? 'pending_review' : (item.flagged_reasons || []).length ? 'pending_review' : 'auto_clear';
         const reasons = Array.isArray(item.flagged_reasons) ? item.flagged_reasons : [];
         const score = value => value === null || value === undefined ? '—' : `${esc(value)}/100`;
         const reasonHtml = reasons.length ? `<div class="certificate-fraud-flags">${reasons.map(reason => `<span>${esc(reason.replaceAll('_',' '))}</span>`).join('')}</div>` : `<p class="certificate-auto-clear">No automated fraud signal detected.</p>`;

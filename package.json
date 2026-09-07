@@ -30,7 +30,6 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.3.0",
     "pdf-lib": "1.17.1",
-    "tesseract.js": "7.0.0",
     "unpdf": "^1.0.6",
     "web-push": "3.6.7",
     "zod": "4.1.5"

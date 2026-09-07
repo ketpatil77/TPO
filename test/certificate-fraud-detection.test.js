@@ -120,3 +120,42 @@ test('direct recovery processes pending certificate without queue dependency', a
   try { const result=await fraud.processPendingCertificatesDirect(1,{recognizer:async()=> 'RECOVERY STUDENT'}); assert.equal(result.selected,1); assert.equal(result.processed,1); const updated=await db.selectOne('certificates',{id:cert.id}); assert.ok(updated.fraud_processed_at); }
   finally { globalThis.cloudflareEnv=oldEnv; }
 });
+
+test('recovery picks legacy runtime failures and preserves staff decisions', async()=>{
+  const oldEnv=globalThis.cloudflareEnv;
+  const student=await db.insert('students',{name:'Rahul Sharma'});
+  const cert=await db.insert('certificates',{student_id:student.id,name:'Approved certificate',evidence_path:'approved.jpg',verification_status:'verified',review_status:'approved',verified_by:'staff-id',verification_note:'Checked with issuer',fraud_processing_error:'Worker is not defined',fraud_processed_at:'2026-09-06T10:00:00Z'});
+  const r2=mockR2(); await r2.put('approved.jpg',await jpegFixture());
+  const queued=[];
+  globalThis.cloudflareEnv={CERTIFICATE_VAULT:r2,CERTIFICATE_FRAUD_QUEUE:{async sendBatch(rows){queued.push(...rows);}}};
+  try {
+    await fraud.enqueuePendingCertificates(100);
+    assert.ok(queued.some(row=>row.body.certificateId===cert.id));
+    await fraud.processCertificate(cert.id,{recognizer:async()=> 'PRESENTED TO\nRAHUL SHARMA'});
+    const saved=await db.selectOne('certificates',{id:cert.id});
+    assert.equal(saved.fraud_processing_error,null);
+    assert.equal(saved.fraud_analysis_version,'cert-fraud-v2');
+    assert.equal(saved.verification_status,'verified');
+    assert.equal(saved.review_status,'approved');
+    assert.equal(saved.verification_note,'Checked with issuer');
+    assert.equal(saved.verified_by,'staff-id');
+    await fraud.failAnalysis(cert.id,new Error('temporary failure'));
+    assert.equal((await db.selectOne('certificates',{id:cert.id})).review_status,'approved');
+  } finally {globalThis.cloudflareEnv=oldEnv;}
+});
+
+test('shared provider template alone does not flag a duplicate', async()=>{
+  const oldEnv=globalThis.cloudflareEnv; const r2=mockR2();
+  const {PhotonImage}=await import('@cf-wasm/photon');
+  const source=PhotonImage.new_from_byteslice(await jpegFixture());
+  let bytes; try {bytes=Buffer.from(source.get_bytes_jpeg(88));} finally {source.free();}
+  const image=await fraud.analyzeImage(bytes);
+  const student=await db.insert('students',{name:'Rahul Sharma'});
+  await db.insert('certificates',{student_id:'another-student',evidence_path:'different.jpg',phash:image.phash,ocr_extracted_name:'Priya Patel'});
+  const cert=await db.insert('certificates',{student_id:student.id,evidence_path:'same-template.jpg'});
+  await r2.put('same-template.jpg',bytes); globalThis.cloudflareEnv={CERTIFICATE_VAULT:r2};
+  try {
+    const result=await fraud.processCertificate(cert.id,{recognizer:async()=> 'PRESENTED TO\nRAHUL SHARMA'});
+    assert.ok(!result.flagged_reasons.includes('possible_duplicate'));
+  } finally {globalThis.cloudflareEnv=oldEnv;}
+});
