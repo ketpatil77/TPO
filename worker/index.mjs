@@ -2,9 +2,9 @@ import { httpServerHandler } from 'cloudflare:node';
 import { contentSecurityPolicy } from './security-headers.mjs';
 
 const pageMap = new Map([
-    ['/', '/index.html'], ['/login', '/index.html'], ['/dashboard', '/dashboard.html'],
-    ['/admin', '/index.html'], ['/admin/login', '/index.html'], ['/admin/dashboard', '/admin-dashboard.html'],
-    ['/observer', '/index.html'], ['/observer/login', '/index.html'], ['/observer/dashboard', '/observer-dashboard.html']
+    ['/','/index.html'],['/login','/index.html'],['/dashboard','/dashboard.html'],
+    ['/admin','/index.html'],['/admin/login','/index.html'],['/admin/dashboard','/admin-dashboard.html'],
+    ['/observer','/index.html'],['/observer/login','/index.html'],['/observer/dashboard','/observer-dashboard.html']
 ]);
 
 let expressHandler;
@@ -59,6 +59,12 @@ export default {
             if (event.cron === (env.PROOF_EXPIRY_CRON || '0 * * * *')) { const { default: proofExpiry } = await import('../src/services/proofExpiry.js'); console.log('Proof expiry cleanup complete:', JSON.stringify(await proofExpiry.runProofExpiryCleanup())); }
             if (event.cron === (env.PUSH_REMINDER_CRON || '0 4 */3 * *')) { const { default: pushService } = await import('../src/services/incompleteProfilePush.js'); console.log('Incomplete-profile push job complete:', JSON.stringify(await pushService.runIncompleteProfilePushJob({ env }))); }
         } catch (error) { console.error('Scheduled Worker job failed:', error); throw error; }
+    },
+    // The account still has a Queue consumer attached to this Worker. Certificate-fraud
+    // processing was intentionally removed, but Cloudflare still requires a queue handler
+    // while that consumer exists. Consume batches as a no-op until the external binding is removed.
+    async queue(batch, env, context) {
+        console.log(`Ignored ${batch.messages?.length || 0} queue message(s); certificate-fraud processing has been removed.`);
     }
 };
 function noStore(response, env) {
