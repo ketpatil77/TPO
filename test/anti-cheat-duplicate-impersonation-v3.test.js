@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { duplicateIds, submissionFingerprints, researchRisk, projectRisk } = require('../src/services/submissionRisk');
+const { duplicateIds, submissionFingerprints, normalizedUrl, researchRisk, projectRisk } = require('../src/services/submissionRisk');
 
 test('same research title inside one student profile is a duplicate even when URLs differ', () => {
   const a = { id:'a', title:'AI in Agriculture', publication:'Journal X', doi_url:'https://journal.example.org/article/1', paper_url:'https://files.example.org/paper-a.pdf' };
@@ -19,8 +19,24 @@ test('same journal and same collaborators with different paper titles are not du
   assert.equal(submissionFingerprints('research',first).some(v => v === 'research-url:https://www.ijvra.org'), false);
 });
 
+test('query-string paper identifiers remain part of research evidence identity', () => {
+  const first = { id:'a', title:'Paper A', doi_url:'https://ijpub.org/ijvra/viewpaperforall.php?paper=IJVRA2603948' };
+  const second = { id:'b', title:'Paper B', doi_url:'https://ijpub.org/ijvra/viewpaperforall.php?paper=IJVRA2605990' };
+  assert.notEqual(normalizedUrl(first.doi_url), normalizedUrl(second.doi_url));
+  assert.deepEqual([...duplicateIds('research',[first,second])], []);
+});
+
+test('tracking query parameters do not create fake research identities', () => {
+  const clean = 'https://ijpub.org/ijvra/viewpaperforall.php?paper=IJVRA2603948';
+  const tracked = `${clean}&utm_source=whatsapp&fbclid=abc123#page`;
+  assert.equal(normalizedUrl(clean), normalizedUrl(tracked));
+  const a = { id:'a', title:'Paper A', doi_url:clean };
+  const b = { id:'b', title:'Paper B', doi_url:tracked };
+  assert.deepEqual([...duplicateIds('research',[a,b])], ['b']);
+});
+
 test('research exact repeated evidence URL is a high-confidence duplicate', () => {
-  const a = { id:'a', title:'Paper A', doi_url:'https://journal.example.org/article/1?utm=one' };
+  const a = { id:'a', title:'Paper A', doi_url:'https://journal.example.org/article/1?utm_source=one' };
   const b = { id:'b', title:'Paper B', doi_url:'https://journal.example.org/article/1#section' };
   assert.deepEqual([...duplicateIds('research',[a,b])], ['b']);
 });
