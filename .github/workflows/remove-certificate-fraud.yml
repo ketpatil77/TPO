@@ -1,21 +1,28 @@
 name: Remove certificate fraud subsystem
 on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
   push:
     branches: [hotfix/remove-certificate-fraud]
 permissions:
   contents: write
 jobs:
   remove:
+    if: github.event_name == 'pull_request' || github.ref_name == 'hotfix/remove-certificate-fraud'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: hotfix/remove-certificate-fraud
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
       - name: Apply isolated removal
         run: node .remove-certificate-fraud.cjs
-      - name: Install dependencies and regenerate lockfile
+      - name: Regenerate lockfile without fraud dependency
         run: npm install --package-lock-only
       - name: Install dependencies
         run: npm ci
@@ -35,10 +42,11 @@ jobs:
           fi
       - name: Cloudflare dry run
         run: npm run deploy:dry-run
-      - name: Commit verified removal
+      - name: Commit verified removal and remove gate
         run: |
           git config user.name 'KET ⚡'
           git config user.email 'ket.patil77@gmail.com'
+          git rm -f .remove-certificate-fraud.cjs .github/workflows/remove-certificate-fraud.yml .tmp 2>/dev/null || true
           git add -A
           git commit -m 'Remove certificate fraud detection subsystem'
-          git push origin HEAD
+          git push origin hotfix/remove-certificate-fraud
