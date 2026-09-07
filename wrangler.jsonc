@@ -35,10 +35,6 @@
       "bucket_name": "ait-certificate-vault"
     }
   ],
-  "queues": {
-    "producers": [{ "binding": "CERTIFICATE_FRAUD_QUEUE", "queue": "ait-certificate-fraud" }],
-    "consumers": [{ "queue": "ait-certificate-fraud", "max_batch_size": 1, "max_batch_timeout": 5, "max_retries": 3 }]
-  },
   "triggers": {
     "crons": ["0 * * * *", "0 4 */3 * *"]
   },
