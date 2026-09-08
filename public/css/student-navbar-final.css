@@ -1,227 +1,298 @@
-/* Student navbar final contract. Loaded after every other student stylesheet. */
-.student-dashboard-page .navbar {
-  position: relative !important;
-  height: auto !important;
-  min-height: 0 !important;
-  padding: 8px 0 !important;
-  overflow: visible !important;
-}
-
-.student-dashboard-page .navbar-inner {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 12px !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 1600px !important;
-  height: auto !important;
-  min-height: 0 !important;
-  padding-inline: 20px !important;
-  margin-inline: auto !important;
-  overflow: visible !important;
+/* Student navbar final contract. This file is intentionally loaded last. */
+.student-dashboard-page .navbar,
+.student-dashboard-page .navbar * {
   box-sizing: border-box !important;
 }
 
-.student-dashboard-page .navbar-inner > :first-child {
+.student-dashboard-page .navbar {
+  position: relative !important;
+  inset: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 6px 0 !important;
+  overflow: hidden !important;
+}
+
+.student-dashboard-page .navbar-inner {
+  position: relative !important;
+  inset: auto !important;
   display: flex !important;
-  flex-direction: row !important;
-  flex: 1 1 auto !important;
+  flex-flow: row nowrap !important;
   align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  width: 100% !important;
+  max-width: 1600px !important;
   min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 auto !important;
+  padding: 0 10px !important;
+  overflow: hidden !important;
+  flex-wrap: nowrap !important;
+}
+
+/* Left branding must shrink inside the viewport instead of forcing the row wider. */
+.student-dashboard-page .navbar-inner > :first-child {
+  position: static !important;
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 6px !important;
   width: auto !important;
   max-width: none !important;
+  min-width: 0 !important;
   overflow: hidden !important;
-  gap: 10px !important;
   flex-wrap: nowrap !important;
 }
 
 .student-dashboard-page .navbar-inner > :first-child > :first-child {
-  flex: 0 0 auto !important;
+  position: static !important;
+  flex: 0 0 32px !important;
   width: 32px !important;
   height: 32px !important;
   min-width: 32px !important;
   min-height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  overflow: hidden !important;
+  border-radius: 8px !important;
 }
 
 .student-dashboard-page .navbar-inner > :first-child > :last-child {
+  position: static !important;
   display: flex !important;
-  flex-direction: column !important;
   flex: 1 1 auto !important;
-  min-width: 0 !important;
+  flex-direction: column !important;
   width: auto !important;
+  min-width: 0 !important;
   max-width: none !important;
   overflow: hidden !important;
 }
 
 .student-dashboard-page .navbar-inner > :first-child > :last-child > * {
+  display: block !important;
+  width: 100% !important;
   max-width: 100% !important;
+  min-width: 0 !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
 
+/* Right chrome is one non-wrapping row. No generic grid/fixed-position rule can move it. */
 .student-dashboard-page .navbar-inner > :last-child {
+  position: static !important;
   display: flex !important;
-  flex-direction: row !important;
   flex: 0 0 auto !important;
+  flex-direction: row !important;
   align-items: center !important;
   justify-content: flex-end !important;
   flex-wrap: nowrap !important;
-  gap: 5px !important;
+  gap: 3px !important;
   width: auto !important;
   min-width: 0 !important;
   max-width: none !important;
+  height: auto !important;
   overflow: visible !important;
   white-space: nowrap !important;
 }
 
 .student-dashboard-page .navbar-inner > :last-child > * {
+  position: static !important;
+  inset: auto !important;
   flex: 0 0 auto !important;
   width: auto !important;
   max-width: none !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
 }
 
+/* Theme + notification: 44px touch targets, compact visual icon. */
 .student-dashboard-page .navbar-inner .theme-toggle,
 .student-dashboard-page #notificationBell {
+  position: static !important;
+  inset: auto !important;
+  float: none !important;
+  transform: none !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  align-self: center !important;
   display: grid !important;
   place-items: center !important;
-  width: 30px !important;
-  height: 30px !important;
-  min-width: 30px !important;
-  min-height: 30px !important;
-  flex: 0 0 30px !important;
+  flex: 0 0 44px !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  margin: 0 !important;
   padding: 0 !important;
+  border-radius: 50% !important;
 }
 
+.student-dashboard-page .navbar-inner .theme-toggle svg,
 .student-dashboard-page #notificationBell svg {
-  width: 20px !important;
-  height: 20px !important;
+  width: 22px !important;
+  height: 22px !important;
+  max-width: 22px !important;
+  max-height: 22px !important;
+}
+
+.student-dashboard-page #notificationBell span#bellUnreadCount {
+  width: 8px !important;
+  height: 8px !important;
+  min-width: 8px !important;
+  min-height: 8px !important;
 }
 
 .student-dashboard-page .navbar-inner > :last-child > div[style*="border-radius"] {
+  position: static !important;
   display: flex !important;
   align-items: center !important;
   flex: 0 0 auto !important;
-  padding: 3px 8px 3px 3px !important;
-  gap: 6px !important;
+  width: auto !important;
+  min-width: 62px !important;
+  max-width: 74px !important;
+  height: 36px !important;
+  padding: 2px 6px 2px 2px !important;
+  gap: 4px !important;
+  overflow: hidden !important;
   white-space: nowrap !important;
 }
 
 .student-dashboard-page #navStudentAvatar {
-  width: 22px !important;
-  height: 22px !important;
-  min-width: 22px !important;
-  flex: 0 0 22px !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  max-width: 28px !important;
+  flex: 0 0 28px !important;
 }
 
 .student-dashboard-page #navStudentPrn {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
   white-space: nowrap !important;
-  font-size: 11px !important;
+  font-size: 9px !important;
 }
 
 .student-dashboard-page #logoutBtn {
+  position: static !important;
+  inset: auto !important;
+  float: none !important;
+  transform: none !important;
   display: flex !important;
   align-items: center !important;
+  justify-content: center !important;
   flex: 0 0 auto !important;
   width: auto !important;
-  height: 32px !important;
-  min-width: 0 !important;
-  min-height: 32px !important;
-  padding: 5px 8px !important;
-  margin-left: 2px !important;
-  gap: 4px !important;
+  min-width: 60px !important;
+  max-width: 66px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  margin: 0 !important;
+  padding: 4px 5px !important;
+  gap: 3px !important;
+  overflow: hidden !important;
   white-space: nowrap !important;
+  font-size: 9px !important;
+}
+
+.student-dashboard-page #logoutBtn svg {
+  width: 15px !important;
+  height: 15px !important;
+  min-width: 15px !important;
+  flex: 0 0 15px !important;
 }
 
 @media (max-width: 760px) {
-  .student-dashboard-page .navbar {
-    padding: 6px 0 !important;
-  }
-
   .student-dashboard-page .navbar-inner {
-    gap: 6px !important;
-    padding-inline: 9px !important;
+    gap: 4px !important;
+    padding-inline: 8px !important;
   }
 
   .student-dashboard-page .navbar-inner > :first-child {
-    gap: 6px !important;
+    gap: 5px !important;
   }
 
   .student-dashboard-page .navbar-inner > :first-child > :first-child {
-    width: 30px !important;
-    height: 30px !important;
-    min-width: 30px !important;
-    min-height: 30px !important;
-    border-radius: 8px !important;
+    flex-basis: 32px !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
     font-size: 12px !important;
   }
 
   .student-dashboard-page .navbar-inner > :first-child > :last-child > :first-child {
-    font-size: 13px !important;
+    font-size: 12px !important;
     line-height: 1.05 !important;
   }
 
   .student-dashboard-page .navbar-inner > :first-child > :last-child > :last-child {
-    font-size: 9px !important;
+    font-size: 8px !important;
     line-height: 1.05 !important;
   }
 
   .student-dashboard-page .navbar-inner > :last-child {
-    gap: 3px !important;
+    gap: 2px !important;
   }
 
   .student-dashboard-page .navbar-inner .theme-toggle,
   .student-dashboard-page #notificationBell {
-    width: 27px !important;
-    height: 27px !important;
-    min-width: 27px !important;
-    min-height: 27px !important;
-    flex-basis: 27px !important;
-  }
-
-  .student-dashboard-page #notificationBell svg {
-    width: 18px !important;
-    height: 18px !important;
+    flex-basis: 44px !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
   }
 
   .student-dashboard-page .navbar-inner > :last-child > div[style*="border-radius"] {
-    gap: 3px !important;
-    padding: 2px 5px 2px 2px !important;
+    min-width: 60px !important;
+    max-width: 66px !important;
+    height: 36px !important;
   }
 
   .student-dashboard-page #navStudentAvatar {
-    width: 20px !important;
-    height: 20px !important;
-    min-width: 20px !important;
-    flex-basis: 20px !important;
-    font-size: 8px !important;
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    max-width: 26px !important;
+    flex-basis: 26px !important;
   }
 
   .student-dashboard-page #navStudentPrn {
-    font-size: 9px !important;
+    font-size: 8px !important;
   }
 
   .student-dashboard-page #logoutBtn {
-    height: 27px !important;
-    min-height: 27px !important;
-    padding: 3px 4px !important;
-    margin-left: 0 !important;
-    font-size: 9px !important;
-    gap: 2px !important;
+    min-width: 58px !important;
+    max-width: 62px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    font-size: 8px !important;
   }
 
   .student-dashboard-page #logoutBtn svg {
-    width: 12px !important;
-    height: 12px !important;
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
   }
 }
 
 @media (max-width: 380px) {
   .student-dashboard-page .navbar-inner {
-    gap: 3px !important;
+    gap: 2px !important;
     padding-inline: 6px !important;
   }
 
@@ -230,46 +301,56 @@
   }
 
   .student-dashboard-page .navbar-inner > :first-child > :first-child {
-    width: 28px !important;
-    height: 28px !important;
-    min-width: 28px !important;
-    min-height: 28px !important;
-    flex-basis: 28px !important;
+    flex-basis: 30px !important;
+    width: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
     font-size: 11px !important;
   }
 
   .student-dashboard-page .navbar-inner > :first-child > :last-child > :first-child {
-    font-size: 11px !important;
+    font-size: 10px !important;
   }
 
   .student-dashboard-page .navbar-inner > :first-child > :last-child > :last-child {
     display: none !important;
   }
 
-  .student-dashboard-page .navbar-inner > :last-child {
-    gap: 2px !important;
-  }
-
   .student-dashboard-page .navbar-inner .theme-toggle,
   .student-dashboard-page #notificationBell {
-    width: 25px !important;
-    height: 25px !important;
-    min-width: 25px !important;
-    min-height: 25px !important;
-    flex-basis: 25px !important;
+    flex-basis: 44px !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+  }
+
+  .student-dashboard-page .navbar-inner > :last-child > div[style*="border-radius"] {
+    min-width: 58px !important;
+    max-width: 60px !important;
+  }
+
+  .student-dashboard-page #navStudentAvatar {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    max-width: 24px !important;
+    flex-basis: 24px !important;
   }
 
   .student-dashboard-page #navStudentPrn {
-    font-size: 8px !important;
+    font-size: 7px !important;
   }
 
   .student-dashboard-page #logoutBtn {
+    min-width: 56px !important;
+    max-width: 58px !important;
+    font-size: 7px !important;
     padding-inline: 3px !important;
-    font-size: 8px !important;
-  }
-
-  .student-dashboard-page #logoutBtn svg {
-    width: 11px !important;
-    height: 11px !important;
   }
 }
