@@ -81,6 +81,7 @@
     if (loaded) return cleanDuplicate();
     if (preloadPromise) return preloadPromise;
     preloadPromise=(async()=>{
+      // Ranking detail calculation is deferred until score breakdown is opened; module preload must not issue the old heavy all-student scoring request.
       await addScript('/js/profile-ranking.js?v=20260904-chaos1','profile-ranking-module');
       await addScript('/js/leaderboard-compact-score.js?v=20260902-1','leaderboard-compact-score-js',true);
       await addScript('/js/ranking-competition-v1.js?v=20260904-1','ranking-competition-v1',true);
