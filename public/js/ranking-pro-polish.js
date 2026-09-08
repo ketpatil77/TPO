@@ -315,6 +315,9 @@
     installXHRGuard();
     ensureToolbar();
     if (!latestPayload?.data?.rows && window.__AIT_RANKING_FAST_SNAPSHOT__?.rows) latestPayload = { data: window.__AIT_RANKING_FAST_SNAPSHOT__ };
+    document.addEventListener('ait-ranking-snapshot', (event) => {
+      rememberPayload({ data: event.detail || window.__AIT_RANKING_FAST_SNAPSHOT__ });
+    });
     queueRender();
     history();
     if (!document.getElementById('rankingProToolbar') && attempt < 40) setTimeout(() => boot(attempt + 1), 180);

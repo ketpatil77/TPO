@@ -42,7 +42,7 @@ test('score breakdown is lazy and per student instead of rebuilding the full lea
 
 test('old heavy profile ranking request stays deferred during module preload', () => {
   assert.match(lazy,/Ranking detail calculation is deferred until score breakdown is opened/);
-  assert.match(lazy,/ranking-stable-v4\.js\?v=20260908-pro1/);
+  assert.match(lazy,/ranking-stable-v4\.js\?v=20260908-pro2/);
 });
 
 test('responsive names and pager are usable in both themes', () => {

@@ -282,6 +282,8 @@
       const json=await response.json().catch(()=>({}));
       if (!response.ok || !json.success) throw new Error(json?.error?.message || 'Ranking unavailable');
       snapshot=json.data;
+      window.__AIT_RANKING_FAST_SNAPSHOT__ = snapshot;
+      try { document.dispatchEvent(new CustomEvent('ait-ranking-snapshot', { detail: snapshot })); } catch (_) {}
       const me=snapshot.current;
       myBranch=me?.branch || '';
       myYear=me?.year || '';

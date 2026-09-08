@@ -8,8 +8,8 @@ const css = fs.readFileSync(path.join(__dirname,'../public/css/ranking-pro-polis
 const quick = fs.readFileSync(path.join(__dirname,'../src/services/rankingQuickV4.js'),'utf8');
 
 test('ranking controls expose a real CGPA sort and recompute displayed ranks', () => {
-  assert.match(js, /state\.sort==='cgpa'/);
-  assert.match(js, /cgpa\(b\)-cgpa\(a\)/);
+  assert.match(js, /state\.sort\s*===\s*'cgpa'/);
+  assert.match(js, /cgpa\(b\)\s*-\s*cgpa\(a\)/);
   assert.match(js, /return\s*\{\s*\.\.\.\w+\s*,\s*rank\s*\}/);
   assert.match(quick, /cgpa: num\(row\.cgpa\)/);
 });
