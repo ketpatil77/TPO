@@ -2,10 +2,10 @@
   if (window.__AIT_RANKING_COMPETITION_V1__) return;
   window.__AIT_RANKING_COMPETITION_V1__ = true;
 
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const esc = value => String(value ?? '').replace(/[&<>\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));
   const fmt = value => Number(value || 0).toFixed(1).replace(/\.0$/, '');
   const token = () => localStorage.getItem('tpo_token') || '';
-  const PULSE_KEY = 'ait-ranking-pulse-hidden';
+  const PULSE_KEY = 'ait-ranking-pulse-hidden-v2';
   let snapshot = null;
   let timer = null;
   let loading = false;
@@ -69,8 +69,8 @@
       <div class="rank-chaos-grid" id="rankChaosGrid"></div>
       <div class="rank-chaos-lower">
         <section class="glass-card rank-chaos-panel rank-chaos-pulse-panel">
-          <div class="rank-chaos-heading"><div><span class="eyebrow">Leaderboard pulse</span><h3>Recent battles</h3></div><div class="rank-chaos-heading-actions"><button type="button" class="rank-compact-toggle" data-pulse-toggle aria-expanded="true">Hide</button><span class="rank-chaos-live">LIVE</span></div></div>
-          <div id="rankChaosEvents" class="rank-chaos-events"></div>
+          <div class="rank-chaos-heading"><div><span class="eyebrow">Leaderboard pulse</span><h3>Recent battles</h3></div><div class="rank-chaos-heading-actions"><button type="button" class="rank-compact-toggle" data-pulse-toggle aria-expanded="false">Show</button><span class="rank-chaos-live">LIVE</span></div></div>
+          <div id="rankChaosEvents" class="rank-chaos-events" hidden></div>
         </section>
         <section class="glass-card rank-chaos-panel">
           <div class="rank-chaos-heading"><div><span class="eyebrow">Defense board</span><h3>Longest current holds</h3></div></div>
@@ -108,7 +108,7 @@
     const button = panel?.querySelector('[data-pulse-toggle]');
     if (!panel || !button) return false;
     if (button.dataset.bound === '1') {
-      applyPulseVisibility(panel, localStorage.getItem(PULSE_KEY) === '1');
+      applyPulseVisibility(panel, localStorage.getItem(PULSE_KEY) !== '0');
       return true;
     }
     button.dataset.bound = '1';
@@ -117,7 +117,7 @@
       localStorage.setItem(PULSE_KEY, hidden ? '1' : '0');
       applyPulseVisibility(panel, hidden);
     });
-    applyPulseVisibility(panel, localStorage.getItem(PULSE_KEY) === '1');
+    applyPulseVisibility(panel, localStorage.getItem(PULSE_KEY) !== '0');
     return true;
   }
 
