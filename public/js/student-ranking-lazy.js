@@ -1,6 +1,6 @@
 (() => {
-  if (!document.body.classList.contains('student-dashboard-page') || window.__AIT_RANKING_LAZY_V4__) return;
-  window.__AIT_RANKING_LAZY_V4__ = true;
+  if (!document.body.classList.contains('student-dashboard-page') || window.__AIT_RANKING_LAZY_V5__) return;
+  window.__AIT_RANKING_LAZY_V5__ = true;
 
   let loaded = false;
   let loading = false;
@@ -81,24 +81,12 @@
     if (loaded) return cleanDuplicate();
     if (preloadPromise) return preloadPromise;
     preloadPromise=(async()=>{
-      const nativeFetch=window.fetch.bind(window);
-      window.fetch=function(input,init){
-        const url=typeof input==='string'?input:input?.url||'';
-        if (String(url).includes('/api/student/rankings-view/profile')) {
-          return Promise.reject(new Error('Ranking detail calculation is deferred until score breakdown is opened.'));
-        }
-        return nativeFetch(input,init);
-      };
-      try {
-        await addScript('/js/profile-ranking.js?v=20260904-chaos1','profile-ranking-module');
-        await addScript('/js/leaderboard-compact-score.js?v=20260902-1','leaderboard-compact-score-js',true);
-        await addScript('/js/ranking-competition-v1.js?v=20260904-1','ranking-competition-v1',true);
-        await addScript('/js/ranking-experience-v2.js?v=20260904-v3','ranking-experience-v2',true);
-        await addScript('/js/ranking-stable-v4.js?v=20260908-pro2','ranking-stable-v4');
-        await addScript('/js/ranking-pro-polish.js?v=20260908-2','ranking-pro-polish',true);
-      } finally {
-        window.fetch=nativeFetch;
-      }
+      await addScript('/js/profile-ranking.js?v=20260904-chaos1','profile-ranking-module');
+      await addScript('/js/leaderboard-compact-score.js?v=20260902-1','leaderboard-compact-score-js',true);
+      await addScript('/js/ranking-competition-v1.js?v=20260904-1','ranking-competition-v1',true);
+      await addScript('/js/ranking-experience-v2.js?v=20260904-v3','ranking-experience-v2',true);
+      await addScript('/js/ranking-stable-v4.js?v=20260908-pro2','ranking-stable-v4');
+      await addScript('/js/ranking-pro-polish.js?v=20260908-2','ranking-pro-polish',true);
       return cleanDuplicate();
     })().finally(()=>{preloadPromise=null;});
     return preloadPromise;
