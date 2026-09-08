@@ -39,6 +39,12 @@
     loadStylesheet('/css/mobile-overflow-fix.css?v=20260901-1', 'mobile-overflow-fix');
     loadStylesheet('/css/mobile-modal-scroll-fix.css?v=20260901-2', 'mobile-modal-scroll-fix');
 
+    // Load the student navbar contract immediately. The page script is deferred, so the body exists here.
+    // This prevents any DOMContentLoaded-time failure from leaving generic responsive navbar rules active.
+    if (document.body.classList.contains('student-dashboard-page')) {
+        loadStylesheet('/css/student-navbar-final.css?v=20260908-navbar4', 'student-navbar-final');
+    }
+
     function loadCompactRecordStyles() {
         loadStylesheet('/css/mobile-records.css?v=20260901-4', 'mobile-records');
         loadStylesheet('/css/competitions.css?v=20260901-4', 'competition-compact');
@@ -132,7 +138,7 @@
             loadScript('/js/certificate-vault-ui.js?v=20260903-2', 'certificate-vault-ui-js');
             loadScript('/js/internship-proof-ui.js?v=20260903-2', 'internship-proof-ui-js');
             // Keep the student navbar contract last so no generic mobile stylesheet can override it.
-            loadStylesheet('/css/student-navbar-final.css?v=20260908-navbar3', 'student-navbar-final');
+            loadStylesheet('/css/student-navbar-final.css?v=20260908-navbar4', 'student-navbar-final');
         }
 
         if (document.body.classList.contains('admin-dashboard-page')) {
