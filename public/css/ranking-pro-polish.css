@@ -1,0 +1,55 @@
+#tab-ranking .ranking-pro-toolbar{position:relative;z-index:20;padding:12px 14px;margin:0 0 14px;border:1px solid var(--color-border,#334155);background:var(--surface-card,#111827);border-radius:14px;box-shadow:var(--shadow-sm,0 1px 2px rgba(0,0,0,.12))}
+#tab-ranking .ranking-pro-toolbar-head{position:relative;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 0 12px}
+#tab-ranking .ranking-pro-toolbar-copy{position:relative;z-index:3;min-width:0}
+#tab-ranking .ranking-pro-toolbar-head strong{display:block;margin:3px 0 0;font-size:13px;line-height:1.3;color:var(--text-primary,#f8fafc);font-weight:800}
+#tab-ranking .ranking-pro-count{font-size:10px;font-weight:800;color:var(--text-muted,#94a3b8);white-space:nowrap}
+#tab-ranking .ranking-pro-toolbar-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) 180px auto;gap:8px;align-items:end}
+#tab-ranking .ranking-pro-search,#tab-ranking .ranking-pro-sort{display:grid;gap:4px}
+#tab-ranking .ranking-pro-sort>span{font-size:10px;font-weight:800;color:var(--text-muted,#94a3b8)}
+#tab-ranking .ranking-pro-search input,#tab-ranking .ranking-pro-sort select{width:100%;min-height:40px;border:1px solid var(--color-border,#334155);border-radius:10px;background:var(--surface-card,#0f172a);color:var(--text-primary,#f8fafc);padding:8px 11px;font:inherit;font-size:12px;outline:none;box-sizing:border-box}
+#tab-ranking .ranking-pro-search input:focus,#tab-ranking .ranking-pro-sort select:focus{border-color:var(--student-gold,#f3c969);box-shadow:0 0 0 3px color-mix(in srgb,var(--student-gold,#f3c969) 14%,transparent)}
+#tab-ranking .ranking-pro-clear{min-height:40px;padding:8px 12px;white-space:nowrap}
+#tab-ranking .ranking-pro-hint{position:relative;z-index:2;margin:10px 0 0!important;padding:0;color:var(--text-muted,#94a3b8)!important;font-size:10px;line-height:1.45;display:block;visibility:visible;opacity:1}
+#tab-ranking .ranking-pro-hero{padding-top:14px!important;padding-bottom:14px!important}
+#tab-ranking .ranking-history-panel{position:relative;z-index:4;padding:13px 14px;margin:0 0 12px;border:1px solid var(--color-border,#334155);background:var(--surface-card,#111827);border-radius:14px}
+#tab-ranking .ranking-history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+#tab-ranking .ranking-history-head h3{margin:2px 0 0;font-size:16px;color:var(--text-primary,#f8fafc)}
+#tab-ranking .ranking-history-head p{margin:4px 0 0;font-size:10px;line-height:1.35;color:var(--text-muted,#94a3b8)}
+#tab-ranking .ranking-history-movement{font-size:11px;white-space:nowrap;color:var(--student-gold,#f3c969)}
+#tab-ranking .ranking-history-list{display:grid;grid-template-columns:repeat(8,minmax(52px,1fr));gap:6px;margin-top:10px;overflow-x:auto}
+#tab-ranking .ranking-history-item{min-width:52px;padding:7px 6px;border-radius:9px;background:color-mix(in srgb,var(--student-gold,#f3c969) 8%,var(--surface-card,#111827));border:1px solid var(--color-border,#334155);text-align:center}
+#tab-ranking .ranking-history-item>span{display:block;font-size:12px;font-weight:900;color:var(--text-primary,#f8fafc)!important;line-height:1.2}
+#tab-ranking .ranking-history-item strong{display:block;margin-top:2px;font-size:9px;color:var(--text-primary,#f8fafc)!important;font-weight:800}
+#tab-ranking .ranking-history-item small{display:block;margin-top:2px;font-size:8px;color:var(--text-muted,#cbd5e1)!important;font-weight:700}
+#tab-ranking .ranking-history-list>.rank-chaos-muted{display:block;color:var(--text-muted,#cbd5e1)!important;line-height:1.4}
+
+/* Ranking filter block: keep it visually consistent with the main dark/gold card system. */
+#tab-ranking .leaderboard-scope{border:1px solid var(--color-border,#334155);background:var(--surface-card,#111827);color:var(--text-muted,#cbd5e1);font-family:inherit;font-weight:800;border-radius:999px}
+#tab-ranking .leaderboard-scope.active{background:color-mix(in srgb,var(--student-gold,#f3c969) 14%,var(--surface-card,#111827));border-color:var(--student-gold,#f3c969);color:var(--student-gold,#f3c969)}
+#tab-ranking #rankingBranch,#tab-ranking #rankingYear{min-height:42px;border:1px solid var(--color-border,#334155);border-radius:10px;background:var(--surface-card,#111827);color:var(--text-primary,#f8fafc);font-family:inherit;font-weight:700;padding:8px 11px;outline:none}
+#tab-ranking #rankingBranch:focus,#tab-ranking #rankingYear:focus{border-color:var(--student-gold,#f3c969);box-shadow:0 0 0 3px color-mix(in srgb,var(--student-gold,#f3c969) 12%,transparent)}
+#tab-ranking #rankingRefresh{min-height:42px;border:1px solid var(--student-gold,#f3c969);border-radius:10px;background:transparent;color:var(--student-gold,#f3c969);font-family:inherit;font-weight:800}
+#tab-ranking #rankingRefresh:hover{background:color-mix(in srgb,var(--student-gold,#f3c969) 10%,transparent)}
+
+:root[data-theme="light"] #tab-ranking .ranking-pro-toolbar,:root[data-theme="light"] #tab-ranking .ranking-history-panel{background:#fff;color:#172033;border-color:#d7dce5}
+:root[data-theme="light"] #tab-ranking .ranking-pro-toolbar-head strong,:root[data-theme="light"] #tab-ranking .ranking-history-head h3,:root[data-theme="light"] #tab-ranking .ranking-history-item>span,:root[data-theme="light"] #tab-ranking .ranking-history-item strong{color:#172033!important}
+:root[data-theme="light"] #tab-ranking .ranking-pro-search input,:root[data-theme="light"] #tab-ranking .ranking-pro-sort select,:root[data-theme="light"] #tab-ranking #rankingBranch,:root[data-theme="light"] #tab-ranking #rankingYear{background:#fff;color:#172033;border-color:#cbd5e1}
+:root[data-theme="light"] #tab-ranking .leaderboard-scope{background:#fff;color:#475569;border-color:#cbd5e1}
+:root[data-theme="light"] #tab-ranking .leaderboard-scope.active{background:#fff8df;color:#9a6b00;border-color:#d8ad3d}
+:root[data-theme="light"] #tab-ranking .ranking-history-item{background:#fff8df;border-color:#d8d0b7}
+:root[data-theme="light"] #tab-ranking .ranking-history-item small,:root[data-theme="light"] #tab-ranking .ranking-pro-hint{color:#475569!important}
+
+@media (max-width:700px){
+ #tab-ranking .ranking-pro-toolbar{padding:10px}
+ #tab-ranking .ranking-pro-toolbar-grid{grid-template-columns:minmax(0,1fr) auto}
+ #tab-ranking .ranking-pro-search{grid-column:1/-1}
+ #tab-ranking .ranking-pro-sort{grid-column:1}
+ #tab-ranking .ranking-pro-clear{grid-column:2}
+ #tab-ranking .ranking-history-list{grid-template-columns:repeat(8,58px);padding-bottom:2px}
+}
+@media (max-width:430px){
+ #tab-ranking .ranking-pro-toolbar-head{align-items:flex-start}
+ #tab-ranking .ranking-pro-count{max-width:46%;white-space:normal;text-align:right}
+ #tab-ranking .ranking-pro-search input,#tab-ranking .ranking-pro-sort select,#tab-ranking .ranking-pro-clear{min-height:38px;font-size:11px}
+ #tab-ranking .ranking-history-movement{font-size:10px}
+}
