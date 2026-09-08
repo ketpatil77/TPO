@@ -14,7 +14,7 @@
         document.querySelectorAll('[data-theme-toggle]').forEach(button => {
             const dark = theme === 'dark';
             button.innerHTML = dark
-                ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1 1zm0 19a1 1 0 0 1-1-1v-2a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1zM4.93 4.93a1 1 0 0 1 1.41 0l1.42 1.41a1 1 0 1 1-1.42 1.42L4.93 6.34a1 1 0 0 1 0-1.41zm12.73 12.73a1 1 0 0 1 1.41 0l1.42 1.42a1 1 0 1 1 1.41 1.41l-1.41-1.41a1 1 0 0 0-1.42 0zM3 12a1 1 0 0 1 1-1h2a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1zm19 0a1 1 0 0 1-1 1h-2a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1zM6.34 17.66a1 1 0 0 1 0 1.41l-1.41 1.42a1 1 0 1 1-1.42-1.42l1.41-1.41a1 1 0 0 1 1.42 0zm12.73-12.73a1 1 0 0 1 0 1.42l-1.42 1.41a1 1 0 1 1-1.41-1.42l1.41-1.41a1 1 0 0 1 1.42 0z"/></svg>'
+                ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1zm0 19a1 1 0 0 1-1-1v-2a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1zM4.93 4.93a1 1 0 0 1 1.41 0l1.42 1.41a1 1 0 1 1-1.42 1.42L4.93 6.34a1 1 0 0 1 0-1.41zm12.73 12.73a1 1 0 0 1 1.41 0l1.42 1.42a1 1 0 1 1 1.41 1.41l-1.41-1.41a1 1 0 0 0-1.42 0zM3 12a1 1 0 1 0 0-2h2a1 1 0 1 0 0 2H3zm18 0a1 1 0 1 1-1-1h-2a1 1 0 1 1 0 2h3zM6.34 17.66a1 1 0 1 1 0 1.41l-1.41 1.42a1 1 0 1 1-1.42-1.42l1.41-1.41a1 1 0 0 1 1.42 0zm12.73-12.73a1 1 0 1 1 0 1.42l-1.42 1.41a1 1 0 1 1-1.41-1.42l1.41-1.41a1 1 0 0 1 1.42 0z"/></svg>'
                 : '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
             button.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
             button.setAttribute('aria-pressed', String(dark));
@@ -118,9 +118,17 @@
         right.style.setProperty('margin-left', 'auto', 'important');
         right.style.setProperty('margin-right', '0', 'important');
 
+        const divider = right.querySelector(':scope > div[style*="width: 0.5px"]');
         const theme = right.querySelector('[data-theme-toggle]');
         const bell = document.getElementById('notificationBell');
-        [theme, bell].forEach(button => {
+        if (divider && theme) {
+            right.insertBefore(theme, divider.nextSibling);
+            if (bell) right.insertBefore(bell, theme.nextSibling);
+        } else if (theme && bell) {
+            right.append(theme, bell);
+        }
+        const themeGroup = [theme, bell];
+        themeGroup.forEach(button => {
             if (!button) return;
             button.style.setProperty('width', narrow ? '30px' : '32px', 'important');
             button.style.setProperty('height', narrow ? '30px' : '32px', 'important');
@@ -130,9 +138,9 @@
             button.style.setProperty('border', 'none', 'important');
             button.style.setProperty('background', 'transparent', 'important');
             button.style.setProperty('box-shadow', 'none', 'important');
+            button.style.setProperty('flex', '0 0 auto', 'important');
         });
 
-        const divider = right.querySelector(':scope > div[style*="width: 0.5px"]');
         if (divider) divider.style.setProperty('margin', '0 2px', 'important');
 
         const logout = document.getElementById('logoutBtn');
