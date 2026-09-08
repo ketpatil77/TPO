@@ -5,6 +5,7 @@
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const fmt = value => Number(value || 0).toFixed(1).replace(/\.0$/, '');
   const token = () => localStorage.getItem('tpo_token') || '';
+  const PULSE_KEY = 'ait-ranking-pulse-hidden';
   let snapshot = null;
   let timer = null;
   let loading = false;
@@ -13,7 +14,7 @@
     if (document.querySelector('link[data-ranking-competition-v1]')) return;
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = '/css/ranking-competition-v1.css?v=20260904-1';
+    link.href = '/css/ranking-competition-v1.css?v=20260904-2';
     link.dataset.rankingCompetitionV1 = 'true';
     document.head.appendChild(link);
   }
@@ -67,8 +68,8 @@
       </div>
       <div class="rank-chaos-grid" id="rankChaosGrid"></div>
       <div class="rank-chaos-lower">
-        <section class="glass-card rank-chaos-panel">
-          <div class="rank-chaos-heading"><div><span class="eyebrow">Leaderboard pulse</span><h3>Recent battles</h3></div><span class="rank-chaos-live">LIVE</span></div>
+        <section class="glass-card rank-chaos-panel rank-chaos-pulse-panel">
+          <div class="rank-chaos-heading"><div><span class="eyebrow">Leaderboard pulse</span><h3>Recent battles</h3></div><div class="rank-chaos-heading-actions"><button type="button" class="rank-compact-toggle" data-pulse-toggle aria-expanded="true">Hide</button><span class="rank-chaos-live">LIVE</span></div></div>
           <div id="rankChaosEvents" class="rank-chaos-events"></div>
         </section>
         <section class="glass-card rank-chaos-panel">
@@ -85,7 +86,39 @@
       document.querySelector('#tab-ranking .leaderboard-scope[data-scope="college"]')?.click();
       setTimeout(refresh, 250);
     });
+    installPulseToggle(shell);
     return shell;
+  }
+
+  function applyPulseVisibility(panel, hidden) {
+    const body = panel?.querySelector('#rankChaosEvents');
+    const button = panel?.querySelector('[data-pulse-toggle]');
+    if (body) body.hidden = hidden;
+    panel?.classList.toggle('pulse-collapsed', hidden);
+    if (button) {
+      button.textContent = hidden ? 'Show' : 'Hide';
+      button.setAttribute('aria-expanded', String(!hidden));
+      button.setAttribute('aria-label', hidden ? 'Show Leaderboard Pulse' : 'Hide Leaderboard Pulse');
+      button.title = hidden ? 'Show Leaderboard Pulse' : 'Hide Leaderboard Pulse';
+    }
+  }
+
+  function installPulseToggle(shell = document.getElementById('rankingCompetitionV1')) {
+    const panel = shell?.querySelector('.rank-chaos-pulse-panel');
+    const button = panel?.querySelector('[data-pulse-toggle]');
+    if (!panel || !button) return false;
+    if (button.dataset.bound === '1') {
+      applyPulseVisibility(panel, localStorage.getItem(PULSE_KEY) === '1');
+      return true;
+    }
+    button.dataset.bound = '1';
+    button.addEventListener('click', () => {
+      const hidden = !panel.querySelector('#rankChaosEvents')?.hidden;
+      localStorage.setItem(PULSE_KEY, hidden ? '1' : '0');
+      applyPulseVisibility(panel, hidden);
+    });
+    applyPulseVisibility(panel, localStorage.getItem(PULSE_KEY) === '1');
+    return true;
   }
 
   function rivalText(current, rows) {
@@ -161,6 +194,7 @@
         <span class="rank-chaos-event-dot" aria-hidden="true"></span>
         <div><strong>${esc(event.message || 'Leaderboard updated')}</strong><small>${event.created_at ? new Date(event.created_at).toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : ''}</small></div>
       </div>`).join('') : '<p class="rank-chaos-muted">Major leaderboard events will appear here.</p>';
+    installPulseToggle();
   }
 
   function renderTopHolds() {
@@ -200,6 +234,7 @@
     renderEvents();
     renderTopHolds();
     annotateLeaderboard();
+    installPulseToggle();
   }
 
   async function refresh() {
