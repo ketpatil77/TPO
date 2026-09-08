@@ -8,6 +8,11 @@
         document.head.appendChild(link);
     }
 
+    // Load the student navbar contract immediately. The script itself is deferred,
+    // so this runs after the document has been parsed and guarantees the navbar
+    // stylesheet is inserted before DOMContentLoaded handlers can paint/modify it.
+    loadStylesheet('/css/student-navbar-final.css?v=20260908-navbar4', 'student-navbar-final');
+
     function loadScript(src, marker, onLoad) {
         const existing = document.querySelector(`script[data-${marker}]`);
         if (existing) {
@@ -38,12 +43,6 @@
     loadStylesheet('/css/college-academics.css?v=20260901-2', 'college-academics');
     loadStylesheet('/css/mobile-overflow-fix.css?v=20260901-1', 'mobile-overflow-fix');
     loadStylesheet('/css/mobile-modal-scroll-fix.css?v=20260901-2', 'mobile-modal-scroll-fix');
-
-    // Load the student navbar contract immediately. The page script is deferred, so the body exists here.
-    // This prevents any DOMContentLoaded-time failure from leaving generic responsive navbar rules active.
-    if (document.body.classList.contains('student-dashboard-page')) {
-        loadStylesheet('/css/student-navbar-final.css?v=20260908-navbar4', 'student-navbar-final');
-    }
 
     function loadCompactRecordStyles() {
         loadStylesheet('/css/mobile-records.css?v=20260901-4', 'mobile-records');
@@ -137,7 +136,7 @@
             loadStylesheet('/css/certificate-vault.css?v=20260903-1', 'certificate-vault-css');
             loadScript('/js/certificate-vault-ui.js?v=20260903-2', 'certificate-vault-ui-js');
             loadScript('/js/internship-proof-ui.js?v=20260903-2', 'internship-proof-ui-js');
-            // Keep the student navbar contract last so no generic mobile stylesheet can override it.
+            // Already loaded above; this is intentionally idempotent for the student branch.
             loadStylesheet('/css/student-navbar-final.css?v=20260908-navbar4', 'student-navbar-final');
         }
 
