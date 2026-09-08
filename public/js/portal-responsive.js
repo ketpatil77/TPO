@@ -132,7 +132,7 @@
             loadScript('/js/certificate-vault-ui.js?v=20260903-2', 'certificate-vault-ui-js');
             loadScript('/js/internship-proof-ui.js?v=20260903-2', 'internship-proof-ui-js');
             // Keep the student navbar contract last so no generic mobile stylesheet can override it.
-            loadStylesheet('/css/student-navbar-final.css?v=20260908-navbar2', 'student-navbar-final');
+            loadStylesheet('/css/student-navbar-final.css?v=20260908-navbar3', 'student-navbar-final');
         }
 
         if (document.body.classList.contains('admin-dashboard-page')) {
