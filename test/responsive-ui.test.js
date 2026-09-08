@@ -24,6 +24,14 @@ test('Worker uses one authoritative dashboard boot path without injecting a seco
     assert.match(loader,/portal-integrity\.js\?v=20260903-global1/);
     assert.match(loader,/operation-feedback\.js\?v=20260903-global2/);
 });
+test('student navbar keeps branding and actions in two non-wrapping columns', () => {
+    const css=read('public/css/student-navbar-final.css');
+    assert.match(css,/display:grid!important;grid-template-columns:minmax\(0,1fr\) auto!important/);
+    assert.match(css,/\.navbar-inner>div:first-child\{[^}]*grid-column:1!important/s);
+    assert.match(css,/\.navbar-inner>div:last-child\{[^}]*grid-column:2!important/s);
+    assert.match(css,/\.navbar-inner>div:last-child\{[^}]*flex-flow:row nowrap!important/s);
+    assert.doesNotMatch(css,/\.navbar-inner>div:first-child\{[^}]*max-width:calc\(100% -/s);
+});
 test('responsive rules prevent clipped tabs, narrow semester fields and sticky form overlap', () => {
     const css=read('public/css/portal-responsive.css');
     assert.match(css,/display:grid !important; grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
