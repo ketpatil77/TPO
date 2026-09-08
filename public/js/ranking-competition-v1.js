@@ -2,7 +2,7 @@
   if (window.__AIT_RANKING_COMPETITION_V1__) return;
   window.__AIT_RANKING_COMPETITION_V1__ = true;
 
-  const esc = value => String(value ?? '').replace(/[&<>\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const fmt = value => Number(value || 0).toFixed(1).replace(/\.0$/, '');
   const token = () => localStorage.getItem('tpo_token') || '';
   const PULSE_KEY = 'ait-ranking-pulse-hidden-v2';
