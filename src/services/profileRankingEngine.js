@@ -92,6 +92,7 @@ function scoreStudent(profile,related){
   const points=money(Object.values(earned).reduce((s,v)=>s+v,0)); const pendingPoints=money(Object.values(pending).reduce((s,v)=>s+v,0));
   const certificateCounts=statusCounts(all.certificates); const competitionCounts=statusCounts(all.competitions);
   return {
+    cgpa:Number(profile.cgpa_overall)||0,
     points,pending_points:pendingPoints,potential_points:money(points+pendingPoints),breakdown:earned,pending_breakdown:pending,
     explanations,pending_explanations:pendingExplanations,
     evidence_counts:{pending:certificateCounts.pending+competitionCounts.pending+riskSummary.flagged,verified:certificateCounts.verified+competitionCounts.verified,rejected:certificateCounts.rejected+competitionCounts.rejected},
