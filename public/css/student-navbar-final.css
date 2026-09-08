@@ -1,226 +1,248 @@
-/* Student navbar final contract. This file is intentionally loaded last. */
-.student-dashboard-page .navbar,
-.student-dashboard-page .navbar * {
-  box-sizing: border-box !important;
-}
-
+/* Student navbar: authoritative compact layout. Keep this file last in the student stylesheet stack. */
 .student-dashboard-page .navbar {
   position: relative !important;
-  inset: auto !important;
+  display: block !important;
+  width: 100% !important;
   height: auto !important;
   min-height: 0 !important;
   padding: 6px 0 !important;
+  margin: 0 !important;
   overflow: hidden !important;
+  box-sizing: border-box !important;
 }
 
 .student-dashboard-page .navbar-inner {
-  position: relative !important;
-  inset: auto !important;
   display: flex !important;
   flex-flow: row nowrap !important;
   align-items: center !important;
   justify-content: space-between !important;
   gap: 8px !important;
   width: 100% !important;
-  max-width: 1600px !important;
   min-width: 0 !important;
-  height: auto !important;
-  min-height: 0 !important;
+  height: 44px !important;
+  max-height: 44px !important;
+  padding: 0 !important;
   margin: 0 auto !important;
-  padding: 0 10px !important;
   overflow: hidden !important;
-  flex-wrap: nowrap !important;
+  box-sizing: border-box !important;
 }
 
-/* Left branding must shrink inside the viewport instead of forcing the row wider. */
-.student-dashboard-page .navbar-inner > :first-child {
-  position: static !important;
+/* Brand */
+.student-dashboard-page .navbar-inner > div:first-child {
   display: flex !important;
   flex: 1 1 auto !important;
-  flex-direction: row !important;
+  flex-flow: row nowrap !important;
   align-items: center !important;
-  gap: 6px !important;
+  gap: 10px !important;
   width: auto !important;
-  max-width: none !important;
   min-width: 0 !important;
+  max-width: calc(100% - 214px) !important;
+  height: 44px !important;
   overflow: hidden !important;
-  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
 }
 
-.student-dashboard-page .navbar-inner > :first-child > :first-child {
-  position: static !important;
+.student-dashboard-page .navbar-inner > div:first-child > div:first-child {
+  display: flex !important;
   flex: 0 0 32px !important;
+  align-items: center !important;
+  justify-content: center !important;
   width: 32px !important;
-  height: 32px !important;
   min-width: 32px !important;
-  min-height: 32px !important;
   max-width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
   max-height: 32px !important;
+  padding: 0 !important;
+  margin: 0 !important;
   overflow: hidden !important;
-  border-radius: 8px !important;
+  box-sizing: border-box !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
 }
 
-.student-dashboard-page .navbar-inner > :first-child > :last-child {
-  position: static !important;
+.student-dashboard-page .navbar-inner > div:first-child > div:last-child {
   display: flex !important;
   flex: 1 1 auto !important;
-  flex-direction: column !important;
+  flex-flow: column nowrap !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
   width: auto !important;
   min-width: 0 !important;
-  max-width: none !important;
+  max-width: 100% !important;
+  height: 32px !important;
   overflow: hidden !important;
+  white-space: nowrap !important;
 }
 
-.student-dashboard-page .navbar-inner > :first-child > :last-child > * {
+.student-dashboard-page .navbar-inner > div:first-child > div:last-child > div {
   display: block !important;
   width: 100% !important;
   max-width: 100% !important;
-  min-width: 0 !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
 
-/* Right chrome is one non-wrapping row. No generic grid/fixed-position rule can move it. */
-.student-dashboard-page .navbar-inner > :last-child {
-  position: static !important;
+/* Controls */
+.student-dashboard-page .navbar-inner > div:last-child {
   display: flex !important;
   flex: 0 0 auto !important;
-  flex-direction: row !important;
+  flex-flow: row nowrap !important;
   align-items: center !important;
   justify-content: flex-end !important;
-  flex-wrap: nowrap !important;
-  gap: 3px !important;
+  gap: 4px !important;
   width: auto !important;
   min-width: 0 !important;
   max-width: none !important;
-  height: auto !important;
+  height: 44px !important;
+  padding: 0 !important;
+  margin: 0 !important;
   overflow: visible !important;
   white-space: nowrap !important;
-}
-
-.student-dashboard-page .navbar-inner > :last-child > * {
-  position: static !important;
-  inset: auto !important;
-  flex: 0 0 auto !important;
-  width: auto !important;
-  max-width: none !important;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
-
-/* Theme + notification: 44px touch targets, compact visual icon. */
-.student-dashboard-page .navbar-inner .theme-toggle,
-.student-dashboard-page #notificationBell {
-  position: static !important;
-  inset: auto !important;
-  float: none !important;
-  transform: none !important;
   grid-column: auto !important;
   grid-row: auto !important;
-  align-self: center !important;
-  display: grid !important;
-  place-items: center !important;
-  flex: 0 0 44px !important;
-  width: 44px !important;
-  height: 44px !important;
-  min-width: 44px !important;
-  min-height: 44px !important;
-  max-width: 44px !important;
-  max-height: 44px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border-radius: 50% !important;
 }
 
-.student-dashboard-page .navbar-inner .theme-toggle svg,
-.student-dashboard-page #notificationBell svg {
+.student-dashboard-page .navbar-inner > div:last-child > .theme-toggle,
+.student-dashboard-page .navbar-inner > div:last-child > #notificationBell {
+  position: relative !important;
+  display: grid !important;
+  flex: 0 0 36px !important;
+  place-items: center !important;
+  width: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  transform: none !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+.student-dashboard-page .navbar-inner > div:last-child > .theme-toggle svg,
+.student-dashboard-page .navbar-inner > div:last-child > #notificationBell svg {
+  display: block !important;
+  width: 20px !important;
+  min-width: 20px !important;
+  max-width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  max-height: 20px !important;
+}
+
+.student-dashboard-page .navbar-inner > div:last-child > div:not(:has(#navStudentAvatar)) {
+  flex: 0 0 1px !important;
+  width: 1px !important;
+  min-width: 1px !important;
+  max-width: 1px !important;
+  height: 18px !important;
+  min-height: 18px !important;
+  max-height: 18px !important;
+  padding: 0 !important;
+  margin: 0 2px !important;
+}
+
+.student-dashboard-page .navbar-inner > div:last-child > div:has(#navStudentAvatar) {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  flex-flow: row nowrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  width: auto !important;
+  min-width: 62px !important;
+  max-width: 82px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  padding: 3px 7px 3px 3px !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.student-dashboard-page .navbar-inner #navStudentAvatar {
+  display: flex !important;
+  flex: 0 0 22px !important;
   width: 22px !important;
-  height: 22px !important;
+  min-width: 22px !important;
   max-width: 22px !important;
+  height: 22px !important;
+  min-height: 22px !important;
   max-height: 22px !important;
 }
 
-.student-dashboard-page #notificationBell span#bellUnreadCount {
-  width: 8px !important;
-  height: 8px !important;
-  min-width: 8px !important;
-  min-height: 8px !important;
-}
-
-.student-dashboard-page .navbar-inner > :last-child > div[style*="border-radius"] {
-  position: static !important;
-  display: flex !important;
-  align-items: center !important;
-  flex: 0 0 auto !important;
-  width: auto !important;
-  min-width: 62px !important;
-  max-width: 74px !important;
-  height: 36px !important;
-  padding: 2px 6px 2px 2px !important;
-  gap: 4px !important;
-  overflow: hidden !important;
-  white-space: nowrap !important;
-}
-
-.student-dashboard-page #navStudentAvatar {
-  width: 28px !important;
-  height: 28px !important;
-  min-width: 28px !important;
-  max-width: 28px !important;
-  flex: 0 0 28px !important;
-}
-
-.student-dashboard-page #navStudentPrn {
+.student-dashboard-page .navbar-inner #navStudentPrn {
+  display: block !important;
+  flex: 1 1 auto !important;
   min-width: 0 !important;
   max-width: 100% !important;
+  margin: 0 !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
-  font-size: 9px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
 }
 
-.student-dashboard-page #logoutBtn {
-  position: static !important;
-  inset: auto !important;
-  float: none !important;
-  transform: none !important;
+.student-dashboard-page .navbar-inner #logoutBtn {
   display: flex !important;
+  flex: 0 0 auto !important;
+  flex-flow: row nowrap !important;
   align-items: center !important;
   justify-content: center !important;
-  flex: 0 0 auto !important;
+  gap: 4px !important;
   width: auto !important;
-  min-width: 60px !important;
-  max-width: 66px !important;
-  height: 44px !important;
-  min-height: 44px !important;
-  max-height: 44px !important;
+  min-width: 58px !important;
+  max-width: 72px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  padding: 5px 7px !important;
   margin: 0 !important;
-  padding: 4px 5px !important;
-  gap: 3px !important;
-  overflow: hidden !important;
+  box-sizing: border-box !important;
   white-space: nowrap !important;
-  font-size: 9px !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
 }
 
-.student-dashboard-page #logoutBtn svg {
-  width: 15px !important;
-  height: 15px !important;
-  min-width: 15px !important;
-  flex: 0 0 15px !important;
+.student-dashboard-page .navbar-inner #logoutBtn svg {
+  display: block !important;
+  flex: 0 0 14px !important;
+  width: 14px !important;
+  min-width: 14px !important;
+  max-width: 14px !important;
+  height: 14px !important;
+  min-height: 14px !important;
+  max-height: 14px !important;
 }
 
 @media (max-width: 760px) {
   .student-dashboard-page .navbar-inner {
-    gap: 4px !important;
-    padding-inline: 8px !important;
+    height: 44px !important;
   }
-
-  .student-dashboard-page .navbar-inner > :first-child {
-    gap: 5px !important;
+  .student-dashboard-page .navbar-inner > div:first-child {
+    max-width: calc(100% - 206px) !important;
   }
+}
 
-  .student-dashboard-page .navbar-inner > :first-child > :first-child {
+@media (max-width: 480px) {
+  .student-dashboard-page .navbar-inner {
+    gap: 2px !important;
+  }
+  .student-dashboard-page .navbar-inner > div:first-child {
+    max-width: calc(100% - 198px) !important;
+  }
+  .student-dashboard-page .navbar-inner > div:last-child {
+    gap: 1px !important;
+  }
+  .student-dashboard-page .navbar-inner > div:last-child > .theme-toggle,
+  .student-dashboard-page .navbar-inner > div:last-child > #notificationBell {
     flex-basis: 32px !important;
     width: 32px !important;
     min-width: 32px !important;
@@ -228,129 +250,30 @@
     height: 32px !important;
     min-height: 32px !important;
     max-height: 32px !important;
-    font-size: 12px !important;
   }
-
-  .student-dashboard-page .navbar-inner > :first-child > :last-child > :first-child {
-    font-size: 12px !important;
-    line-height: 1.05 !important;
+  .student-dashboard-page .navbar-inner > div:last-child > div:has(#navStudentAvatar) {
+    min-width: 54px !important;
+    max-width: 68px !important;
   }
-
-  .student-dashboard-page .navbar-inner > :first-child > :last-child > :last-child {
-    font-size: 8px !important;
-    line-height: 1.05 !important;
-  }
-
-  .student-dashboard-page .navbar-inner > :last-child {
-    gap: 2px !important;
-  }
-
-  .student-dashboard-page .navbar-inner .theme-toggle,
-  .student-dashboard-page #notificationBell {
-    flex-basis: 44px !important;
-    width: 44px !important;
-    min-width: 44px !important;
-    max-width: 44px !important;
-    height: 44px !important;
-    min-height: 44px !important;
-    max-height: 44px !important;
-  }
-
-  .student-dashboard-page .navbar-inner > :last-child > div[style*="border-radius"] {
-    min-width: 60px !important;
-    max-width: 66px !important;
-    height: 36px !important;
-  }
-
-  .student-dashboard-page #navStudentAvatar {
-    width: 26px !important;
-    height: 26px !important;
-    min-width: 26px !important;
-    max-width: 26px !important;
-    flex-basis: 26px !important;
-  }
-
-  .student-dashboard-page #navStudentPrn {
-    font-size: 8px !important;
-  }
-
-  .student-dashboard-page #logoutBtn {
-    min-width: 58px !important;
-    max-width: 62px !important;
-    height: 44px !important;
-    min-height: 44px !important;
-    max-height: 44px !important;
-    font-size: 8px !important;
-  }
-
-  .student-dashboard-page #logoutBtn svg {
-    width: 14px !important;
-    height: 14px !important;
-    min-width: 14px !important;
+  .student-dashboard-page .navbar-inner #logoutBtn {
+    min-width: 52px !important;
+    max-width: 64px !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
   }
 }
 
 @media (max-width: 380px) {
-  .student-dashboard-page .navbar-inner {
-    gap: 2px !important;
-    padding-inline: 6px !important;
+  .student-dashboard-page .navbar-inner > div:first-child {
+    max-width: calc(100% - 184px) !important;
   }
-
-  .student-dashboard-page .navbar-inner > :first-child {
-    gap: 4px !important;
-  }
-
-  .student-dashboard-page .navbar-inner > :first-child > :first-child {
-    flex-basis: 30px !important;
-    width: 30px !important;
-    min-width: 30px !important;
-    max-width: 30px !important;
-    height: 30px !important;
-    min-height: 30px !important;
-    max-height: 30px !important;
-    font-size: 11px !important;
-  }
-
-  .student-dashboard-page .navbar-inner > :first-child > :last-child > :first-child {
-    font-size: 10px !important;
-  }
-
-  .student-dashboard-page .navbar-inner > :first-child > :last-child > :last-child {
-    display: none !important;
-  }
-
-  .student-dashboard-page .navbar-inner .theme-toggle,
-  .student-dashboard-page #notificationBell {
-    flex-basis: 44px !important;
-    width: 44px !important;
-    min-width: 44px !important;
-    max-width: 44px !important;
-    height: 44px !important;
-    min-height: 44px !important;
-    max-height: 44px !important;
-  }
-
-  .student-dashboard-page .navbar-inner > :last-child > div[style*="border-radius"] {
-    min-width: 58px !important;
+  .student-dashboard-page .navbar-inner > div:last-child > div:has(#navStudentAvatar) {
+    min-width: 50px !important;
     max-width: 60px !important;
   }
-
-  .student-dashboard-page #navStudentAvatar {
-    width: 24px !important;
-    height: 24px !important;
-    min-width: 24px !important;
-    max-width: 24px !important;
-    flex-basis: 24px !important;
-  }
-
-  .student-dashboard-page #navStudentPrn {
-    font-size: 7px !important;
-  }
-
-  .student-dashboard-page #logoutBtn {
-    min-width: 56px !important;
+  .student-dashboard-page .navbar-inner #logoutBtn {
+    min-width: 48px !important;
     max-width: 58px !important;
-    font-size: 7px !important;
-    padding-inline: 3px !important;
+    font-size: 10px !important;
   }
 }
