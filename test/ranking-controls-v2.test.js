@@ -10,7 +10,7 @@ const quick = fs.readFileSync(path.join(__dirname,'../src/services/rankingQuickV
 test('ranking controls expose a real CGPA sort and recompute displayed ranks', () => {
   assert.match(js, /state\.sort==='cgpa'/);
   assert.match(js, /cgpa\(b\)-cgpa\(a\)/);
-  assert.match(js, /return \{\.\.\.row,rank\}/);
+  assert.match(js, /return\s*\{\s*\.\.\.\w+\s*,\s*rank\s*\}/);
   assert.match(quick, /cgpa: num\(row\.cgpa\)/);
 });
 
