@@ -62,8 +62,10 @@
     });
 
     rows.sort(compare);
-
-    rows = rows.map((r, i) => ({ ...r, rank: i + 1 }));
+    rows = rows.map((r, i) => {
+      const rank = i + 1;
+      return { ...r, rank };
+    });
     return rows;
   }
 
@@ -122,7 +124,7 @@
   function getNativeRows() {
     const list = getList();
     if (!list) return [];
-    return Array.from(list.children).filter(el => !el.matches('#rankingProToolbar') && el.id !== 'rankingProToolbar');
+    return Array.from(list.children).filter(el => !el.matches('#rankingProToolbar') && el.id !== 'rankingProToolbar' && el.id !== 'rankingProResults');
   }
 
   function rowIdentity(row) {
@@ -312,9 +314,7 @@
     installFetchGuard();
     installXHRGuard();
     ensureToolbar();
-    if (!latestPayload?.data?.rows && window.__AIT_RANKING_FAST_SNAPSHOT__?.rows) {
-      latestPayload = { data: window.__AIT_RANKING_FAST_SNAPSHOT__ };
-    }
+    if (!latestPayload?.data?.rows && window.__AIT_RANKING_FAST_SNAPSHOT__?.rows) latestPayload = { data: window.__AIT_RANKING_FAST_SNAPSHOT__ };
     queueRender();
     history();
     if (!document.getElementById('rankingProToolbar') && attempt < 40) setTimeout(() => boot(attempt + 1), 180);
