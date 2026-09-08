@@ -1,0 +1,50 @@
+/* Admin intelligence: fixed 2x2 structure without vertical stretching. */
+@media (min-width:1100px) {
+  #tab-intelligence .intelligence-tool-columns {
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    grid-template-rows:auto auto !important;
+    grid-template-areas:"parser ranking" "fraud staff" !important;
+    align-items:start !important;
+    align-content:start !important;
+    gap:24px !important;
+  }
+
+  #tab-intelligence .intelligence-tool-columns > * {
+    align-self:start !important;
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+  }
+
+  #tab-intelligence .intelligence-tool-columns > [data-tool="parser"],
+  #tab-intelligence .intelligence-tool-columns > .intelligence-parser,
+  #tab-intelligence .intelligence-tool-columns > :nth-child(1) {
+    grid-area:parser;
+  }
+
+  #tab-intelligence .intelligence-tool-columns > [data-tool="ranking"],
+  #tab-intelligence .intelligence-tool-columns > .intelligence-ranking,
+  #tab-intelligence .intelligence-tool-columns > :nth-child(2) {
+    grid-area:ranking;
+  }
+
+  #tab-intelligence .intelligence-tool-columns > [data-tool="fraud"],
+  #tab-intelligence .intelligence-tool-columns > .intelligence-fraud,
+  #tab-intelligence .intelligence-tool-columns > :nth-child(3) {
+    grid-area:fraud;
+  }
+
+  #tab-intelligence .intelligence-tool-columns > [data-tool="staff"],
+  #tab-intelligence .intelligence-tool-columns > .intelligence-staff,
+  #tab-intelligence .intelligence-tool-columns > :nth-child(4) {
+    grid-area:staff;
+  }
+}
+
+@media (max-width:1099px) {
+  #tab-intelligence .intelligence-tool-columns {
+    grid-template-columns:1fr !important;
+    grid-template-areas:none !important;
+  }
+}
