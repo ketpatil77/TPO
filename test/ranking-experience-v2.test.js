@@ -16,7 +16,7 @@ test('ranking is placed directly after Profile and CGPA without changing other t
 
 test('ranking modules preload while full all-student profile scoring stays deferred', () => {
   assert.match(lazy, /requestIdleCallback/);
-  assert.match(lazy, /Ranking detail calculation is deferred until score breakdown is opened/);
+  assert.doesNotMatch(lazy, /window\.fetch\s*=\s*function/);
   assert.match(lazy, /profile-ranking\.js/);
   assert.match(lazy, /ranking-experience-v2\.js\?v=20260904-v3/);
   assert.match(lazy, /ranking-stable-v4\.js\?v=20260908-pro2/);
