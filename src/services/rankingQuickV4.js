@@ -58,6 +58,7 @@ async function readFastRankingSnapshot(currentStudentId, { now = new Date() } = 
     branch: row.branch || '',
     year: row.year || '',
     avatar_url: row.avatar_url || null,
+    cgpa: num(row.cgpa),
     rank: num(row.rank),
     points: num(row.points),
     is_me: row.student_id === currentStudentId,
