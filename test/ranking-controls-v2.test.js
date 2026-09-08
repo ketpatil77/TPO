@@ -14,11 +14,13 @@ test('ranking controls expose a real CGPA sort and recompute displayed ranks', (
   assert.match(quick, /cgpa: num\(row\.cgpa\)/);
 });
 
-test('leaderboard controls keep the descriptive subtext above the search field', () => {
+test('leaderboard controls keep the descriptive subtext below the sort dropdown', () => {
   assert.match(css, /ranking-pro-toolbar-head[^}]*position:relative/);
   assert.match(css, /ranking-pro-toolbar-copy[^}]*z-index:3/);
   assert.match(css, /ranking-pro-hint[^}]*margin:10px 0 0/);
   assert.match(css, /ranking-pro-hint[^}]*visibility:visible/);
+  assert.doesNotMatch(js, /rankingProSearch/);
+  assert.doesNotMatch(js, /rankingProClear/);
 });
 
 test('ranking filters use the existing dark card and gold accent tokens', () => {

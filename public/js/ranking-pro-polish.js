@@ -3,7 +3,7 @@
   window.__AIT_RANKING_PRO_POLISH__ = true;
 
   const HISTORY_KEY = 'ait-ranking-history-v1';
-  const state = { query: '', sort: 'rank' };
+  const state = { sort: 'rank' };
   const num = v => Number.isFinite(Number(v)) ? Number(v) : 0;
   const esc = v => String(v ?? '').replace(/[&<>\"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '\"':'&quot;', "'":'&#39;' }[ch]));
 
@@ -18,7 +18,7 @@
     if (document.querySelector('link[data-ranking-pro-polish]')) return;
     const l = document.createElement('link');
     l.rel = 'stylesheet';
-    l.href = '/css/ranking-pro-polish.css?v=20260908-4';
+    l.href = '/css/ranking-pro-polish.css?v=20260908-5';
     l.dataset.rankingProPolish = 'true';
     document.head.appendChild(l);
   }
@@ -53,12 +53,10 @@
   function transform(payload) {
     if (!payload?.data?.rows) return null;
     const f = filters();
-    const q = state.query.trim().toLowerCase();
     let rows = payload.data.rows.filter(r => {
       const b = f.branch === 'all' || branch(r).toLowerCase() === String(f.branch).toLowerCase();
       const y = f.year === 'all' || year(r).toLowerCase() === String(f.year).toLowerCase();
-      const text = `${name(r)} ${branch(r)} ${year(r)}`.toLowerCase();
-      return b && y && (!q || text.includes(q));
+      return b && y;
     });
 
     rows.sort(compare);
@@ -86,7 +84,7 @@
         try {
           const payload = await response.clone().json();
           rememberPayload(payload);
-          if (state.query || state.sort !== 'rank') {
+          if (state.sort !== 'rank') {
             return new Response(JSON.stringify({ ...payload, data: { ...payload.data, rows: transform(payload) } }), {
               status: response.status,
               statusText: response.statusText,
@@ -238,44 +236,20 @@
     t.setAttribute('aria-label', 'Leaderboard controls');
     t.innerHTML = `
       <div class="ranking-pro-toolbar-head">
-        <div class="ranking-pro-toolbar-copy"><span class="eyebrow">Leaderboard controls</span><strong>Find and compare students</strong></div>
+        <div class="ranking-pro-toolbar-copy"><span class="eyebrow">Leaderboard</span><strong>Sort students</strong></div>
         <span class="ranking-pro-count" aria-live="polite"></span>
       </div>
       <div class="ranking-pro-toolbar-grid">
-        <label class="ranking-pro-search"><span class="sr-only">Search students</span><input id="rankingProSearch" type="search" autocomplete="off" placeholder="Search student name, branch or year" aria-label="Search students"></label>
-        <label class="ranking-pro-sort"><span>Sort</span><select id="rankingProSort" aria-label="Sort leaderboard"><option value="rank">Rank</option><option value="points">Profile Points</option><option value="cgpa">CGPA</option><option value="name">Name</option></select></label>
-        <button type="button" id="rankingProClear" class="btn btn-secondary ranking-pro-clear" hidden>Clear</button>
+        <label class="ranking-pro-sort"><span>Sort by</span><select id="rankingProSort" aria-label="Sort leaderboard"><option value="rank">Rank</option><option value="points">Profile Points</option><option value="cgpa">CGPA</option><option value="name">Name</option></select></label>
       </div>
-      <p class="ranking-pro-hint">Search and sorting update the visible leaderboard without changing the underlying Profile Points calculation.</p>`;
+      <p class="ranking-pro-hint">Sorting updates the visible leaderboard without changing the underlying Profile Points calculation.</p>`;
 
     list.before(t);
-    const s = t.querySelector('#rankingProSearch');
     const o = t.querySelector('#rankingProSort');
-    const c = t.querySelector('#rankingProClear');
-
-    s.addEventListener('input', () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        state.query = s.value.trim().toLowerCase();
-        c.hidden = !state.query && state.sort === 'rank';
-        queueRender();
-      }, 20);
-    });
 
     o.addEventListener('change', () => {
       state.sort = o.value || 'rank';
-      c.hidden = !state.query && state.sort === 'rank';
       queueRender();
-    });
-
-    c.addEventListener('click', () => {
-      s.value = '';
-      o.value = 'rank';
-      state.query = '';
-      state.sort = 'rank';
-      c.hidden = true;
-      queueRender();
-      s.focus();
     });
   }
 
