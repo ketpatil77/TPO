@@ -41,24 +41,7 @@
   function feedback(kind = 'soft') { tone(kind); haptic(kind); }
 
   function renderMuteToggle(existingButton = null) {
-    if (!document.body.classList.contains('student-dashboard-page')) return;
-    const nav = document.querySelector('.navbar-inner > div:last-child');
-    if (!nav) return;
-    let button = existingButton || document.getElementById('experienceMuteToggle');
-    if (!button) {
-      button = document.createElement('button');
-      button.id = 'experienceMuteToggle';
-      button.type = 'button';
-      button.className = 'experience-mute-toggle';
-      nav.insertBefore(button, document.getElementById('logoutBtn'));
-      button.addEventListener('click', () => { const next = !userMuted(); setMuted(next, button); });
-    }
-    const isMuted = userMuted();
-    button.setAttribute('aria-label', isMuted ? 'Turn on portal sounds and haptics' : 'Mute portal sounds and haptics');
-    button.setAttribute('aria-pressed', String(isMuted));
-    button.innerHTML = isMuted
-      ? '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M11 5 6 9H3v6h3l5 4V5Zm5 4 5 6m0-6-5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-      : '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M11 5 6 9H3v6h3l5 4V5Zm4 4c1 1 1 5 0 6m3-9c3 3 3 9 0 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    // Render logic removed per header redesign requirements.
   }
 
   function timeGreeting(name) {

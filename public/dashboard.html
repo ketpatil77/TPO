@@ -15,19 +15,33 @@
 <body class="student-dashboard-page">
     <a class="skip-link" href="#studentDashboard">Skip to dashboard</a>
     <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container navbar-inner">
-            <a href="/dashboard" class="brand">
-                <div class="brand-icon">AIT</div>
-                <div>
-                    <div class="brand-title">AIT Placement Portal</div>
-                    <div class="brand-subtitle">Student Workspace</div>
+    <nav class="navbar" style="padding: 10px 0;">
+        <div class="container navbar-inner" style="display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+            <!-- Left group -->
+            <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0; min-width: max-content;">
+                <div style="width: 32px; height: 32px; background: var(--primary); color: #fff; border-radius: var(--radius-md, 8px); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; user-select: none;">AIT</div>
+                <div style="display: flex; flex-direction: column;">
+                    <div style="font-family: var(--font-heading); font-weight: 600; font-size: 14px; color: var(--text-heading); line-height: 1.2;">AIT Placement Portal</div>
+                    <div style="color: var(--text-muted); font-size: 11px; line-height: 1.2;">Student Workspace</div>
                 </div>
-            </a>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <span id="navStudentPrn" class="badge badge-info">PRN: --</span>
-                <button id="notificationBell" class="notification-bell" type="button" onclick="openNotificationCenter()" aria-label="Open notifications"><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="bellUnreadCount" class="notification-bell-count" hidden>0</span></button>
-                <button id="logoutBtn" class="btn btn-secondary btn-sm">Sign out</button>
+            </div>
+            
+            <!-- Right group -->
+            <div style="display: flex; align-items: center; gap: 7px; flex-shrink: 0; min-width: max-content;">
+                <button type="button" class="theme-toggle" data-theme-toggle="" style="width: 30px; height: 30px; padding: 0; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: grid; place-items: center;"></button>
+                <button id="notificationBell" type="button" onclick="openNotificationCenter()" aria-label="Open notifications" style="position: relative; width: 30px; height: 30px; padding: 0; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: grid; place-items: center;">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span id="bellUnreadCount" hidden style="position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; font-size: 0; color: transparent;">0</span>
+                </button>
+                <div style="width: 0.5px; height: 18px; background: var(--border-color); margin: 0 2px;"></div>
+                <div style="display: flex; align-items: center; gap: 6px; padding: 3px 8px 3px 3px; border: 1px solid var(--border-color); border-radius: var(--radius-full, 99px); background: transparent;">
+                    <div id="navStudentAvatar" style="width: 22px; height: 22px; border-radius: 50%; background: color-mix(in srgb, var(--primary) 15%, transparent); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700;">--</div>
+                    <span id="navStudentPrn" style="font-family: monospace; font-size: 11px; color: var(--text-muted); line-height: 1;">--</span>
+                </div>
+                <button id="logoutBtn" type="button" style="display: flex; align-items: center; gap: 4px; background: transparent; border: none; padding: 6px 8px; font-size: 12px; font-weight: 600; color: var(--danger); cursor: pointer; margin-left: 2px;">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                    Sign out
+                </button>
             </div>
         </div>
     </nav>

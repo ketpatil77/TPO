@@ -422,7 +422,16 @@ function renderDashboard(data) {
     const { student, internships, certificates, projects = [], research_papers: researchPapers = [], diploma, skills = [] } = data;
 
     // 1. Header & Meta
-    document.getElementById('navStudentPrn').innerText = `PRN: ${student.prn}`;
+    const prnNode = document.getElementById('navStudentPrn');
+    if (prnNode) {
+        const prn = String(student.prn || '');
+        prnNode.innerText = prn.length >= 8 ? `${prn.substring(0,4)}...${prn.substring(prn.length-4)}` : prn;
+    }
+    const navAvatarNode = document.getElementById('navStudentAvatar');
+    if (navAvatarNode) {
+        const parts = String(student.name || 'S').trim().split(/\s+/);
+        navAvatarNode.innerText = parts.length > 1 ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase() : parts[0][0].toUpperCase();
+    }
     const avatarInitial = document.querySelector('#studentAvatar .student-avatar-initial');
     if (avatarInitial) avatarInitial.textContent = student.name ? student.name.charAt(0).toUpperCase() : 'S';
     // The engagement layer owns rank overlays inside #studentAvatar. Never replace the
