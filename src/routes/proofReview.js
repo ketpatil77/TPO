@@ -131,6 +131,26 @@ async function notifyVerifiedStudent({ type, entry, actorRole }) {
     }
 }
 
+async function notifyRejectedStudent({ type, entry, actorRole, note }) {
+    const reviewer = actorRole === 'tpc' ? 'TPC' : 'TPO';
+    const label = entryLabel(type, entry);
+    const kind = type === 'certificate' ? 'Certificate' : 'Internship';
+    try {
+        const result = await createStudentNotification({
+            student_id: entry.student_id,
+            audience: 'student',
+            title: `${kind} rejected`,
+            message: `Your ${kind.toLowerCase()} "${label}" was rejected by ${reviewer}. Reason: ${note || 'Please review the record and supporting proof.'}`,
+            priority: 'important',
+            action_url: '/dashboard?tab=edit-profile'
+        });
+        return result?.delivery || null;
+    } catch (error) {
+        console.error('Proof rejection student notification failed:', error.message);
+        return null;
+    }
+}
+
 function createRouter(role) {
     const router = express.Router();
     const isObserver = role === 'observer';
@@ -249,9 +269,13 @@ function createRouter(role) {
                 note: req.body.note || '',
                 changed_at: now
             });
-            const notificationPromise = req.body.status === 'approved' && oldStatus !== 'approved'
-                ? notifyVerifiedStudent({ type, entry: persisted, actorRole })
-                : Promise.resolve(null);
+
+            let notificationPromise = Promise.resolve(null);
+            if (req.body.status === 'approved' && oldStatus !== 'approved') {
+                notificationPromise = notifyVerifiedStudent({ type, entry: persisted, actorRole });
+            } else if (req.body.status === 'rejected' && oldStatus !== 'rejected') {
+                notificationPromise = notifyRejectedStudent({ type, entry: persisted, actorRole, note: req.body.note });
+            }
 
             const [cacheResult, auditResult, notificationResult] = await Promise.allSettled([
                 clearStudentCache(),
