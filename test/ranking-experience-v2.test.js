@@ -19,7 +19,7 @@ test('ranking modules preload while full all-student profile scoring stays defer
   assert.match(lazy, /Ranking detail calculation is deferred until score breakdown is opened/);
   assert.match(lazy, /profile-ranking\.js/);
   assert.match(lazy, /ranking-experience-v2\.js\?v=20260904-v3/);
-  assert.match(lazy, /ranking-stable-v4\.js\?v=20260904-v5/);
+  assert.match(lazy, /ranking-stable-v4\.js\?v=20260908-pro1/);
 });
 
 test('legacy experience still supplies competition cards without owning v5 standings', () => {
