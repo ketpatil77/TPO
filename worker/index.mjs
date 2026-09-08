@@ -2,9 +2,9 @@ import { httpServerHandler } from 'cloudflare:node';
 import { contentSecurityPolicy } from './security-headers.mjs';
 
 const pageMap = new Map([
-    ['/', '/index.html'], ['/login', '/index.html'], ['/dashboard', '/dashboard.html'],
-    ['/admin', '/index.html'], ['/admin/login', '/index.html'], ['/admin/dashboard', '/admin-dashboard.html'],
-    ['/observer', '/index.html'], ['/observer/login', '/index.html'], ['/observer/dashboard', '/observer-dashboard.html']
+    ['/','/index.html'], ['/login','/index.html'], ['/dashboard','/dashboard.html'],
+    ['/admin','/index.html'], ['/admin/login','/index.html'], ['/admin/dashboard','/admin-dashboard.html'],
+    ['/observer','/index.html'], ['/observer/login','/index.html'], ['/observer/dashboard','/observer-dashboard.html']
 ]);
 
 let expressHandler;
@@ -25,8 +25,32 @@ function patchLoginHtml(html) {
     patched = patched.replace('</head>', '<script src="/js/student-login-resilience.js?v=20260904-login1" defer></script></head>');
     return patched;
 }
+
+const studentNavbarCriticalCss = `
+<style id="student-navbar-critical">
+.student-dashboard-page .navbar{position:relative!important;height:auto!important;min-height:0!important;padding:6px 0!important;overflow:hidden!important;}
+.student-dashboard-page .navbar-inner{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:space-between!important;gap:0!important;width:100%!important;min-width:0!important;height:44px!important;max-height:44px!important;overflow:hidden!important;box-sizing:border-box!important;}
+.student-dashboard-page .navbar-inner>div:first-child{display:flex!important;flex:1 1 auto!important;flex-direction:row!important;align-items:center!important;gap:10px!important;width:auto!important;min-width:0!important;max-width:calc(100% - 214px)!important;overflow:hidden!important;white-space:nowrap!important;}
+.student-dashboard-page .navbar-inner>div:first-child>div:first-child{width:32px!important;height:32px!important;min-width:32px!important;max-width:32px!important;flex:0 0 32px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;font-size:14px!important;line-height:1!important;}
+.student-dashboard-page .navbar-inner>div:first-child>div:last-child{display:flex!important;flex-direction:column!important;min-width:0!important;width:auto!important;overflow:hidden!important;white-space:nowrap!important;}
+.student-dashboard-page .navbar-inner>div:first-child>div:last-child>div{max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+.student-dashboard-page .navbar-inner>div:last-child{display:flex!important;flex:0 0 auto!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-end!important;gap:4px!important;width:auto!important;min-width:0!important;max-width:none!important;height:44px!important;overflow:visible!important;grid-column:auto!important;grid-row:auto!important;}
+.student-dashboard-page .navbar-inner>div:last-child>button.theme-toggle,.student-dashboard-page #notificationBell{position:relative!important;display:grid!important;place-items:center!important;flex:0 0 40px!important;width:40px!important;min-width:40px!important;max-width:40px!important;height:40px!important;min-height:40px!important;max-height:40px!important;margin:0!important;padding:0!important;transform:none!important;}
+.student-dashboard-page .navbar-inner>div:last-child>button.theme-toggle svg,.student-dashboard-page #notificationBell svg{width:20px!important;height:20px!important;max-width:20px!important;max-height:20px!important;}
+.student-dashboard-page .navbar-inner>div:last-child>div:nth-of-type(1){width:1px!important;min-width:1px!important;max-width:1px!important;height:18px!important;flex:0 0 1px!important;margin:0 2px!important;padding:0!important;}
+.student-dashboard-page .navbar-inner .observer-identity,.student-dashboard-page #navStudentAvatar+span,.student-dashboard-page #navStudentPrn{font-size:11px!important;line-height:1!important;}
+.student-dashboard-page .navbar-inner>div:last-child>div:has(#navStudentAvatar){display:flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;width:auto!important;min-width:62px!important;max-width:84px!important;height:38px!important;min-height:38px!important;max-height:38px!important;flex:0 0 auto!important;padding:3px 8px 3px 3px!important;box-sizing:border-box!important;overflow:hidden!important;}
+.student-dashboard-page .navbar-inner #navStudentAvatar{width:22px!important;height:22px!important;min-width:22px!important;max-width:22px!important;flex:0 0 22px!important;}
+.student-dashboard-page .navbar-inner #navStudentPrn{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+.student-dashboard-page .navbar-inner #logoutBtn{display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;width:auto!important;min-width:60px!important;max-width:76px!important;height:40px!important;min-height:40px!important;max-height:40px!important;margin:0!important;padding:6px 8px!important;gap:4px!important;white-space:nowrap!important;}
+.student-dashboard-page .navbar-inner #logoutBtn svg{width:14px!important;height:14px!important;max-width:14px!important;max-height:14px!important;flex:0 0 14px!important;}
+@media(max-width:760px){.student-dashboard-page .navbar-inner>div:first-child{max-width:calc(100% - 214px)!important}.student-dashboard-page .navbar-inner{height:44px!important}}
+@media(max-width:480px){.student-dashboard-page .navbar-inner>div:first-child{max-width:calc(100% - 206px)!important}.student-dashboard-page .navbar-inner>div:last-child{gap:2px!important}.student-dashboard-page .navbar-inner>div:last-child>button.theme-toggle,.student-dashboard-page #notificationBell{flex-basis:36px!important;width:36px!important;min-width:36px!important;max-width:36px!important;height:36px!important;min-height:36px!important;max-height:36px!important}.student-dashboard-page .navbar-inner>div:last-child>div:has(#navStudentAvatar){min-width:56px!important;max-width:70px!important}.student-dashboard-page .navbar-inner #logoutBtn{min-width:54px!important;max-width:66px!important}}
+@media(max-width:380px){.student-dashboard-page .navbar-inner>div:first-child{max-width:calc(100% - 190px)!important}.student-dashboard-page .navbar-inner>div:last-child>div:has(#navStudentAvatar){min-width:52px!important;max-width:62px!important}.student-dashboard-page .navbar-inner #logoutBtn{min-width:50px!important;max-width:60px!important;padding-left:5px!important;padding-right:5px!important}}
+</style>`;
+
 function patchDashboardHtml(html, assetPath) {
-    let patched = html.replace(/\/js\/portal-responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260908-navbar4');
+    let patched = html.replace(/\/js\/portal\.responsive\.js\?v=[^"']+/g, '/js/portal-responsive.js?v=20260908-navbar4');
     if (assetPath !== '/dashboard.html') patched = patched.replace('</head>', '<script src="/js/request-budget.js?v=20260904-free-tier2"></script></head>');
     if (assetPath === '/admin-dashboard.html') {
         patched = patched.replace(/\/js\/admin-dashboard\.js\?v=[^"']+/g, '/js/admin-dashboard.js?v=20260902-student-activity1');
@@ -34,7 +58,7 @@ function patchDashboardHtml(html, assetPath) {
     }
     if (assetPath === '/observer-dashboard.html') patched = patched.replace(/\/js\/observer-dashboard\.js\?v=[^"']+/g, '/js/observer-dashboard.js?v=20260819-ssc-hsc');
     if (assetPath === '/dashboard.html') {
-        patched = patched.replace('</head>', '<link rel="stylesheet" href="/css/student-navbar-final.css?v=20260908-navbar5"><link rel="stylesheet" href="/css/profile-requirements-20260814.css"><link rel="stylesheet" href="/css/student-projects-pro.css?v=20260904-projects2"><link rel="stylesheet" href="/css/student-feature-status.css?v=20260904-feature1"><link rel="stylesheet" href="/css/free-learning.css?v=20260906-catalog2"><link rel="stylesheet" href="/css/free-learning-v2.css?v=20260906-catalog2"><script src="/js/student-dashboard-interaction-hotfix.js?v=20260904-unlock6"></script><script src="/js/student-projects-pro.js?v=20260904-projects2" defer></script><script src="/js/student-feature-status.js?v=20260904-feature1" defer></script><script src="/js/free-learning-v2.js?v=20260906-catalog2" defer></script></head>');
+        patched = patched.replace('</head>', `${studentNavbarCriticalCss}<link rel="stylesheet" href="/css/student-navbar-final.css?v=20260908-navbar5"><link rel="stylesheet" href="/css/profile-requirements-20260814.css"><link rel="stylesheet" href="/css/student-projects-pro.css?v=20260904-projects2"><link rel="stylesheet" href="/css/student-feature-status.css?v=20260904-feature1"><link rel="stylesheet" href="/css/free-learning.css?v=20260906-catalog2"><link rel="stylesheet" href="/css/free-learning-v2.css?v=20260906-catalog2"><script src="/js/student-dashboard-interaction-hotfix.js?v=20260904-unlock6"></script><script src="/js/student-projects-pro.js?v=20260904-projects2" defer></script><script src="/js/student-feature-status.js?v=20260904-feature1" defer></script><script src="/js/free-learning-v2.js?v=20260906-catalog2" defer></script></head>`);
     }
     return patched;
 }
