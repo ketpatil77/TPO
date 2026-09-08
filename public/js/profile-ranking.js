@@ -93,6 +93,7 @@
     document.getElementById('rankingShowMore').addEventListener('click', () => { visibleCount += PAGE_SIZE; renderFiltered(false); });
     const rulesToggle = document.getElementById('rankingRulesToggle');
     const rulesPanel = document.getElementById('rankingRules');
+    renderRules();
     rulesToggle.addEventListener('click', () => {
       const open = rulesToggle.getAttribute('aria-expanded') !== 'true';
       rulesToggle.setAttribute('aria-expanded', String(open));
@@ -295,7 +296,20 @@
     return `<article class="glass-card leaderboard-podium-card ${klass} ${row.is_me ? 'is-me' : ''}"><span class="leaderboard-medal">${label}</span>${avatarHtml(row)}<h3>${esc(row.name)}${row.is_me ? ' · You' : ''}</h3><p>${esc(row.branch)} · ${esc(row.year || '—')}</p><span class="leaderboard-podium-points">${fmt(row.points)} pts</span></article>`;
   }
 
-  function renderRules(rules) {
+  const STATIC_RULES = {
+    version: '2026-27 v4.0',
+    note: 'Clean projects, research and internships score automatically. Duplicates, rejected records and suspicious entries score 0 until staff approval. Certificates and competitions score only after verification.',
+    academics: 'Profile CGPA uses the published band.',
+    certificates: 'Verified certificates only: first 10 verified certificates = 2 points each; every verified certificate after the first 10 = 1.5 points each. Pending/rejected certificates = 0 until verification.',
+    projects: 'Clean project = 4 base + 2 repository + 2 live URL. Duplicate, rejected or flagged = 0 earned points.',
+    research: 'Clean publication = 8 + 2 DOI bonus when doi.org + 1 paper link. A valid journal URL may be used without DOI.',
+    competitions: 'Competition points count only after verification.',
+    internships: 'Clean internship = 6 points. Rejected/duplicate/flagged = 0.',
+    skills: 'Skill = 0.5 point, maximum 20 scored skills.',
+    profile: 'Resume = 3; complete required profile fields = 2.'
+  };
+
+  function renderRules(rules = STATIC_RULES) {
     const target = document.getElementById('rankingRules');
     if (!target) return;
     target.innerHTML = `<div class="ranking-rule-banner"><strong>${esc(rules.version || '')}</strong><span>${esc(rules.note || '')}</span></div>${Object.entries(rules).filter(([key]) => !['version','note'].includes(key)).map(([key,value]) => `<div class="ranking-rule"><strong>${esc(key.replace(/_/g,' '))}</strong><span>${esc(value)}</span></div>`).join('')}`;
