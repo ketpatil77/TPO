@@ -17,7 +17,8 @@ test('Worker uses one authoritative dashboard boot path without injecting a seco
     assert.match(worker,/portal-responsive\.js\?v=20260908-navbar4/);
     assert.match(worker,/student-navbar-critical/);
     assert.match(worker,/(?:flex-direction:row!important|flex-flow:row nowrap!important)/);
-    assert.match(worker,/grid-column:auto!important/);
+    assert.match(worker,/grid-template-columns:minmax\(0,1fr\) auto!important/);
+    assert.match(worker,/grid-column:(?:1|2)!important/);
     assert.doesNotMatch(worker,/data-ranking-authoritative-v3|rankingV3Patch|script\.src = '\/js\/profile-ranking\.js/);
     assert.match(loader,/dashboard-density\.css\?v=20260903-global1/);
     assert.match(loader,/portal-integrity\.js\?v=20260903-global1/);
