@@ -40,10 +40,6 @@ function competitionFor(state, liveRow, above, below, now) {
 }
 
 async function readFastRankingSnapshot(currentStudentId, { now = new Date() } = {}) {
-  // The visible leaderboard and the score breakdown must come from the same
-  // scoring engine. leaderboard_rank_state is competition history only; it is
-  // not authoritative for the current points because verification/profile
-  // changes can happen between competition-state reconciliations.
   const [states, liveRaw] = await Promise.all([
     db.select('leaderboard_rank_state', { scope_key: 'college' }),
     buildLeaderboard(currentStudentId, 'all', 'all')
@@ -62,21 +58,10 @@ async function readFastRankingSnapshot(currentStudentId, { now = new Date() } = 
     rank: num(row.rank),
     points: num(row.points),
     is_me: row.student_id === currentStudentId,
-    competition: competitionFor(
-      stateByStudent.get(String(row.student_id)),
-      row,
-      index > 0 ? liveRows[index - 1] : null,
-      index + 1 < liveRows.length ? liveRows[index + 1] : null,
-      now
-    )
+    competition: competitionFor(stateByStudent.get(String(row.student_id)), row, index > 0 ? liveRows[index - 1] : null, index + 1 < liveRows.length ? liveRows[index + 1] : null, now)
   }));
 
-  return {
-    scope: 'college',
-    current: rows.find(row => row.student_id === currentStudentId) || null,
-    rows,
-    generated_at: now.toISOString()
-  };
+  return { scope: 'college', current: rows.find(row => row.student_id === currentStudentId) || null, rows, generated_at: now.toISOString() };
 }
 
 module.exports = { readFastRankingSnapshot };
