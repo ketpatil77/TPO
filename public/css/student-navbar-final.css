@@ -1,0 +1,275 @@
+/* Student navbar final contract. Loaded after every other student stylesheet. */
+.student-dashboard-page .navbar {
+  position: relative !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 8px 0 !important;
+  overflow: visible !important;
+}
+
+.student-dashboard-page .navbar-inner {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 1600px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding-inline: 20px !important;
+  margin-inline: auto !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+.student-dashboard-page .navbar-inner > :first-child {
+  display: flex !important;
+  flex-direction: row !important;
+  flex: 1 1 auto !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+  overflow: hidden !important;
+  gap: 10px !important;
+  flex-wrap: nowrap !important;
+}
+
+.student-dashboard-page .navbar-inner > :first-child > :first-child {
+  flex: 0 0 auto !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+}
+
+.student-dashboard-page .navbar-inner > :first-child > :last-child {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+  overflow: hidden !important;
+}
+
+.student-dashboard-page .navbar-inner > :first-child > :last-child > * {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.student-dashboard-page .navbar-inner > :last-child {
+  display: flex !important;
+  flex-direction: row !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-wrap: nowrap !important;
+  gap: 5px !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+}
+
+.student-dashboard-page .navbar-inner > :last-child > * {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+.student-dashboard-page .navbar-inner .theme-toggle,
+.student-dashboard-page #notificationBell {
+  display: grid !important;
+  place-items: center !important;
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
+  flex: 0 0 30px !important;
+  padding: 0 !important;
+}
+
+.student-dashboard-page #notificationBell svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.student-dashboard-page .navbar-inner > :last-child > div[style*="border-radius"] {
+  display: flex !important;
+  align-items: center !important;
+  flex: 0 0 auto !important;
+  padding: 3px 8px 3px 3px !important;
+  gap: 6px !important;
+  white-space: nowrap !important;
+}
+
+.student-dashboard-page #navStudentAvatar {
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  flex: 0 0 22px !important;
+}
+
+.student-dashboard-page #navStudentPrn {
+  white-space: nowrap !important;
+  font-size: 11px !important;
+}
+
+.student-dashboard-page #logoutBtn {
+  display: flex !important;
+  align-items: center !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  height: 32px !important;
+  min-width: 0 !important;
+  min-height: 32px !important;
+  padding: 5px 8px !important;
+  margin-left: 2px !important;
+  gap: 4px !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 760px) {
+  .student-dashboard-page .navbar {
+    padding: 6px 0 !important;
+  }
+
+  .student-dashboard-page .navbar-inner {
+    gap: 6px !important;
+    padding-inline: 9px !important;
+  }
+
+  .student-dashboard-page .navbar-inner > :first-child {
+    gap: 6px !important;
+  }
+
+  .student-dashboard-page .navbar-inner > :first-child > :first-child {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+  }
+
+  .student-dashboard-page .navbar-inner > :first-child > :last-child > :first-child {
+    font-size: 13px !important;
+    line-height: 1.05 !important;
+  }
+
+  .student-dashboard-page .navbar-inner > :first-child > :last-child > :last-child {
+    font-size: 9px !important;
+    line-height: 1.05 !important;
+  }
+
+  .student-dashboard-page .navbar-inner > :last-child {
+    gap: 3px !important;
+  }
+
+  .student-dashboard-page .navbar-inner .theme-toggle,
+  .student-dashboard-page #notificationBell {
+    width: 27px !important;
+    height: 27px !important;
+    min-width: 27px !important;
+    min-height: 27px !important;
+    flex-basis: 27px !important;
+  }
+
+  .student-dashboard-page #notificationBell svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .student-dashboard-page .navbar-inner > :last-child > div[style*="border-radius"] {
+    gap: 3px !important;
+    padding: 2px 5px 2px 2px !important;
+  }
+
+  .student-dashboard-page #navStudentAvatar {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    flex-basis: 20px !important;
+    font-size: 8px !important;
+  }
+
+  .student-dashboard-page #navStudentPrn {
+    font-size: 9px !important;
+  }
+
+  .student-dashboard-page #logoutBtn {
+    height: 27px !important;
+    min-height: 27px !important;
+    padding: 3px 4px !important;
+    margin-left: 0 !important;
+    font-size: 9px !important;
+    gap: 2px !important;
+  }
+
+  .student-dashboard-page #logoutBtn svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .student-dashboard-page .navbar-inner {
+    gap: 3px !important;
+    padding-inline: 6px !important;
+  }
+
+  .student-dashboard-page .navbar-inner > :first-child {
+    gap: 4px !important;
+  }
+
+  .student-dashboard-page .navbar-inner > :first-child > :first-child {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    flex-basis: 28px !important;
+    font-size: 11px !important;
+  }
+
+  .student-dashboard-page .navbar-inner > :first-child > :last-child > :first-child {
+    font-size: 11px !important;
+  }
+
+  .student-dashboard-page .navbar-inner > :first-child > :last-child > :last-child {
+    display: none !important;
+  }
+
+  .student-dashboard-page .navbar-inner > :last-child {
+    gap: 2px !important;
+  }
+
+  .student-dashboard-page .navbar-inner .theme-toggle,
+  .student-dashboard-page #notificationBell {
+    width: 25px !important;
+    height: 25px !important;
+    min-width: 25px !important;
+    min-height: 25px !important;
+    flex-basis: 25px !important;
+  }
+
+  .student-dashboard-page #navStudentPrn {
+    font-size: 8px !important;
+  }
+
+  .student-dashboard-page #logoutBtn {
+    padding-inline: 3px !important;
+    font-size: 8px !important;
+  }
+
+  .student-dashboard-page #logoutBtn svg {
+    width: 11px !important;
+    height: 11px !important;
+  }
+}
