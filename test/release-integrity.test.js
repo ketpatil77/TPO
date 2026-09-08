@@ -8,9 +8,9 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 
 test('every public login route uses the unified Turnstile portal', () => {
     const worker = read('worker/index.mjs');
-    assert.match(worker, /\['\/login', '\/index\.html'\]/);
-    assert.match(worker, /\['\/observer', '\/index\.html'\]/);
-    assert.match(worker, /\['\/observer\/login', '\/index\.html'\]/);
+    assert.match(worker, /\['\/login'\s*,\s*'\/index\.html'\]/);
+    assert.match(worker, /\['\/observer'\s*,\s*'\/index\.html'\]/);
+    assert.match(worker, /\['\/observer\/login'\s*,\s*'\/index\.html'\]/);
     assert.doesNotMatch(worker, /\/login\.html|\/observer-login\.html/);
 });
 
