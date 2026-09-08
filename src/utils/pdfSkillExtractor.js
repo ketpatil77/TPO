@@ -1,5 +1,5 @@
 const { getDocumentProxy, extractText } = require('unpdf');
-const { textCoverage, normalizeTerm, SYNONYM_MAP } = require('./matching');
+const { normalizeTerm } = require('./matching');
 
 const SKILLS = [
     ['Python', ['python', 'py', 'py3', 'python3']],
@@ -96,6 +96,13 @@ function boundaryPattern(term) {
     return new RegExp(`(^|[^a-z0-9+#])${escaped}(?=$|[^a-z0-9+#])`, 'gi');
 }
 
+function matchesTerm(text, term) {
+    const normalizedText = String(text || '').toLowerCase();
+    const normalizedTerm = normalizeTerm(term);
+    if (!normalizedTerm) return false;
+    return boundaryPattern(normalizedTerm).test(normalizedText);
+}
+
 async function extractSkillsFromPdf(buffer) {
     const text = await extractPdfText(buffer);
     const lowered = text.toLowerCase();
@@ -111,95 +118,193 @@ async function extractSkillsFromPdf(buffer) {
     return { suggestions: suggestions.slice(0, 50), textLength: text.length };
 }
 
+// ATS profiles are deliberately role-specific. The first terms are core skills and
+// receive more weight than optional/supporting skills. This prevents a resume from
+// scoring well merely because it contains generic words such as "project" or "team".
 const ATS_PROFILES = {
     software: {
-        keywords: ['python', 'java', 'javascript', 'c++', 'react', 'node', 'sql', 'database', 'api', 'git', 'algorithm', 'data structures', 'agile', 'aws', 'docker', 'typescript', 'go', 'rust', 'angular', 'vue', 'django', 'flask', 'spring boot', '.net', 'azure', 'gcp', 'kubernetes', 'jenkins', 'ci/cd', 'terraform', 'microservices', 'graphql', 'oop', 'system design', 'scrum', 'postgresql', 'mongodb', 'redis', 'elasticsearch', 'kafka'],
-        maxScore: 100
+        label: 'Software Engineer',
+        core: ['programming', 'data structures', 'algorithms', 'object oriented programming', 'git', 'sql', 'api', 'software development'],
+        supporting: ['javascript', 'typescript', 'python', 'java', 'react', 'node.js', 'docker', 'testing', 'ci/cd', 'cloud', 'database', 'rest api', 'microservices', 'system design'],
+        aliases: {
+            programming: ['programming', 'software development', 'coding'],
+            'data structures': ['data structures', 'data structure', 'dsa'],
+            algorithms: ['algorithms', 'algorithm'],
+            'object oriented programming': ['object oriented programming', 'object-oriented programming', 'oop'],
+            api: ['api', 'apis', 'rest api', 'restful api'],
+            testing: ['testing', 'unit testing', 'integration testing'],
+            cloud: ['cloud', 'aws', 'azure', 'gcp'],
+            database: ['database', 'databases', 'sql', 'postgresql', 'mysql', 'mongodb'],
+            'software development': ['software development', 'software engineering', 'application development']
+        }
     },
     data: {
-        keywords: ['python', 'r', 'sql', 'machine learning', 'data analysis', 'pandas', 'numpy', 'statistics', 'tableau', 'power bi', 'deep learning', 'excel', 'visualization', 'database', 'hadoop', 'spark', 'tensorflow', 'pytorch', 'nlp', 'computer vision', 'data engineering', 'etl', 'data warehouse', 'big data', 'predictive modeling'],
-        maxScore: 100
+        label: 'Data Scientist / Analyst',
+        core: ['python', 'sql', 'statistics', 'data analysis', 'pandas', 'numpy', 'data visualization', 'machine learning'],
+        supporting: ['r', 'excel', 'tableau', 'power bi', 'scikit-learn', 'deep learning', 'tensorflow', 'pytorch', 'nlp', 'computer vision', 'etl', 'data engineering', 'spark', 'hadoop'],
+        aliases: {
+            'data visualization': ['data visualization', 'visualization', 'visualisation', 'dashboards'],
+            'machine learning': ['machine learning', 'machine-learning', 'ml'],
+            statistics: ['statistics', 'statistical analysis'],
+            'data analysis': ['data analysis', 'data analyst', 'data analytics'],
+            'scikit-learn': ['scikit-learn', 'sklearn']
+        }
     },
     electronics: {
-        keywords: ['c', 'c++', 'embedded', 'iot', 'microcontroller', 'vlsi', 'verilog', 'vhdl', 'matlab', 'pcb', 'circuit', 'signal processing', 'arduino', 'raspberry pi', 'fpga', 'rtos', 'arm', 'spicem', 'oscilloscope', 'soldering', 'rf', 'antenna', 'wireless', 'telecommunications'],
-        maxScore: 100
+        label: 'Electronics / Core E&TC',
+        core: ['c', 'c++', 'embedded systems', 'microcontrollers', 'digital electronics', 'analog electronics', 'circuit design', 'signal processing'],
+        supporting: ['iot', 'vlsi', 'verilog', 'vhdl', 'matlab', 'pcb', 'arduino', 'raspberry pi', 'fpga', 'rtos', 'arm', 'rf', 'wireless', 'telecommunications'],
+        aliases: {
+            'embedded systems': ['embedded systems', 'embedded system', 'embedded'],
+            microcontrollers: ['microcontrollers', 'microcontroller'],
+            'digital electronics': ['digital electronics', 'digital design'],
+            'analog electronics': ['analog electronics', 'analogue electronics'],
+            'circuit design': ['circuit design', 'circuit'],
+            'signal processing': ['signal processing', 'digital signal processing', 'dsp']
+        }
     },
     mechanical: {
-        keywords: ['autocad', 'solidworks', 'ansys', 'catia', 'thermodynamics', 'fluid', 'manufacturing', 'cad', 'cam', 'cae', 'robotics', 'quality', 'machining', 'design', 'ptc creo', 'siemens nx', 'heat transfer', 'fea', 'cfd', 'gd&t', 'lean', 'six sigma', 'rca', 'cnc', 'injection molding', '3d printing', 'plm', 'bom', 'fmea'],
-        maxScore: 100
+        label: 'Mechanical Engineer',
+        core: ['mechanical design', 'cad', 'solidworks', 'autocad', 'manufacturing', 'thermodynamics', 'materials', 'engineering drawing'],
+        supporting: ['ansys', 'catia', 'cam', 'cae', 'robotics', 'quality', 'machining', 'ptc creo', 'siemens nx', 'heat transfer', 'fea', 'cfd', 'gd&t', 'cnc', 'injection molding', '3d printing', 'fmea'],
+        aliases: {
+            'mechanical design': ['mechanical design', 'machine design', 'design engineering'],
+            cad: ['cad', 'computer aided design'],
+            manufacturing: ['manufacturing', 'production'],
+            materials: ['materials', 'engineering materials'],
+            'engineering drawing': ['engineering drawing', 'technical drawing']
+        }
     },
     civil: {
-        keywords: ['autocad', 'staad', 'revit', 'surveying', 'construction', 'structural', 'geotechnical', 'environmental', 'concrete', 'steel', 'planning', 'project', 'site', 'autocad civil 3d', 'microstation', 'sap2000', 'etabs', 'hec-ras', 'arcgis', 'bluebeam revu', 'primavera p6', 'hydrology', 'topographic', 'osha', 'leed', 'estimating'],
-        maxScore: 100
+        label: 'Civil / Structural Engineer',
+        core: ['autocad', 'structural engineering', 'construction', 'surveying', 'concrete', 'steel structures', 'engineering drawing', 'project planning'],
+        supporting: ['staad', 'revit', 'geotechnical', 'environmental', 'autocad civil 3d', 'microstation', 'sap2000', 'etabs', 'hec-ras', 'arcgis', 'primavera p6', 'hydrology', 'topographic', 'osha', 'leed', 'estimating'],
+        aliases: {
+            'structural engineering': ['structural engineering', 'structural design', 'structural'],
+            'steel structures': ['steel structures', 'steel structure', 'structural steel'],
+            surveying: ['surveying', 'land surveying'],
+            'project planning': ['project planning', 'construction planning', 'planning'],
+            estimating: ['estimating', 'cost estimation']
+        }
     },
     management: {
-        keywords: ['agile', 'scrum', 'jira', 'leadership', 'communication', 'project management', 'product', 'roadmap', 'strategy', 'planning', 'stakeholder', 'team', 'delivery', 'operations', 'change management', 'kpi', 'risk management', 'financial modeling', 'p&l', 'budgeting', 'forecasting', 'roi', 'm&a', 'tableau', 'power bi', 'excel', 'erp', 'salesforce'],
-        maxScore: 100
+        label: 'Management',
+        core: ['leadership', 'communication', 'project management', 'stakeholder management', 'planning', 'strategy', 'team management', 'business analysis'],
+        supporting: ['agile', 'scrum', 'jira', 'product management', 'roadmap', 'operations', 'change management', 'kpi', 'risk management', 'financial modeling', 'budgeting', 'forecasting', 'roi', 'excel', 'tableau', 'power bi', 'salesforce'],
+        aliases: {
+            'stakeholder management': ['stakeholder management', 'stakeholder'],
+            'team management': ['team management', 'team leadership', 'people management'],
+            'business analysis': ['business analysis', 'business analyst'],
+            'project management': ['project management', 'project manager'],
+            'product management': ['product management', 'product manager']
+        }
     }
 };
 
+const PROFILE_ALIASES = {
+    software: ['software', 'software engineer', 'software developer', 'sw developer', 'sw dev', 'swe', 'developer', 'web developer', 'full stack', 'full-stack', 'frontend', 'front end', 'backend', 'back end'],
+    data: ['data', 'data scientist', 'data analyst', 'data science', 'data analytics', 'ml engineer', 'machine learning engineer'],
+    electronics: ['electronics', 'e&tc', 'entc', 'electronics communication', 'electronics engineer', 'core electronics'],
+    mechanical: ['mechanical', 'mechanical engineer', 'mechanical design'],
+    civil: ['civil', 'civil engineer', 'structural engineer', 'civil structural'],
+    management: ['management', 'manager', 'project manager', 'product manager', 'business analyst']
+};
+
+function resolveAtsProfile(profileKey) {
+    const value = String(profileKey || '').trim().toLowerCase();
+    if (ATS_PROFILES[value]) return value;
+    for (const [key, aliases] of Object.entries(PROFILE_ALIASES)) {
+        if (aliases.includes(value)) return key;
+    }
+    return 'software';
+}
+
+function profileTerms(profile) {
+    return [...profile.core, ...profile.supporting];
+}
+
+function scoreAtsText(text, profileKey) {
+    const key = resolveAtsProfile(profileKey);
+    const profile = ATS_PROFILES[key];
+    const aliases = profile.aliases || {};
+    const matched = [];
+    const missing = [];
+    let earned = 0;
+    let possible = 0;
+
+    const terms = profileTerms(profile);
+    for (const term of terms) {
+        const weight = profile.core.includes(term) ? 3 : 1;
+        possible += weight;
+        const candidates = aliases[term] || [term];
+        const found = candidates.some(candidate => matchesTerm(text, candidate));
+        if (found) {
+            matched.push(term);
+            earned += weight;
+        } else {
+            missing.push(term);
+        }
+    }
+
+    const score = possible ? Math.round((earned / possible) * 100) : 0;
+    return { score, matched, missing, role: profile.label, profile: key };
+}
+
 const githubCache = new Map();
+
+async function getGithubProfile(text) {
+    const ghMatch = text.match(/github\.com\/([a-zA-Z0-9-]+)/i);
+    if (!ghMatch) return null;
+    const username = ghMatch[1].toLowerCase();
+    if (githubCache.has(username)) return githubCache.get(username);
+
+    try {
+        const headers = { 'User-Agent': 'TPO-ATS-Scorer' };
+        const token = process.env.GITHUB_TOKEN || process.env.GITHUB_PAT;
+        if (token) headers.Authorization = `Bearer ${token}`;
+        const ghRes = await fetch(`https://api.github.com/users/${username}/repos?per_page=10&sort=updated`, { headers });
+        if (!ghRes.ok) return null;
+        const repos = await ghRes.json();
+        const languages = [...new Set(repos.map(repo => repo.language).filter(Boolean).map(language => language.toLowerCase()))];
+        const data = { username, repoCount: repos.length, languages };
+        githubCache.set(username, data);
+        return data;
+    } catch (error) {
+        console.error('GitHub API error:', error.message);
+        return null;
+    }
+}
 
 async function scoreResumeAts(buffer, profileKey) {
     const text = await extractPdfText(buffer);
-    const lowered = text.toLowerCase();
+    const resolvedProfile = resolveAtsProfile(profileKey);
+    const profile = ATS_PROFILES[resolvedProfile];
+    const githubData = await getGithubProfile(text);
 
-    const profile = ATS_PROFILES[profileKey] || ATS_PROFILES.software;
-    const requiredKeywords = profile.keywords;
-
-    let matched = [];
-    let missing = [];
-    let githubData = null;
-
-    const ghMatch = text.match(/github\.com\/([a-zA-Z0-9-]+)/i);
-    if (ghMatch) {
-        const username = ghMatch[1].toLowerCase();
-        if (githubCache.has(username)) {
-            githubData = githubCache.get(username);
-        } else {
-            try {
-                const headers = { 'User-Agent': 'TPO-ATS-Scorer' };
-                const token = process.env.GITHUB_TOKEN || process.env.GITHUB_PAT;
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
-                const ghRes = await fetch(`https://api.github.com/users/${username}/repos?per_page=10&sort=updated`, { headers });
-                if (ghRes.ok) {
-                    const repos = await ghRes.json();
-                    const languages = new Set(repos.map(r => r.language).filter(Boolean).map(l => l.toLowerCase()));
-                    githubData = { username, repoCount: repos.length, languages: Array.from(languages) };
-                    githubCache.set(username, githubData);
-                }
-            } catch (e) {
-                console.error('GitHub API error:', e.message);
+    // GitHub evidence can satisfy a role-relevant technology, but it never adds a
+    // free-standing bonus. This keeps the score tied to the selected role.
+    const result = scoreAtsText(text, resolvedProfile);
+    if (githubData?.languages?.length) {
+        for (const term of profileTerms(profile)) {
+            if (result.matched.includes(term)) continue;
+            const candidates = profile.aliases?.[term] || [term];
+            const githubFound = candidates.some(candidate => githubData.languages.some(language => normalizeTerm(language) === normalizeTerm(candidate)));
+            if (githubFound) {
+                result.matched.push(term);
+                const weight = profile.core.includes(term) ? 3 : 1;
+                const previousMissing = result.missing.indexOf(term);
+                if (previousMissing >= 0) result.missing.splice(previousMissing, 1);
+                // Recompute from the final matched set to keep rounding consistent.
+                const possible = profileTerms(profile).reduce((sum, item) => sum + (profile.core.includes(item) ? 3 : 1), 0);
+                const earned = result.matched.reduce((sum, item) => sum + (profile.core.includes(item) ? 3 : 1), 0);
+                result.score = possible ? Math.round((earned / possible) * 100) : 0;
+                void weight;
             }
         }
     }
 
-    for (const kw of requiredKeywords) {
-        const canonical = normalizeTerm(kw);
-        const textFound = textCoverage([canonical], text) > 0;
-        const ghFound = githubData && githubData.languages.some(lang => normalizeTerm(lang) === canonical);
-        if (textFound || ghFound) {
-            matched.push(kw);
-        } else {
-            missing.push(kw);
-        }
-    }
-
-    let rawScore = (matched.length / requiredKeywords.length) * 100;
-    if (githubData && githubData.repoCount > 0) {
-        rawScore += 5; // Bonus for open source repos
-    }
-    const finalScore = Math.round(Math.min(100, rawScore));
-
-    return {
-        score: finalScore,
-        matched,
-        missing,
-        status: finalScore >= 80 ? 'Excellent' : finalScore >= 50 ? 'Good' : 'Needs Improvement',
-        github: githubData
-    };
+    result.status = result.score >= 80 ? 'Excellent' : result.score >= 50 ? 'Good' : 'Needs Improvement';
+    return { ...result, github: githubData };
 }
 
-module.exports = { extractPdfText, extractSkillsFromPdf, scoreResumeAts };
+module.exports = { extractPdfText, extractSkillsFromPdf, scoreResumeAts, resolveAtsProfile, scoreAtsText };
