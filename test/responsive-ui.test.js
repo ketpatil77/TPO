@@ -16,21 +16,26 @@ test('Worker uses one authoritative dashboard boot path without injecting a seco
     const loader=read('public/js/portal-responsive.js');
     assert.match(worker,/portal-responsive\.js\?v=20260908-navbar4/);
     assert.match(worker,/student-navbar-critical/);
-    assert.match(worker,/(?:flex-direction:row!important|flex-flow:row nowrap!important)/);
     assert.match(worker,/grid-template-columns:minmax\(0,1fr\) auto!important/);
-    assert.match(worker,/grid-column:(?:1|2)!important/);
+    assert.match(worker,/student-navbar-authoritative\.css\?v=20260908-navbar9/);
     assert.doesNotMatch(worker,/data-ranking-authoritative-v3|rankingV3Patch|script\.src = '\/js\/profile-ranking\.js/);
     assert.match(loader,/dashboard-density\.css\?v=20260903-global1/);
     assert.match(loader,/portal-integrity\.js\?v=20260903-global1/);
     assert.match(loader,/operation-feedback\.js\?v=20260903-global2/);
 });
-test('student navbar keeps branding and actions in two non-wrapping columns', () => {
-    const css=read('public/css/student-navbar-final.css');
-    assert.match(css,/display:grid!important;grid-template-columns:minmax\(0,1fr\) auto!important/);
-    assert.match(css,/\.navbar-inner>div:first-child\{[^}]*grid-column:1!important/s);
-    assert.match(css,/\.navbar-inner>div:last-child\{[^}]*grid-column:2!important/s);
-    assert.match(css,/\.navbar-inner>div:last-child\{[^}]*flex-flow:row nowrap!important/s);
-    assert.doesNotMatch(css,/\.navbar-inner>div:first-child\{[^}]*max-width:calc\(100% -/s);
+test('student navbar has a high-specificity non-wrapping two-column contract', () => {
+    const css=read('public/css/student-navbar-authoritative.css');
+    assert.match(css,/html body\.student-dashboard-page \.navbar \.navbar-inner\{display:grid!important;grid-template-columns:minmax\(0,1fr\) auto!important/);
+    assert.match(css,/grid-column:1!important/);
+    assert.match(css,/grid-column:2!important/);
+    assert.match(css,/flex-wrap:nowrap!important/);
+    assert.doesNotMatch(css,/max-width:calc\(100% -/);
+});
+test('ranking lazy loader never blocks the ranking API request', () => {
+    const lazy=read('public/js/student-ranking-lazy.js');
+    assert.doesNotMatch(lazy,/window\.fetch\s*=\s*function/);
+    assert.doesNotMatch(lazy,/Ranking detail calculation is deferred until score breakdown is opened/);
+    assert.match(lazy,/profile-ranking\.js\?v=/);
 });
 test('responsive rules prevent clipped tabs, narrow semester fields and sticky form overlap', () => {
     const css=read('public/css/portal-responsive.css');
