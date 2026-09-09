@@ -59,7 +59,7 @@ async function runProofExpiryCleanup({ now = new Date() } = {}) {
     for (const [table, rows] of [['internships', internships || []], ['certificates', certificates || []]]) {
         for (const entry of rows) {
             result.checked += 1;
-            if (entry.evidence_path) {
+            if (entry.evidence_path || entry.verification_status === 'verified') {
                 result.skipped_with_proof += 1;
                 continue;
             }

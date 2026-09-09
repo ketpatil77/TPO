@@ -222,7 +222,15 @@
     installPointPreviews();
     scheduleRefresh(180);
     const root = document.getElementById('dashboardContent') || document.body;
-    new MutationObserver(() => { wireBadges(); installPointPreviews(); }).observe(root,{childList:true,subtree:true});
+    let mutationTimer = null;
+    new MutationObserver(() => {
+        if (mutationTimer) clearTimeout(mutationTimer);
+        mutationTimer = setTimeout(() => {
+            mutationTimer = null;
+            wireBadges();
+            installPointPreviews();
+        }, 150);
+    }).observe(root,{childList:true,subtree:true});
     document.addEventListener('click', event => {
       if (event.target.closest('button[type="submit"], .profile-none-btn')) scheduleRefresh(900);
     });

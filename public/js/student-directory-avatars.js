@@ -143,11 +143,16 @@
         header.prepend(buildAvatar(student, 'directory-student-avatar directory-modal-avatar'));
     }
 
+    let refreshTimer = null;
     function refresh() {
-        enhanceAdminRows();
-        enhanceObserverRows();
-        enhanceAdminModal();
-        enhanceObserverModal();
+        if (refreshTimer) clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(() => {
+            refreshTimer = null;
+            enhanceAdminRows();
+            enhanceObserverRows();
+            enhanceAdminModal();
+            enhanceObserverModal();
+        }, 150);
     }
 
     function watch(id) {

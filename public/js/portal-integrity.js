@@ -112,10 +112,13 @@
     cleanDuplicatePanels();
   }
 
+  let scheduleTimer = null;
   function schedule() {
-    if (scheduled) return;
-    scheduled = true;
-    requestAnimationFrame(run);
+    if (scheduleTimer) clearTimeout(scheduleTimer);
+    scheduleTimer = setTimeout(() => {
+        scheduleTimer = null;
+        run();
+    }, 150);
   }
 
   document.addEventListener('click', event => {

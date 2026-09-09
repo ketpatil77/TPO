@@ -101,6 +101,5 @@
 
   window.addEventListener('pageshow', recover);
   window.addEventListener('focus', recover);
-  window.addEventListener('touchstart', unlock, { passive: true });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) queueMicrotask(recover); });
 })();

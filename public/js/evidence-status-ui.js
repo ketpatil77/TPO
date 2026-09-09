@@ -87,13 +87,13 @@
         });
     }
 
+    let polishTimer = null;
     function queuePolish() {
-        if (queued) return;
-        queued = true;
-        requestAnimationFrame(() => {
-            queued = false;
+        if (polishTimer) clearTimeout(polishTimer);
+        polishTimer = setTimeout(() => {
+            polishTimer = null;
             polishCards();
-        });
+        }, 150);
     }
 
     function init() {

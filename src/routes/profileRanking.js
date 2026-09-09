@@ -4,6 +4,7 @@ const db = require('../config/database');
 const { authenticateStudent, authenticateAdmin, authenticateObserver } = require('../middleware/auth');
 const { validate } = require('../middleware/security');
 const { createStudentNotification } = require('../services/incompleteProfilePush');
+const kvCache = require('../utils/kvCache');
 
 const student = express.Router();
 const admin = express.Router();
@@ -241,7 +242,12 @@ function scoreStudent(profile, related) {
     };
 }
 
-async function buildLeaderboard({ branch = 'all', year = 'all', currentStudentId = null }) {
+async function getCachedScoredStudents() {
+    const cacheKey = 'global_scored_students_v1';
+    const cached = await kvCache.get(cacheKey);
+    if (cached) {
+        try { return JSON.parse(cached); } catch (e) {}
+    }
     const [students, internships, certificates, projects, research, competitions, skills] = await Promise.all([
         db.select('students'), db.select('internships'), db.select('certificates'), db.select('student_projects'),
         db.select('research_papers'), db.select('student_competitions'), db.select('student_skills')
@@ -250,11 +256,7 @@ async function buildLeaderboard({ branch = 'all', year = 'all', currentStudentId
         internships: groupByStudent(internships), certificates: groupByStudent(certificates), projects: groupByStudent(projects),
         research: groupByStudent(research), competitions: groupByStudent(competitions), skills: groupByStudent(skills)
     };
-    let filtered = students.filter(item => item.status !== 'inactive');
-    if (branch && branch !== 'all') filtered = filtered.filter(item => String(item.branch || '').toUpperCase() === String(branch).toUpperCase());
-    if (year && year !== 'all') filtered = filtered.filter(item => String(item.year || '').toLowerCase() === String(year).toLowerCase());
-
-    const scored = filtered.map(profile => {
+    const allScored = students.filter(item => item.status !== 'inactive').map(profile => {
         const score = scoreStudent(profile, related);
         return {
             student_id: profile.id,
@@ -265,10 +267,22 @@ async function buildLeaderboard({ branch = 'all', year = 'all', currentStudentId
             breakdown: score.breakdown,
             explanations: score.explanations,
             evidence_counts: score.evidenceCounts,
-            counts: score.counts,
-            is_me: profile.id === currentStudentId
+            counts: score.counts
         };
-    }).sort((a, b) => b.points - a.points || String(a.name || '').localeCompare(String(b.name || '')));
+    });
+    await kvCache.put(cacheKey, JSON.stringify(allScored), 300);
+    return allScored;
+}
+
+async function buildLeaderboard({ branch = 'all', year = 'all', currentStudentId = null }) {
+    const allScored = await getCachedScoredStudents();
+
+    let filtered = allScored;
+    if (branch && branch !== 'all') filtered = filtered.filter(item => String(item.branch || '').toUpperCase() === String(branch).toUpperCase());
+    if (year && year !== 'all') filtered = filtered.filter(item => String(item.year || '').toLowerCase() === String(year).toLowerCase());
+
+    const scored = filtered.map(item => ({ ...item, is_me: item.student_id === currentStudentId }))
+        .sort((a, b) => b.points - a.points || String(a.name || '').localeCompare(String(b.name || '')));
 
     let previousPoints = null;
     let previousRank = 0;
@@ -407,6 +421,7 @@ async function applyEvidenceDecision({ kind, id, status, note, actorId, actorRol
     } catch (error) {
         console.error('Evidence verification notification failed:', error.message);
     }
+    await kvCache.delete('global_scored_students_v1');
     return { updated, student: person };
 }
 

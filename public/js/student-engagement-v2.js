@@ -265,10 +265,15 @@
 
   function observeDynamicUi() {
     const root = document.getElementById('dashboardContent') || document.body;
+    let mutationTimer = null;
     const observer = new MutationObserver(() => {
-      wireNewBadges();
-      installPointPreviews();
-      installRankTarget();
+        if (mutationTimer) clearTimeout(mutationTimer);
+        mutationTimer = setTimeout(() => {
+            mutationTimer = null;
+            wireNewBadges();
+            installPointPreviews();
+            installRankTarget();
+        }, 150);
     });
     observer.observe(root, { childList: true, subtree: true });
   }
