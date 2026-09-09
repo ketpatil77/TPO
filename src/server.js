@@ -39,6 +39,7 @@ const adminDriveRoutes = require('./routes/adminDrives');
 const observerAuthRoutes = require('./routes/observerAuth');
 const observerRoutes = require('./routes/observer');
 const workflowRoutes = require('./routes/workflow');
+const adminNotificationRoutes = require('./routes/adminNotifications');
 const advancedRoutes = require('./routes/advanced');
 const intelligenceRoutes = require('./routes/intelligence');
 const launchOperationsRoutes = require('./routes/launchOperations');
@@ -124,6 +125,9 @@ app.use('/api/admin/profile-completion', profileCompletionRoutes.admin);
 app.use('/api/admin/audit-logs', adminAuditRoutes);
 app.use('/api/admin/drives', adminDriveRoutes);
 app.use('/api/admin/competitions', competitionReviewRoutes.admin);
+// Handle student-alert creation before the legacy workflow notification route so
+// push-service outages cannot turn a saved in-app alert into a 500 response.
+app.use('/api/admin/workflow', adminNotificationRoutes);
 app.use('/api/admin/workflow', workflowRoutes.admin);
 app.use('/api/admin/advanced', advancedRoutes.admin);
 app.use('/api/admin/intelligence', intelligenceRoutes);
