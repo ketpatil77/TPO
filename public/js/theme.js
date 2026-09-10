@@ -3,6 +3,14 @@
     const root = document.documentElement;
     const media = window.matchMedia('(prefers-color-scheme: dark)');
 
+    // Student dashboard notification polling used to run every 30 seconds. Keep
+    // the existing dashboard code unchanged, but slow that specific cadence to
+    // 2 minutes to reduce repeated Supabase egress while keeping alerts timely.
+    if (window.location.pathname === '/dashboard') {
+        const nativeSetInterval = window.setInterval.bind(window);
+        window.setInterval = (handler, timeout, ...args) => nativeSetInterval(handler, timeout === 30000 ? 120000 : timeout, ...args);
+    }
+
     function preferredTheme() {
         const saved = localStorage.getItem(storageKey);
         return saved === 'light' || saved === 'dark' ? saved : (media.matches ? 'dark' : 'light');
