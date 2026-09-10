@@ -31,6 +31,10 @@
   ],
   "r2_buckets": [
     {
+      "binding": "RESUME_VAULT",
+      "bucket_name": "ait-resume-vault"
+    },
+    {
       "binding": "CERTIFICATE_VAULT",
       "bucket_name": "ait-certificate-vault"
     }

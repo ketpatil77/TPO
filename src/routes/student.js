@@ -120,8 +120,12 @@ router.post('/resume', acceptResume, async (req, res) => {
     }
     if (db.isLocal()) return res.status(503).json({ success: false, error: { code: 'STORAGE_UNAVAILABLE', message: 'Resume storage requires Supabase.' } });
     const path = `${req.student.studentId}/resume.pdf`;
-    const { error } = await db.supabaseClient().storage.from('resumes').upload(path, req.file.buffer, { contentType: 'application/pdf', upsert: true });
-    if (error) throw error;
+    if (globalThis.cloudflareEnv?.RESUME_VAULT) {
+        await globalThis.cloudflareEnv.RESUME_VAULT.put(path, req.file.buffer, { httpMetadata: { contentType: 'application/pdf', cacheControl: 'private, no-store' } });
+    } else {
+        const { error } = await db.supabaseClient().storage.from('resumes').upload(path, req.file.buffer, { contentType: 'application/pdf', upsert: true });
+        if (error) throw error;
+    }
     await db.update('students', { id: req.student.studentId }, { resume_url: path, updated_at: new Date().toISOString() });
     res.json({ success: true, data: { uploaded: true } });
 });
@@ -155,9 +159,14 @@ router.post('/resume/ats-score', acceptResume, async (req, res) => {
         
         if (!db.isLocal()) {
             const path = `${req.student.studentId}/resume.pdf`;
-            const { error } = await db.supabaseClient().storage.from('resumes').upload(path, req.file.buffer, { contentType: 'application/pdf', upsert: true });
-            if (!error) {
+            if (globalThis.cloudflareEnv?.RESUME_VAULT) {
+                await globalThis.cloudflareEnv.RESUME_VAULT.put(path, req.file.buffer, { httpMetadata: { contentType: 'application/pdf', cacheControl: 'private, no-store' } });
                 await db.update('students', { id: req.student.studentId }, { resume_url: path, updated_at: new Date().toISOString() });
+            } else {
+                const { error } = await db.supabaseClient().storage.from('resumes').upload(path, req.file.buffer, { contentType: 'application/pdf', upsert: true });
+                if (!error) {
+                    await db.update('students', { id: req.student.studentId }, { resume_url: path, updated_at: new Date().toISOString() });
+                }
             }
         }
         
@@ -171,14 +180,36 @@ router.post('/resume/ats-score', acceptResume, async (req, res) => {
 router.get('/resume', async (req, res) => {
     const student = await db.selectOne('students', { id: req.student.studentId });
     if (!student?.resume_url) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Resume not uploaded.' } });
+    if (globalThis.cloudflareEnv?.RESUME_VAULT) {
+        return res.json({ success: true, data: { url: '/api/student/resume/download', expires_in: 3600 } });
+    }
     const { data, error } = await db.supabaseClient().storage.from('resumes').createSignedUrl(student.resume_url, 300);
     if (error) throw error;
     res.json({ success: true, data: { url: data.signedUrl, expires_in: 300 } });
 });
 
+router.get('/resume/download', async (req, res) => {
+    const student = await db.selectOne('students', { id: req.student.studentId });
+    if (!student?.resume_url) return res.status(404).send('Not found');
+    if (globalThis.cloudflareEnv?.RESUME_VAULT) {
+        const object = await globalThis.cloudflareEnv.RESUME_VAULT.get(student.resume_url);
+        if (!object) return res.status(404).send('Not found');
+        object.writeHttpMetadata(res);
+        res.set('etag', object.httpEtag);
+        return object.body.pipe(res);
+    }
+    res.status(404).send('R2 Vault not configured');
+});
+
 router.delete('/resume', async (req, res) => {
     const student = await db.selectOne('students', { id: req.student.studentId });
-    if (student?.resume_url && !db.isLocal()) await db.supabaseClient().storage.from('resumes').remove([student.resume_url]);
+    if (student?.resume_url) {
+        if (globalThis.cloudflareEnv?.RESUME_VAULT) {
+            await globalThis.cloudflareEnv.RESUME_VAULT.delete(student.resume_url);
+        } else if (!db.isLocal()) {
+            await db.supabaseClient().storage.from('resumes').remove([student.resume_url]);
+        }
+    }
     await db.update('students', { id: req.student.studentId }, { resume_url: null, updated_at: new Date().toISOString() });
     res.json({ success: true, data: { removed: true } });
 });
