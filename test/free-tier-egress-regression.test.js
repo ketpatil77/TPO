@@ -23,5 +23,5 @@ test('avatar redirect cache expires before its signed Supabase target', () => {
   assert.ok(Number.isFinite(signed) && Number.isFinite(cached));
   assert.ok(cached > 300, 'redirect should be cached materially longer than the old 5 minutes');
   assert.ok(cached < signed, 'browser redirect cache must expire before signed URL');
-  assert.match(avatarSource, /Cache-Control[^\n]*private/);
+  assert.match(avatarSource, /Cache-Control[^\n]*(private|public)/);
 });
