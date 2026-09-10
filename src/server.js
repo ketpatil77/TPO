@@ -79,7 +79,7 @@ app.use(cookieParser());
 app.use(rateLimit({
     windowMs: 15 * 60 * 1000, limit: 500, standardHeaders: 'draft-7', legacyHeaders: false,
     validate: false,
-    message: { success: false, error: { code: 'RATE_LIMIT', message: 'Too many requests. Try again later.' }
+    message: { success: false, error: { code: 'RATE_LIMIT', message: 'Too many requests. Try again later.' } }
 }));
 app.use(csrfProtection);
 app.use('/api', (_req, res, next) => {
