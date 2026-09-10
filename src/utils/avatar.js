@@ -47,11 +47,20 @@ async function uploadAvatar(req, res, owner) {
     if (db.isLocal()) return res.status(503).json({ success: false, error: { code: 'STORAGE_UNAVAILABLE', message: 'Profile picture storage requires Supabase.' } });
     const record = await db.selectOne(owner.table, owner.filter);
     if (!record) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Profile not found.' } });
-    const path = `${owner.folder}/${owner.id}/avatar.${image.extension}`;
-    const storage = db.supabaseClient().storage.from('avatars');
-    if (record.avatar_path && record.avatar_path !== path) await storage.remove([record.avatar_path]);
-    const { error } = await storage.upload(path, req.file.buffer, { contentType: image.contentType, upsert: true, cacheControl: '3600' });
-    if (error) throw error;
+    const version = Date.now();
+    const path = `${owner.folder}/${owner.id}/avatar_v${version}.${image.extension}`;
+    
+    const vault = globalThis.cloudflareEnv?.CERTIFICATE_VAULT || globalThis.cloudflareEnv?.RESUME_VAULT;
+    if (vault) {
+        if (record.avatar_path) await vault.delete(record.avatar_path).catch(() => {});
+        await vault.put(path, req.file.buffer, { httpMetadata: { contentType: image.contentType, cacheControl: 'public, max-age=31536000, immutable' } });
+    } else {
+        const storage = db.supabaseClient().storage.from('avatars');
+        if (record.avatar_path && record.avatar_path !== path) await storage.remove([record.avatar_path]).catch(() => {});
+        const { error } = await storage.upload(path, req.file.buffer, { contentType: image.contentType, upsert: true, cacheControl: '86400' });
+        if (error) throw error;
+    }
+    
     await db.update(owner.table, owner.filter, { avatar_path: path });
     await db.logAudit('avatar_update', owner.table, owner.id, { role: owner.folder });
     return signedAvatar(res, path);
@@ -66,7 +75,14 @@ async function getAvatar(res, owner) {
 async function deleteAvatar(res, owner) {
     const record = await db.selectOne(owner.table, owner.filter);
     if (!record) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Profile not found.' } });
-    if (record.avatar_path && !db.isLocal()) await db.supabaseClient().storage.from('avatars').remove([record.avatar_path]);
+    const vault = globalThis.cloudflareEnv?.CERTIFICATE_VAULT || globalThis.cloudflareEnv?.RESUME_VAULT;
+    if (record.avatar_path) {
+        if (vault) {
+            await vault.delete(record.avatar_path).catch(() => {});
+        } else if (!db.isLocal()) {
+            await db.supabaseClient().storage.from('avatars').remove([record.avatar_path]).catch(() => {});
+        }
+    }
     await db.update(owner.table, owner.filter, { avatar_path: null });
     await db.logAudit('avatar_remove', owner.table, owner.id, { role: owner.folder });
     return res.json({ success: true, data: { removed: true } });
@@ -76,20 +92,36 @@ async function signedAvatar(res, path) {
     if (db.isLocal()) {
         return res.json({ success: true, data: { url: `https://ui-avatars.com/api/?name=Local+User&background=random`, expires_in: 3600 } });
     }
-    const { data, error } = await db.supabaseClient().storage.from('avatars').createSignedUrl(path, 3600);
+    const vault = globalThis.cloudflareEnv?.CERTIFICATE_VAULT || globalThis.cloudflareEnv?.RESUME_VAULT;
+    if (vault) {
+        return res.json({ success: true, data: { url: `/api/student/avatar/${encodeURIComponent(path)}`, expires_in: 86400 } });
+    }
+    const { data, error } = await db.supabaseClient().storage.from('avatars').createSignedUrl(path, 86400);
     if (error) throw error;
-    return res.json({ success: true, data: { url: data.signedUrl, expires_in: 3600 } });
+    return res.json({ success: true, data: { url: data.signedUrl, expires_in: 86400 } });
 }
 
 async function redirectAvatar(res, path) {
     if (!path) return res.status(404).send('Profile picture not uploaded.');
     if (db.isLocal()) return res.status(404).send('Profile picture unavailable in local mode.');
+    
+    const vault = globalThis.cloudflareEnv?.CERTIFICATE_VAULT || globalThis.cloudflareEnv?.RESUME_VAULT;
+    if (vault) {
+        try {
+            const object = await vault.get(path);
+            if (object) {
+                res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, immutable');
+                if (object.httpMetadata?.contentType) res.setHeader('Content-Type', object.httpMetadata.contentType);
+                return object.body.pipe(res);
+            }
+        } catch (_) {}
+    }
+    
     const { data, error } = await db.supabaseClient().storage.from('avatars').createSignedUrl(path, AVATAR_REDIRECT_SIGNED_SECONDS);
     if (error || !data?.signedUrl) return res.status(404).send('Profile picture unavailable.');
-    // The portal URL is stable while the private Supabase token stays hidden behind it.
-    // Cache the redirect for less time than the signed target remains valid, so revisiting
-    // leaderboard pages does not repeatedly download/sign the same profile photos.
-    res.setHeader('Cache-Control', `private, max-age=${AVATAR_REDIRECT_CACHE_SECONDS}, stale-while-revalidate=600`);
+    
+    // Cloudflare Edge CDN public cache header so edge caches the redirect for 24 hours
+    res.setHeader('Cache-Control', `public, max-age=${AVATAR_REDIRECT_CACHE_SECONDS}, s-maxage=86400, stale-while-revalidate=600`);
     return res.redirect(302, data.signedUrl);
 }
 
