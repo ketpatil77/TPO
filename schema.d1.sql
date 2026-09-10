@@ -94,9 +94,10 @@ CREATE INDEX IF NOT EXISTS idx_research_papers_student_id ON research_papers(stu
 CREATE TABLE IF NOT EXISTS diploma (
     id TEXT PRIMARY KEY,
     student_id TEXT UNIQUE NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    percentage REAL NOT NULL,
+    institute TEXT,
     branch TEXT NOT NULL,
-    year_of_passing INTEGER NOT NULL
+    year_of_passing INTEGER NOT NULL,
+    percentage_or_cgpa TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_diploma_student_id ON diploma(student_id);
 
