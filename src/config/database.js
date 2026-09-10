@@ -244,8 +244,10 @@ const db = {
             const D1R2Adapter = require('../db/adapters/D1R2Adapter');
             return new D1R2Adapter().uploadFile(bucket, objectPath, buffer, contentType);
         }
-        if (useLocalDb) return { path: objectPath };
-        const { error } = await supabase.storage.from(bucket).upload(objectPath, buffer, { contentType, upsert: true });
+        if (this.isLocal() && !this.supabaseClient()) return { path: objectPath };
+        const client = this.supabaseClient();
+        if (!client?.storage) return { path: objectPath };
+        const { error } = await client.storage.from(bucket).upload(objectPath, buffer, { contentType, upsert: true });
         if (error) throw error;
         return { path: objectPath };
     },
@@ -255,8 +257,10 @@ const db = {
             const D1R2Adapter = require('../db/adapters/D1R2Adapter');
             return new D1R2Adapter().getFileUrl(bucket, objectPath, expiresSeconds);
         }
-        if (useLocalDb) return { url: null };
-        const { data, error } = await supabase.storage.from(bucket).createSignedUrl(objectPath, expiresSeconds);
+        if (this.isLocal() && !this.supabaseClient()) return { url: null };
+        const client = this.supabaseClient();
+        if (!client?.storage) return { url: null };
+        const { data, error } = await client.storage.from(bucket).createSignedUrl(objectPath, expiresSeconds);
         if (error) throw error;
         return { url: data.signedUrl, expires_in: expiresSeconds };
     },
@@ -266,8 +270,9 @@ const db = {
             const D1R2Adapter = require('../db/adapters/D1R2Adapter');
             return new D1R2Adapter().deleteFile(bucket, objectPath);
         }
-        if (useLocalDb) return true;
-        await supabase.storage.from(bucket).remove([objectPath]);
+        if (this.isLocal() && !this.supabaseClient()) return true;
+        const client = this.supabaseClient();
+        if (client?.storage) await client.storage.from(bucket).remove([objectPath]);
         return true;
     },
 
@@ -276,8 +281,10 @@ const db = {
             const D1R2Adapter = require('../db/adapters/D1R2Adapter');
             return new D1R2Adapter().getFileStream(bucket, objectPath);
         }
-        if (useLocalDb) return null;
-        const { data, error } = await supabase.storage.from(bucket).download(objectPath);
+        if (this.isLocal() && !this.supabaseClient()) return null;
+        const client = this.supabaseClient();
+        if (!client?.storage) return null;
+        const { data, error } = await client.storage.from(bucket).download(objectPath);
         if (error || !data) return null;
         return { buffer: Buffer.from(await data.arrayBuffer()), type: data.type };
     }
