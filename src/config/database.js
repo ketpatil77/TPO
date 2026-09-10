@@ -236,6 +236,50 @@ const db = {
         localData[table] = [];
         saveLocalData();
         return true;
+    },
+
+    // Storage Abstraction Layer Methods
+    async uploadFile(bucket, objectPath, buffer, contentType) {
+        if (process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            return new D1R2Adapter().uploadFile(bucket, objectPath, buffer, contentType);
+        }
+        if (useLocalDb) return { path: objectPath };
+        const { error } = await supabase.storage.from(bucket).upload(objectPath, buffer, { contentType, upsert: true });
+        if (error) throw error;
+        return { path: objectPath };
+    },
+
+    async getFileUrl(bucket, objectPath, expiresSeconds = 3600) {
+        if (process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            return new D1R2Adapter().getFileUrl(bucket, objectPath, expiresSeconds);
+        }
+        if (useLocalDb) return { url: null };
+        const { data, error } = await supabase.storage.from(bucket).createSignedUrl(objectPath, expiresSeconds);
+        if (error) throw error;
+        return { url: data.signedUrl, expires_in: expiresSeconds };
+    },
+
+    async deleteFile(bucket, objectPath) {
+        if (process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            return new D1R2Adapter().deleteFile(bucket, objectPath);
+        }
+        if (useLocalDb) return true;
+        await supabase.storage.from(bucket).remove([objectPath]);
+        return true;
+    },
+
+    async getFileStream(bucket, objectPath) {
+        if (process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            return new D1R2Adapter().getFileStream(bucket, objectPath);
+        }
+        if (useLocalDb) return null;
+        const { data, error } = await supabase.storage.from(bucket).download(objectPath);
+        if (error || !data) return null;
+        return { buffer: Buffer.from(await data.arrayBuffer()), type: data.type };
     }
 };
 

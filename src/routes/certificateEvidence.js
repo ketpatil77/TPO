@@ -117,12 +117,7 @@ router.post('/certificate-evidence/:id', acceptEvidence, async (req, res) => {
         if (duplicate) return res.status(409).json({ success: false, error: { code: 'DUPLICATE_CERTIFICATE_PROOF', message: 'The same certificate image is already attached to another certificate record.' } });
 
         const objectPath = `certificates/${studentId}/${certificate.id}.${extensionForMime(mime)}`;
-        if (globalThis.cloudflareEnv?.CERTIFICATE_VAULT) {
-            await globalThis.cloudflareEnv.CERTIFICATE_VAULT.put(objectPath, req.file.buffer, { httpMetadata: { contentType: mime, cacheControl: 'private, no-store' } });
-        } else {
-            const { error: uploadError } = await db.supabaseClient().storage.from('certificate-evidence').upload(objectPath, req.file.buffer, { contentType: mime, cacheControl: '0', upsert: true });
-            if (uploadError) throw uploadError;
-        }
+        await db.uploadFile('certificate-evidence', objectPath, req.file.buffer, mime);
 
         let updated;
         try {

@@ -53,19 +53,16 @@ async function studentUsage(studentId, excludeInternshipId = null) {
 
 async function removeObject(path) {
     if (!path) return;
-    const evidenceStorage = storage();
-    if (!evidenceStorage) return;
-    const { error } = await evidenceStorage.remove([path]);
-    if (error) throw error;
+    await db.deleteFile(STORAGE_BUCKET, path);
 }
 
 router.get('/internship-evidence/status', async (req, res) => {
     const used = await studentUsage(req.student.studentId);
-    const ready = Boolean(storage());
+    const ready = true;
     return res.json({ success: true, data: {
         configured: ready,
         storage_ready: ready,
-        storage_provider: ready ? 'supabase' : 'unavailable',
+        storage_provider: 'vault',
         max_file_bytes: MAX_EVIDENCE_BYTES,
         quota_bytes: STUDENT_EVIDENCE_QUOTA_BYTES,
         used_bytes: used,
@@ -74,27 +71,29 @@ router.get('/internship-evidence/status', async (req, res) => {
 });
 
 router.post('/internship-evidence/:id', acceptEvidence, async (req, res) => {
-    const evidenceStorage = storage();
-    if (!evidenceStorage) return res.status(503).json({ success: false, error: { code: 'VAULT_NOT_CONFIGURED', message: 'Internship proof storage is not configured yet.' } });
     try {
         const studentId = req.student.studentId;
         const internship = await ownedInternship(studentId, req.params.id);
         if (!internship) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Internship not found.' } });
-        if (!req.file?.buffer?.length) return res.status(400).json({ success: false, error: { code: 'IMAGE_REQUIRED', message: 'Choose a JPG, JPEG or PNG proof image.' } });
-        const mime = detectImageMime(req.file.buffer);
-        if (!mime) return res.status(400).json({ success: false, error: { code: 'INVALID_IMAGE', message: 'Only real JPG, JPEG or PNG images are accepted. PDF files are not supported.' } });
-        const usedWithoutCurrent = await studentUsage(studentId, internship.id);
-        if (usedWithoutCurrent + req.file.size > STUDENT_EVIDENCE_QUOTA_BYTES) return res.status(413).json({ success: false, error: { code: 'EVIDENCE_STORAGE_QUOTA', message: 'Your 15 MB proof quota is full. Remove or replace older proof files.' } });
+
+        const mime = detectImageMime(req.file?.buffer);
+        if (!mime) return res.status(400).json({ success: false, error: { code: 'INVALID_INTERNSHIP_PROOF', message: 'Proof must be a valid JPG or PNG image.' } });
+
+        const used = await studentUsage(studentId, internship.id);
+        if (used + req.file.size > STUDENT_EVIDENCE_QUOTA_BYTES) {
+            return res.status(413).json({ success: false, error: { code: 'INTERNSHIP_STORAGE_QUOTA', message: 'Your 15 MB proof quota is full. Remove or replace older proof files.' } });
+        }
 
         const sha256 = createHash('sha256').update(req.file.buffer).digest('hex');
-        if (internship.evidence_sha256 === sha256 && internship.evidence_path) return res.json({ success: true, message: 'This proof is already uploaded.', data: { internship } });
-        const rows = await db.select('internships', { student_id: studentId });
-        const duplicate = (rows || []).find(item => item.id !== internship.id && item.evidence_sha256 === sha256);
-        if (duplicate) return res.status(409).json({ success: false, error: { code: 'DUPLICATE_INTERNSHIP_PROOF', message: 'The same proof image is already attached to another internship record.' } });
+        const [internships, certificates] = await Promise.all([
+            db.select('internships', { student_id: studentId }),
+            db.select('certificates', { student_id: studentId })
+        ]);
+        const duplicate = [...(internships || []), ...(certificates || [])].find(item => item.id !== internship.id && item.evidence_sha256 === sha256);
+        if (duplicate) return res.status(409).json({ success: false, error: { code: 'DUPLICATE_INTERNSHIP_PROOF', message: 'The same proof image is already attached to another record.' } });
 
         const objectPath = `internships/${studentId}/${internship.id}.${extensionForMime(mime)}`;
-        const { error: uploadError } = await evidenceStorage.upload(objectPath, req.file.buffer, { contentType: mime, cacheControl: '0', upsert: true });
-        if (uploadError) throw uploadError;
+        await db.uploadFile(STORAGE_BUCKET, objectPath, req.file.buffer, mime);
 
         let updated;
         try {
@@ -125,19 +124,21 @@ router.post('/internship-evidence/:id', acceptEvidence, async (req, res) => {
 });
 
 router.get('/internship-evidence/:id', async (req, res) => {
-    const evidenceStorage = storage();
-    if (!evidenceStorage) return res.status(503).json({ success: false, error: { code: 'VAULT_NOT_CONFIGURED', message: 'Internship proof storage is not configured yet.' } });
-    const internship = await ownedInternship(req.student.studentId, req.params.id);
-    if (!internship?.evidence_path) return res.status(404).json({ success: false, error: { code: 'NO_EVIDENCE', message: 'Internship proof has not been uploaded.' } });
-    const { data, error } = await evidenceStorage.download(internship.evidence_path);
-    if (error || !data) return res.status(404).json({ success: false, error: { code: 'EVIDENCE_MISSING', message: 'Internship proof file is unavailable.' } });
-    const bytes = Buffer.from(await data.arrayBuffer());
-    res.setHeader('Content-Type', internship.evidence_mime || data.type || 'image/jpeg');
-    res.setHeader('Content-Length', String(bytes.length));
-    res.setHeader('Cache-Control', 'private, no-store, max-age=0');
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Content-Disposition', 'inline');
-    return res.end(bytes);
+    try {
+        const internship = await ownedInternship(req.student.studentId, req.params.id);
+        if (!internship?.evidence_path) return res.status(404).json({ success: false, error: { code: 'NO_EVIDENCE', message: 'Internship proof has not been uploaded.' } });
+        const stream = await db.getFileStream(STORAGE_BUCKET, internship.evidence_path);
+        if (!stream) return res.status(404).json({ success: false, error: { code: 'EVIDENCE_MISSING', message: 'Internship proof file is unavailable.' } });
+        const bytes = stream.buffer;
+        res.setHeader('Content-Type', internship.evidence_mime || stream.type || 'image/jpeg');
+        res.setHeader('Content-Length', String(bytes.length));
+        res.setHeader('Cache-Control', 'private, no-store, max-age=0');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('Content-Disposition', 'inline');
+        return res.end(bytes);
+    } catch (err) {
+        return res.status(404).json({ success: false, error: { code: 'EVIDENCE_MISSING', message: 'Internship proof file is unavailable.' } });
+    }
 });
 
 router.delete('/internship-evidence/:id', async (req, res) => {
