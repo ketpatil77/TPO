@@ -40,6 +40,7 @@ const observerAuthRoutes = require('./routes/observerAuth');
 const observerRoutes = require('./routes/observer');
 const workflowRoutes = require('./routes/workflow');
 const adminNotificationRoutes = require('./routes/adminNotifications');
+const studentNotificationRoutes = require('./routes/studentNotifications');
 const advancedRoutes = require('./routes/advanced');
 const intelligenceRoutes = require('./routes/intelligence');
 const launchOperationsRoutes = require('./routes/launchOperations');
@@ -78,7 +79,7 @@ app.use(cookieParser());
 app.use(rateLimit({
     windowMs: 15 * 60 * 1000, limit: 500, standardHeaders: 'draft-7', legacyHeaders: false,
     validate: false,
-    message: { success: false, error: { code: 'RATE_LIMIT', message: 'Too many requests. Try again later.' } }
+    message: { success: false, error: { code: 'RATE_LIMIT', message: 'Too many requests. Try again later.' }
 }));
 app.use(csrfProtection);
 app.use('/api', (_req, res, next) => {
@@ -107,6 +108,9 @@ app.use('/api/student/free-learning', freeLearningV2Routes);
 app.use('/api/student/free-learning', freeLearningRoutes);
 app.use('/api/student/rankings-view', profileRankingViewRoutes);
 app.use('/api/student/engagement', engagementRankRoutes.student);
+// Return only the current student's notification slice instead of reading the entire
+// notifications/read history on every 30-second dashboard poll.
+app.use('/api/student/workflow', studentNotificationRoutes);
 app.use('/api/student/workflow', workflowRoutes.student);
 app.use('/api/student/advanced', advancedRoutes.student);
 
