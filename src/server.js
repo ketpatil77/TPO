@@ -86,7 +86,8 @@ app.use('/api', (req, res, next) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
-    if (process.env.READ_ONLY_MODE === 'true' && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+    const isAuthRoute = req.path.includes('/auth/login') || req.path.endsWith('/login');
+    if (process.env.READ_ONLY_MODE === 'true' && !isAuthRoute && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
         return res.status(503).json({
             success: false,
             error: {
