@@ -1,0 +1,237 @@
+{
+  "dbReport": [
+    {
+      "table": "profiles",
+      "supabaseCount": 4,
+      "d1Count": 4,
+      "status": "MATCH"
+    },
+    {
+      "table": "roster",
+      "supabaseCount": 474,
+      "d1Count": 474,
+      "status": "MATCH"
+    },
+    {
+      "table": "placement_drives",
+      "supabaseCount": 0,
+      "d1Count": 0,
+      "status": "SUCCESS"
+    },
+    {
+      "table": "audit_log",
+      "supabaseCount": 2204,
+      "d1Count": 2204,
+      "status": "MATCH"
+    },
+    {
+      "table": "login_attempts",
+      "supabaseCount": 136,
+      "d1Count": 136,
+      "status": "MATCH"
+    },
+    {
+      "table": "saved_filters",
+      "supabaseCount": 0,
+      "d1Count": 0,
+      "status": "SUCCESS"
+    },
+    {
+      "table": "assessments",
+      "supabaseCount": 1,
+      "d1Count": 1,
+      "status": "MATCH"
+    },
+    {
+      "table": "calendar_events",
+      "supabaseCount": 0,
+      "d1Count": 0,
+      "status": "SUCCESS"
+    },
+    {
+      "table": "import_batches",
+      "supabaseCount": 16,
+      "d1Count": 16,
+      "status": "MATCH"
+    },
+    {
+      "table": "notification_broadcasts",
+      "supabaseCount": 4,
+      "d1Count": 4,
+      "status": "MATCH"
+    },
+    {
+      "table": "students",
+      "supabaseCount": 274,
+      "d1Count": 274,
+      "status": "MATCH"
+    },
+    {
+      "table": "internships",
+      "supabaseCount": 38,
+      "d1Count": 38,
+      "status": "MATCH"
+    },
+    {
+      "table": "certificates",
+      "supabaseCount": 329,
+      "d1Count": 329,
+      "status": "MATCH"
+    },
+    {
+      "table": "student_projects",
+      "supabaseCount": 124,
+      "d1Count": 124,
+      "status": "MATCH"
+    },
+    {
+      "table": "research_papers",
+      "supabaseCount": 36,
+      "d1Count": 36,
+      "status": "MATCH"
+    },
+    {
+      "table": "diploma",
+      "supabaseCount": 19,
+      "d1Count": 19,
+      "status": "MATCH"
+    },
+    {
+      "table": "student_skills",
+      "supabaseCount": 717,
+      "d1Count": 717,
+      "status": "MATCH"
+    },
+    {
+      "table": "correction_requests",
+      "supabaseCount": 200,
+      "d1Count": 200,
+      "status": "MATCH"
+    },
+    {
+      "table": "notifications",
+      "supabaseCount": 3305,
+      "d1Count": 3305,
+      "status": "MATCH"
+    },
+    {
+      "table": "interviews",
+      "supabaseCount": 0,
+      "d1Count": 0,
+      "status": "SUCCESS"
+    },
+    {
+      "table": "offers",
+      "supabaseCount": 0,
+      "d1Count": 0,
+      "status": "SUCCESS"
+    },
+    {
+      "table": "dob_corrections",
+      "supabaseCount": 70,
+      "d1Count": 70,
+      "status": "MATCH"
+    },
+    {
+      "table": "student_push_subscriptions",
+      "supabaseCount": 205,
+      "d1Count": 205,
+      "status": "MATCH"
+    },
+    {
+      "table": "student_competitions",
+      "supabaseCount": 72,
+      "d1Count": 72,
+      "status": "MATCH"
+    },
+    {
+      "table": "student_profile_declarations",
+      "supabaseCount": 40,
+      "d1Count": 40,
+      "status": "MATCH"
+    },
+    {
+      "table": "student_free_learning_progress",
+      "supabaseCount": 149,
+      "d1Count": 149,
+      "status": "MATCH"
+    },
+    {
+      "table": "student_activity_log",
+      "supabaseCount": 4714,
+      "d1Count": 4714,
+      "status": "MATCH"
+    },
+    {
+      "table": "leaderboard_rank_state",
+      "supabaseCount": 254,
+      "d1Count": 254,
+      "status": "MATCH"
+    },
+    {
+      "table": "leaderboard_events",
+      "supabaseCount": 910,
+      "d1Count": 910,
+      "status": "MATCH"
+    },
+    {
+      "table": "drive_criteria",
+      "supabaseCount": 0,
+      "d1Count": 0,
+      "status": "SUCCESS"
+    },
+    {
+      "table": "drive_matches",
+      "supabaseCount": 0,
+      "d1Count": 0,
+      "status": "SUCCESS"
+    },
+    {
+      "table": "shortlists",
+      "supabaseCount": 0,
+      "d1Count": 0,
+      "status": "SUCCESS"
+    },
+    {
+      "table": "drive_applications",
+      "supabaseCount": 0,
+      "d1Count": 0,
+      "status": "SUCCESS"
+    },
+    {
+      "table": "notification_reads",
+      "supabaseCount": 639,
+      "d1Count": 639,
+      "status": "MATCH"
+    },
+    {
+      "table": "notification_broadcast_deliveries",
+      "supabaseCount": 5,
+      "d1Count": 5,
+      "status": "MATCH"
+    }
+  ],
+  "storageReport": [
+    {
+      "bucket": "resumes",
+      "r2Bucket": "ait-resume-vault",
+      "sourceCount": 0,
+      "migratedCount": 0,
+      "failedCount": 0
+    },
+    {
+      "bucket": "avatars",
+      "r2Bucket": "ait-certificate-vault",
+      "sourceCount": 0,
+      "migratedCount": 0,
+      "failedCount": 0
+    },
+    {
+      "bucket": "certificate-evidence",
+      "r2Bucket": "ait-certificate-vault",
+      "sourceCount": 0,
+      "migratedCount": 0,
+      "failedCount": 0
+    }
+  ]
+}
