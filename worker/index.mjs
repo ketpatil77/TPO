@@ -67,6 +67,45 @@ function patchDashboardHtml(html, assetPath) {
 export default {
     async fetch(request, env, context) {
         const url = new URL(request.url);
+        const isMaintenance = env.MAINTENANCE_MODE === 'true' || process.env.MAINTENANCE_MODE === 'true';
+        if (isMaintenance && url.pathname !== '/api/health') {
+            const maintenanceHtml = `<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>System Maintenance - AIT Placement Portal</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 40px 32px; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+        .icon { width: 56px; height: 56px; background: rgba(59,130,246,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: #3b82f6; font-size: 28px; }
+        h1 { font-size: 22px; font-weight: 600; margin-bottom: 12px; color: #ffffff; }
+        p { font-size: 15px; color: #94a3b8; line-height: 1.6; margin-bottom: 24px; }
+        .badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 20px; font-size: 13px; color: #cbd5e1; }
+        .dot { width: 8px; height: 8px; background: #eab308; border-radius: 50%; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">🛠️</div>
+        <h1>Under Maintenance</h1>
+        <p>Site is temporarily down for maintenance. We'll be back shortly.</p>
+        <div class="badge"><span class="dot"></span> System updates in progress</div>
+    </div>
+</body>
+</html>`;
+            if (url.pathname.startsWith('/api/')) {
+                return new Response(JSON.stringify({ success: false, error: { code: 'MAINTENANCE_MODE', message: "Site is temporarily down for maintenance. We'll be back shortly." } }), {
+                    status: 539,
+                    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0' }
+                });
+            }
+            return new Response(maintenanceHtml, {
+                status: 503,
+                headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0' }
+            });
+        }
         if (url.pathname.startsWith('/api/')) return (await ensureExpress(env)).fetch(request, env, context);
         const assetPath = pageMap.get(url.pathname);
         if (assetPath) {

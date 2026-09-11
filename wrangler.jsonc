@@ -16,7 +16,8 @@
     "PUSH_COMPLETION_THRESHOLD": "80",
     "PUSH_REMINDER_CRON": "0 4 */3 * *",
     "PROOF_EXPIRY_CRON": "0 * * * *",
-    "READ_ONLY_MODE": "false"
+    "READ_ONLY_MODE": "false",
+    "MAINTENANCE_MODE": "true"
   },
   "assets": {
     "directory": "./public",
