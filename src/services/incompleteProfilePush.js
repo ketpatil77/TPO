@@ -85,13 +85,18 @@ async function deliverPushRecords(records, payload, { sendNotification = webPush
 }
 
 async function sendPortalNotification(notification, options = {}) {
-    const [students, subscriptions] = await Promise.all([db.select('students'), db.select('student_push_subscriptions')]);
-    const recipients = new Set(students.filter(student =>
-        notification.audience === 'all' ||
-        notification.student_id === student.id ||
-        (notification.audience === 'branches' && (notification.branches || []).includes(student.branch))
-    ).map(student => student.id));
-    return deliverPushRecords(subscriptions.filter(record => recipients.has(record.student_id)), buildPortalNotificationPayload(notification), options);
+    try {
+        const [students, subscriptions] = await Promise.all([db.select('students'), db.select('student_push_subscriptions')]);
+        const recipients = new Set(students.filter(student =>
+            notification.audience === 'all' ||
+            notification.student_id === student.id ||
+            (notification.audience === 'branches' && (notification.branches || []).includes(student.branch))
+        ).map(student => student.id));
+        return await deliverPushRecords(subscriptions.filter(record => recipients.has(record.student_id)), buildPortalNotificationPayload(notification), options);
+    } catch (error) {
+        console.warn('Portal Web Push dispatch skipped:', error.message);
+        return { checked: 0, sent: 0, deleted: 0, failed: 0 };
+    }
 }
 
 async function createStudentNotification(data, options = {}) {
