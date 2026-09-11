@@ -63,7 +63,7 @@ async function emit({key,type,studentId,targetStudentId=null,rankFrom=null,rankT
   try {
     event = await db.insert('leaderboard_events',{id:crypto.randomUUID(),event_key:key,scope_key:SCOPE_KEY,event_type:type,student_id:studentId,target_student_id:targetStudentId,rank_from:rankFrom,rank_to:rankTo,points,point_delta:pointDelta,message,broadcast,created_at:new Date().toISOString()});
   } catch(error) {
-    if (String(error?.code||'') === '23505') return null;
+    if (String(error?.code||'').includes('23505') || String(error?.message||'').includes('UNIQUE')) return null;
     throw error;
   }
   if (broadcast) await notify({audience:'all',student_id:null,title:'Leaderboard update',message});
@@ -76,7 +76,11 @@ function baseState(row,now,wk) {
 }
 
 async function initializeBaseline(rows,now,wk) {
-  await Promise.all(rows.map(row=>db.insert('leaderboard_rank_state',baseState(row,now,wk))));
+  for (const row of rows) {
+    try {
+      await db.upsert('leaderboard_rank_state', baseState(row,now,wk), 'student_id');
+    } catch (_) {}
+  }
 }
 
 async function weeklyWinner(states,rowsById,wk) {
@@ -134,7 +138,7 @@ async function enrichCollegeLeaderboard(data,currentStudentId,{now=new Date()}={
 
   for(let i=0;i<rows.length;i+=1){
     const row=rows[i], below=nearestDifferentRank(rows,i,1), old=oldById.get(row.student_id);
-    if(!old){await db.insert('leaderboard_rank_state',baseState(row,now,wk));continue;}
+    if(!old){try{await db.upsert('leaderboard_rank_state',baseState(row,now,wk),'student_id');}catch(_){}continue;}
     const same=num(old.current_rank)===num(row.rank), hold=secondsBetween(old.rank_since,now), rankDelta=num(old.current_rank)-num(row.rank), pointDelta=num(row.points)-num(old.current_points), rolled=old.week_key!==wk;
     const previousWeekGain=num(old.current_points)-num(old.week_start_points);
     const growth=rolled?(previousWeekGain>0?num(old.growth_streak_weeks)+1:0):num(old.growth_streak_weeks);
