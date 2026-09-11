@@ -63,13 +63,14 @@ router.post('/login', adminLoginLimit, verifyTurnstile, validate(adminLoginSchem
             adminDisplayName = profile.display_name || 'Administrator';
         }
 
+        const sessionVer = Number(profile?.session_version || SESSION_VERSION);
         const payload = {
             role: adminRole,
             adminId: adminUser.id,
             email: adminUser.email,
             display_name: adminDisplayName,
             issuedAt: new Date().toISOString(),
-            sessionVersion: SESSION_VERSION
+            sessionVersion: sessionVer
         };
 
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
