@@ -92,8 +92,9 @@ async function signedAvatar(res, path) {
     if (db.isLocal()) {
         return res.json({ success: true, data: { url: `https://ui-avatars.com/api/?name=Local+User&background=random`, expires_in: 3600 } });
     }
+    const isD1 = process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true';
     const vault = globalThis.cloudflareEnv?.CERTIFICATE_VAULT || globalThis.cloudflareEnv?.RESUME_VAULT;
-    if (vault) {
+    if (isD1 || vault) {
         return res.json({ success: true, data: { url: `/api/student/avatar/${encodeURIComponent(path)}`, expires_in: 86400 } });
     }
     const { data, error } = await db.supabaseClient().storage.from('avatars').createSignedUrl(path, 86400);
@@ -105,14 +106,16 @@ async function redirectAvatar(res, path) {
     if (!path) return res.status(404).send('Profile picture not uploaded.');
     if (db.isLocal()) return res.status(404).send('Profile picture unavailable in local mode.');
     
+    const isD1 = process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true';
     const vault = globalThis.cloudflareEnv?.CERTIFICATE_VAULT || globalThis.cloudflareEnv?.RESUME_VAULT;
-    if (vault) {
+    if (isD1 || vault) {
         try {
-            const object = await vault.get(path);
-            if (object) {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            const stream = await new D1R2Adapter().getFileStream('avatars', path);
+            if (stream) {
                 res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=604800, immutable');
-                if (object.httpMetadata?.contentType) res.setHeader('Content-Type', object.httpMetadata.contentType);
-                return object.body.pipe(res);
+                if (stream.type) res.setHeader('Content-Type', stream.type);
+                return res.send(stream.buffer);
             }
         } catch (_) {}
     }

@@ -26,7 +26,7 @@ function normalize(rows, readIds, now) {
 }
 
 async function getStudentNotifications(studentId) {
-    if (db.isLocal()) {
+    if (db.isLocal() || process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
         const [all, reads, profile] = await Promise.all([
             db.select('notifications'),
             db.select('notification_reads', { student_id: studentId }),
