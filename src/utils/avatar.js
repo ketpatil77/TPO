@@ -95,7 +95,7 @@ async function signedAvatar(res, path) {
     const isD1 = process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true';
     const vault = globalThis.cloudflareEnv?.CERTIFICATE_VAULT || globalThis.cloudflareEnv?.RESUME_VAULT;
     if (isD1 || vault) {
-        return res.json({ success: true, data: { url: `/api/student/avatar/${encodeURIComponent(path)}`, expires_in: 86400 } });
+        return res.json({ success: true, data: { url: `/api/student/student-avatars/${encodeURIComponent(res.req?.student?.studentId || path)}`, expires_in: 86400 } });
     }
     const { data, error } = await db.supabaseClient().storage.from('avatars').createSignedUrl(path, 86400);
     if (error) throw error;

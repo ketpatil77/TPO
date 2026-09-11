@@ -135,9 +135,14 @@
     button.textContent = 'Marking read…';
     try {
       const token = localStorage.getItem('tpo_token');
+      const csrfMatch = document.cookie.match(/(?:^|; )csrfToken=([^;]+)/);
+      const csrfToken = csrfMatch ? decodeURIComponent(csrfMatch[1]) : '';
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (csrfToken) headers['x-csrf-token'] = csrfToken;
       const response = await fetch('/api/student/workflow/notifications/read-all', {
         method: 'PUT',
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
+        headers
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data?.error?.message || data?.error || 'Could not mark notifications read.');

@@ -226,9 +226,14 @@
             async function acknowledgeImportant(id, openAfter) {
                 const item = currentImportant;
                 const token = localStorage.getItem('tpo_token');
+                const csrfMatch = document.cookie.match(/(?:^|; )csrfToken=([^;]+)/);
+                const csrfToken = csrfMatch ? decodeURIComponent(csrfMatch[1]) : '';
+                const headers = {};
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+                if (csrfToken) headers['x-csrf-token'] = csrfToken;
                 const response = await fetch(`/api/student/workflow/notifications/${encodeURIComponent(id)}/read`, {
                     method: 'PUT',
-                    headers: token ? { Authorization: `Bearer ${token}` } : {}
+                    headers
                 });
                 if (!response.ok) {
                     browserSetupStatus('Could not acknowledge the important update. Check your connection and retry.');
