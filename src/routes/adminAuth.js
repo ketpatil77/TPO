@@ -213,8 +213,9 @@ router.put('/accounts/:id/password',authenticateSuperAdmin,validate(passwordRese
 /**
  * @route   POST /api/admin/auth/logout
  */
-router.post('/logout', (req, res) => {
+router.post('/logout', async (req, res) => {
     clearSessionCookies(res);
+    await db.logAudit('admin_logout', 'auth', null, { ip: req.ip });
     return res.json({ success: true, message: 'Admin logged out.' });
 });
 
