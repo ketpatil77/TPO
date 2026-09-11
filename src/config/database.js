@@ -60,7 +60,7 @@ function saveLocalData() {
 
 const db = {
     init,
-    isLocal: () => useLocalDb,
+    isLocal: () => useLocalDb || process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true',
     supabaseClient: () => supabase,
     authClient: () => {
         if (useLocalDb || !SUPABASE_URL || !SUPABASE_KEY) return null;
