@@ -25,7 +25,8 @@ class D1R2Adapter {
         if (!row) return row;
         const out = {};
         for (const [key, val] of Object.entries(row)) {
-            if (JSON_FIELDS.has(key) && val !== null && val !== undefined && typeof val === 'object') {
+            if (val === undefined) continue;
+            if (JSON_FIELDS.has(key) && val !== null && typeof val === 'object') {
                 out[key] = JSON.stringify(val);
             } else {
                 out[key] = val;
