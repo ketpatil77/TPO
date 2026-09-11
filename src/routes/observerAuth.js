@@ -74,7 +74,7 @@ router.post('/login', loginLimit, verifyTurnstile, validate(adminLoginSchema), a
         } catch (_) {}
         return res.json({ success: true, observer: { email: observerUser.email, department: observerDept } });
     } catch (err) {
-        console.error({ event: 'observer_login_failed', message: err.message });
+        console.error({ event: 'observer_login_failed', message: err.message, stack: err.stack });
         return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to complete authentication.' } });
     }
 });
