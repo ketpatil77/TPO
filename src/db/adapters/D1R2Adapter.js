@@ -172,6 +172,19 @@ class D1R2Adapter {
 
     async upsert(table, data, onConflictKey = 'id') {
         if (table === 'launch_backups') return data;
+        const db = this.getDB();
+        if (db) {
+            const id = data.id || (onConflictKey === 'id' ? crypto.randomUUID() : undefined);
+            const record = this.serializeRow(id ? { ...data, id } : { ...data });
+            const keys = Object.keys(record);
+            const placeholders = keys.map(() => '?').join(', ');
+            const sql = `INSERT OR REPLACE INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`;
+            const params = keys.map(k => record[k]);
+            await db.prepare(sql).bind(...params).run();
+            const pkVal = record.id || record[onConflictKey] || Object.values(record)[0];
+            await this.logCutoverWrite(table, 'UPSERT', pkVal, record);
+            return this.deserializeRow(record);
+        }
         const existing = await this.selectOne(table, { [onConflictKey]: data[onConflictKey] });
         return existing ? this.update(table, { [onConflictKey]: data[onConflictKey] }, data) : this.insert(table, data);
     }
