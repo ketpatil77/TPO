@@ -74,29 +74,42 @@ export default {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>System Maintenance - AIT Placement Portal</title>
+    <title>Something Cooking! 🧑‍🍳 - AIT Placement Portal</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 40px 32px; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
-        .icon { width: 56px; height: 56px; background: rgba(59,130,246,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: #3b82f6; font-size: 28px; }
-        h1 { font-size: 22px; font-weight: 600; margin-bottom: 12px; color: #ffffff; }
-        p { font-size: 15px; color: #94a3b8; line-height: 1.6; margin-bottom: 24px; }
-        .badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 20px; font-size: 13px; color: #cbd5e1; }
-        .dot { width: 8px; height: 8px; background: #eab308; border-radius: 50%; display: inline-block; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0b0f19; color: #f8fafc; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; overflow: hidden; }
+        .bg-glow { position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(245,158,11,0.15) 0%, rgba(239,68,68,0.05) 50%, transparent 70%); filter: blur(40px); animation: pulseGlow 4s ease-in-out infinite alternate; pointer-events: none; }
+        .card { position: relative; background: #131b2e; border: 1px solid #232f48; border-radius: 24px; padding: 48px 36px; max-width: 460px; width: 100%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); backdrop-filter: blur(10px); }
+        .emoji-wrapper { position: relative; width: 80px; height: 80px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); border-radius: 50%; font-size: 40px; }
+        .emoji-main { animation: cookBounce 2s ease-in-out infinite; }
+        .sparkle-1 { position: absolute; top: -6px; right: -4px; font-size: 20px; animation: sparklePop 1.8s ease-in-out infinite alternate; }
+        .sparkle-2 { position: absolute; bottom: -4px; left: -6px; font-size: 18px; animation: sparklePop 2.2s ease-in-out 0.5s infinite alternate; }
+        h1 { font-size: 26px; font-weight: 700; margin-bottom: 12px; color: #ffffff; background: linear-gradient(135deg, #fbbf24, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        p { font-size: 15px; color: #94a3b8; line-height: 1.6; margin-bottom: 28px; }
+        .badge { display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px; background: rgba(15, 23, 42, 0.8); border: 1px solid #1e293b; border-radius: 30px; font-size: 13px; color: #e2e8f0; font-weight: 500; }
+        .fire-dot { font-size: 14px; animation: flameFlicker 1.2s ease-in-out infinite alternate; }
+        @keyframes cookBounce { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-8px) rotate(5deg); } }
+        @keyframes sparklePop { 0% { opacity: 0.3; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); } }
+        @keyframes flameFlicker { 0% { transform: scale(0.9); opacity: 0.8; } 100% { transform: scale(1.15); opacity: 1; } }
+        @keyframes pulseGlow { 0% { opacity: 0.5; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1.1); } }
     </style>
 </head>
 <body>
+    <div class="bg-glow"></div>
     <div class="card">
-        <div class="icon">🛠️</div>
-        <h1>Under Maintenance</h1>
-        <p>Site is temporarily down for maintenance. We'll be back shortly.</p>
-        <div class="badge"><span class="dot"></span> System updates in progress</div>
+        <div class="emoji-wrapper">
+            <span class="emoji-main">🧑‍🍳</span>
+            <span class="sparkle-1">✨</span>
+            <span class="sparkle-2">🔥</span>
+        </div>
+        <h1>Something Cooking!</h1>
+        <p>We're brewing up exciting upgrades for the portal. We'll be back shortly!</p>
+        <div class="badge"><span class="fire-dot">🔥</span> Preparing something awesome</div>
     </div>
 </body>
 </html>`;
             if (url.pathname.startsWith('/api/')) {
-                return new Response(JSON.stringify({ success: false, error: { code: 'MAINTENANCE_MODE', message: "Site is temporarily down for maintenance. We'll be back shortly." } }), {
+                return new Response(JSON.stringify({ success: false, error: { code: 'MAINTENANCE_MODE', message: "Something cooking! We'll be back shortly." } }), {
                     status: 539,
                     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0' }
                 });
