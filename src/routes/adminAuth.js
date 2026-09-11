@@ -29,9 +29,11 @@ router.post('/login', adminLoginLimit, verifyTurnstile, validate(adminLoginSchem
         let adminRole = 'admin';
         let adminDisplayName = 'Administrator';
 
+        let profile = null;
+
         const supabase = db.authClient();
         if (db.isLocal() || !supabase) {
-            const profile = await db.selectOne('profiles', { email });
+            profile = await db.selectOne('profiles', { email });
             if (!profile || !['admin', 'super_admin'].includes(profile.role) || profile.status !== 'active') {
                 return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' } });
             }
@@ -53,7 +55,7 @@ router.post('/login', adminLoginLimit, verifyTurnstile, validate(adminLoginSchem
             if (authError || !authData.user) {
                 return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' } });
             }
-            const profile = await db.selectOne('profiles', { user_id: authData.user.id });
+            profile = await db.selectOne('profiles', { user_id: authData.user.id });
             if (!profile || !['admin','super_admin'].includes(profile.role) || profile.status !== 'active') {
                 await supabase.auth.signOut();
                 return res.status(403).json({ success: false, error: { code: 'ADMIN_REQUIRED', message: 'Administrator access required.' } });
