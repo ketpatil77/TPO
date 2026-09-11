@@ -82,10 +82,19 @@ app.use(rateLimit({
     message: { success: false, error: { code: 'RATE_LIMIT', message: 'Too many requests. Try again later.' } }
 }));
 app.use(csrfProtection);
-app.use('/api', (_req, res, next) => {
+app.use('/api', (req, res, next) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
+    if (process.env.READ_ONLY_MODE === 'true' && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+        return res.status(503).json({
+            success: false,
+            error: {
+                code: 'READ_ONLY_MODE',
+                message: 'Portal is currently in maintenance mode for database cutover verification. Write operations are temporarily disabled.'
+            }
+        });
+    }
     next();
 });
 

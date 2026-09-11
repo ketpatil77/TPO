@@ -80,6 +80,28 @@ class D1R2Adapter {
         return result ? this.deserializeRow(result) : null;
     }
 
+    async logCutoverWrite(table, operation, pkValue, payload) {
+        if (process.env.CUTOVER_LOGGING !== 'true' || table === 'd1_cutover_replay_log' || table === 'launch_backups') return;
+        try {
+            const db = this.getDB();
+            if (!db) return;
+            const logRecord = {
+                id: crypto.randomUUID(),
+                target_table: table,
+                operation,
+                pk_value: String(pkValue || ''),
+                payload: JSON.stringify(payload || {}),
+                created_at: new Date().toISOString()
+            };
+            const keys = Object.keys(logRecord);
+            const placeholders = keys.map(() => '?').join(', ');
+            const sql = `INSERT INTO d1_cutover_replay_log (${keys.join(', ')}) VALUES (${placeholders})`;
+            await db.prepare(sql).bind(...keys.map(k => logRecord[k])).run();
+        } catch (err) {
+            console.error('Failed to log cutover write replay entry:', err.message);
+        }
+    }
+
     async insert(table, data) {
         if (table === 'launch_backups') return data;
         const db = this.getDB();
@@ -90,6 +112,7 @@ class D1R2Adapter {
         const sql = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`;
         const params = keys.map(k => record[k]);
         if (db) await db.prepare(sql).bind(...params).run();
+        await this.logCutoverWrite(table, 'INSERT', id, record);
         return this.deserializeRow(record);
     }
 
@@ -106,6 +129,8 @@ class D1R2Adapter {
         const sql = `UPDATE ${table} SET ${setClause} WHERE ${whereClause}`;
         const params = [...dataKeys.map(k => record[k]), ...filterKeys.map(k => filter[k])];
         if (db) await db.prepare(sql).bind(...params).run();
+        const pkVal = filter.id || filter.student_id || Object.values(filter)[0];
+        await this.logCutoverWrite(table, 'UPDATE', pkVal, record);
         return this.selectOne(table, filter);
     }
 
@@ -118,6 +143,8 @@ class D1R2Adapter {
         const sql = `DELETE FROM ${table} WHERE ${whereClause}`;
         const params = filterKeys.map(k => filter[k]);
         if (db) await db.prepare(sql).bind(...params).run();
+        const pkVal = filter.id || filter.student_id || Object.values(filter)[0];
+        await this.logCutoverWrite(table, 'DELETE', pkVal, filter);
         return true;
     }
 

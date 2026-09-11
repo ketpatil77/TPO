@@ -1,339 +1,555 @@
--- Cloudflare D1 (SQLite) Translated Schema for TPO Placement Portal
+-- Cloudflare D1 Complete Schema for TPO Placement Portal
 
-CREATE TABLE IF NOT EXISTS roster (
+DROP TABLE IF EXISTS profiles;
+CREATE TABLE profiles (
     id TEXT PRIMARY KEY,
-    prn TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    dob TEXT NOT NULL,
+    user_id TEXT,
+    role TEXT,
+    status TEXT,
+    created_at TEXT,
+    department TEXT,
+    avatar_path TEXT,
+    display_name TEXT,
+    last_login_at TEXT,
+    session_version REAL
+);
+CREATE INDEX IF NOT EXISTS idx_profiles_id ON profiles(id);
+
+DROP TABLE IF EXISTS roster;
+CREATE TABLE roster (
+    id TEXT PRIMARY KEY,
+    prn TEXT,
+    name TEXT,
+    dob TEXT,
     branch TEXT,
     class TEXT,
     year TEXT
 );
-CREATE INDEX IF NOT EXISTS idx_roster_prn ON roster(prn);
+CREATE INDEX IF NOT EXISTS idx_roster_id ON roster(id);
 
-CREATE TABLE IF NOT EXISTS students (
+DROP TABLE IF EXISTS placement_drives;
+CREATE TABLE placement_drives (
     id TEXT PRIMARY KEY,
-    prn TEXT UNIQUE NOT NULL REFERENCES roster(prn) ON DELETE CASCADE,
+    company_name TEXT,
+    job_title TEXT,
+    description TEXT,
+    ctc TEXT,
+    location TEXT,
+    drive_date TEXT,
+    status TEXT,
+    created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_placement_drives_id ON placement_drives(id);
+
+DROP TABLE IF EXISTS audit_log;
+CREATE TABLE audit_log (
+    id TEXT PRIMARY KEY,
+    action TEXT,
+    target_table TEXT,
+    target_id TEXT,
+    details TEXT,
+    created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_audit_log_id ON audit_log(id);
+
+DROP TABLE IF EXISTS login_attempts;
+CREATE TABLE login_attempts (
+    id TEXT PRIMARY KEY,
+    identifier_hash TEXT,
+    ip_hash TEXT,
+    failures REAL,
+    locked_until TEXT,
+    updated_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_login_attempts_id ON login_attempts(id);
+
+DROP TABLE IF EXISTS saved_filters;
+CREATE TABLE saved_filters (
+    id TEXT PRIMARY KEY,
     name TEXT,
-    email TEXT,
-    phone TEXT,
+    filter_criteria TEXT,
+    created_by TEXT,
+    created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_saved_filters_id ON saved_filters(id);
+
+DROP TABLE IF EXISTS assessments;
+CREATE TABLE assessments (
+    id TEXT PRIMARY KEY,
+    student_id TEXT,
+    type TEXT,
+    title TEXT,
+    score REAL,
+    max_score REAL,
+    attended_on TEXT,
+    notes TEXT,
+    created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_assessments_id ON assessments(id);
+
+DROP TABLE IF EXISTS calendar_events;
+CREATE TABLE calendar_events (
+    id TEXT PRIMARY KEY,
+    title TEXT,
+    event_type TEXT,
+    start_time TEXT,
+    end_time TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_calendar_events_id ON calendar_events(id);
+
+DROP TABLE IF EXISTS import_batches;
+CREATE TABLE import_batches (
+    id TEXT PRIMARY KEY,
+    created_by TEXT,
+    file_name TEXT,
+    status TEXT,
+    total_count REAL,
+    added_count REAL,
+    updated_count REAL,
+    failed_count REAL,
+    inserted_prns TEXT,
+    previous_rows TEXT,
+    errors TEXT,
+    created_at TEXT,
+    undone_at TEXT,
+    previous_student_rows TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_import_batches_id ON import_batches(id);
+
+DROP TABLE IF EXISTS notification_broadcasts;
+CREATE TABLE notification_broadcasts (
+    id TEXT PRIMARY KEY,
+    campaign_key TEXT,
+    status TEXT,
+    result TEXT,
+    created_at TEXT,
+    completed_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_notification_broadcasts_id ON notification_broadcasts(id);
+
+DROP TABLE IF EXISTS students;
+CREATE TABLE students (
+    id TEXT PRIMARY KEY,
+    prn TEXT,
+    name TEXT,
     branch TEXT,
     class TEXT,
     year TEXT,
-    ssc_marks REAL,
-    hsc_marks REAL,
+    cgpa_overall REAL,
+    cgpa_semesterwise TEXT,
+    activities TEXT,
+    resume_url TEXT,
+    created_at TEXT,
+    updated_at TEXT,
+    avatar_path TEXT,
+    backlogs_semesterwise TEXT,
+    email TEXT,
+    phone TEXT,
+    lateral_entry INTEGER DEFAULT 0,
+    ssc_marks TEXT,
+    hsc_marks TEXT,
     is_employed INTEGER DEFAULT 0,
-    employment_type TEXT CHECK (employment_type IN ('Govt', 'Private')),
+    employment_type TEXT,
     company_name TEXT,
     hr_name TEXT,
     hr_number TEXT,
-    org_type TEXT CHECK (org_type IN ('Startup', 'MNC', 'PSU', 'Govt', 'SMB', 'Other')),
-    current_ctc REAL,
+    org_type TEXT,
+    current_ctc TEXT,
     company_address TEXT,
-    cgpa_overall REAL,
-    cgpa_semesterwise TEXT DEFAULT '{}',
-    backlogs_semesterwise TEXT DEFAULT '{}',
-    activities TEXT,
-    resume_url TEXT,
-    avatar_path TEXT,
-    created_at TEXT DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now'))
+    academic_verification_status TEXT,
+    academic_verified_by TEXT,
+    academic_verified_role TEXT,
+    academic_verified_at TEXT,
+    academic_verification_note TEXT,
+    github_url TEXT,
+    portfolio_url TEXT
 );
-CREATE INDEX IF NOT EXISTS idx_students_prn ON students(prn);
+CREATE INDEX IF NOT EXISTS idx_students_id ON students(id);
 
-CREATE TABLE IF NOT EXISTS internships (
+DROP TABLE IF EXISTS internships;
+CREATE TABLE internships (
     id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    company TEXT NOT NULL,
-    role TEXT NOT NULL,
-    start_date TEXT NOT NULL,
+    student_id TEXT,
+    company TEXT,
+    role TEXT,
+    start_date TEXT,
     end_date TEXT,
-    mode TEXT CHECK (mode IN ('online', 'offline')) DEFAULT 'offline'
+    mode TEXT,
+    verification_status TEXT,
+    verified_by TEXT,
+    verified_role TEXT,
+    verified_at TEXT,
+    verification_note TEXT,
+    evidence_path TEXT,
+    evidence_mime TEXT,
+    evidence_bytes REAL,
+    evidence_sha256 TEXT,
+    evidence_uploaded_at TEXT,
+    proof_missing_since TEXT,
+    proof_deadline TEXT,
+    created_at TEXT,
+    updated_at TEXT,
+    proof_notice_sent_at TEXT
 );
-CREATE INDEX IF NOT EXISTS idx_internships_student_id ON internships(student_id);
+CREATE INDEX IF NOT EXISTS idx_internships_id ON internships(id);
 
-CREATE TABLE IF NOT EXISTS certificates (
+DROP TABLE IF EXISTS certificates;
+CREATE TABLE certificates (
     id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    issuer TEXT NOT NULL,
-    date TEXT NOT NULL,
-    mode TEXT CHECK (mode IN ('online', 'offline')) DEFAULT 'online',
-    evidence_path TEXT
+    student_id TEXT,
+    name TEXT,
+    issuer TEXT,
+    date TEXT,
+    mode TEXT,
+    verification_status TEXT,
+    verified_by TEXT,
+    verified_role TEXT,
+    verified_at TEXT,
+    verification_note TEXT,
+    evidence_path TEXT,
+    evidence_mime TEXT,
+    evidence_bytes REAL,
+    evidence_sha256 TEXT,
+    evidence_uploaded_at TEXT,
+    proof_missing_since TEXT,
+    proof_deadline TEXT,
+    created_at TEXT,
+    updated_at TEXT,
+    proof_notice_sent_at TEXT
 );
-CREATE INDEX IF NOT EXISTS idx_certificates_student_id ON certificates(student_id);
+CREATE INDEX IF NOT EXISTS idx_certificates_id ON certificates(id);
 
-CREATE TABLE IF NOT EXISTS student_projects (
+DROP TABLE IF EXISTS student_projects;
+CREATE TABLE student_projects (
     id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    title TEXT NOT NULL,
-    summary TEXT NOT NULL,
+    student_id TEXT,
+    title TEXT,
+    summary TEXT,
     technologies TEXT,
     project_url TEXT,
     repository_url TEXT,
     completed_on TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
+    created_at TEXT,
+    verification_status TEXT,
+    verified_by TEXT,
+    verified_role TEXT,
+    verified_at TEXT,
+    verification_note TEXT
 );
-CREATE INDEX IF NOT EXISTS idx_student_projects_student_id ON student_projects(student_id);
+CREATE INDEX IF NOT EXISTS idx_student_projects_id ON student_projects(id);
 
-CREATE TABLE IF NOT EXISTS research_papers (
+DROP TABLE IF EXISTS research_papers;
+CREATE TABLE research_papers (
     id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    title TEXT NOT NULL,
-    authors TEXT NOT NULL,
-    publication TEXT NOT NULL,
-    abstract TEXT NOT NULL,
+    student_id TEXT,
+    title TEXT,
+    authors TEXT,
+    publication TEXT,
+    abstract TEXT,
     doi_url TEXT,
     paper_url TEXT,
-    published_on TEXT NOT NULL,
-    created_at TEXT DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now'))
+    published_on TEXT,
+    created_at TEXT,
+    updated_at TEXT,
+    verification_status TEXT,
+    verified_by TEXT,
+    verified_role TEXT,
+    verified_at TEXT,
+    verification_note TEXT
 );
-CREATE INDEX IF NOT EXISTS idx_research_papers_student_id ON research_papers(student_id);
+CREATE INDEX IF NOT EXISTS idx_research_papers_id ON research_papers(id);
 
-CREATE TABLE IF NOT EXISTS diploma (
+DROP TABLE IF EXISTS diploma;
+CREATE TABLE diploma (
     id TEXT PRIMARY KEY,
-    student_id TEXT UNIQUE NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    student_id TEXT,
     institute TEXT,
-    branch TEXT NOT NULL,
-    year_of_passing INTEGER NOT NULL,
+    branch TEXT,
+    year_of_passing TEXT,
     percentage_or_cgpa TEXT
 );
-CREATE INDEX IF NOT EXISTS idx_diploma_student_id ON diploma(student_id);
+CREATE INDEX IF NOT EXISTS idx_diploma_id ON diploma(id);
 
-CREATE TABLE IF NOT EXISTS student_skills (
+DROP TABLE IF EXISTS student_skills;
+CREATE TABLE student_skills (
     id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    skill_name TEXT NOT NULL,
-    proficiency_level TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
+    student_id TEXT,
+    skill TEXT,
+    verification_status TEXT,
+    verified_by TEXT,
+    verified_role TEXT,
+    verified_at TEXT,
+    verification_note TEXT
 );
-CREATE INDEX IF NOT EXISTS idx_student_skills_student_id ON student_skills(student_id);
+CREATE INDEX IF NOT EXISTS idx_student_skills_id ON student_skills(id);
 
-CREATE TABLE IF NOT EXISTS placement_drives (
+DROP TABLE IF EXISTS correction_requests;
+CREATE TABLE correction_requests (
     id TEXT PRIMARY KEY,
-    company_name TEXT NOT NULL,
-    job_title TEXT NOT NULL,
-    description TEXT,
-    ctc REAL,
-    location TEXT,
-    drive_date TEXT,
-    status TEXT DEFAULT 'upcoming',
-    created_at TEXT DEFAULT (datetime('now'))
+    student_id TEXT,
+    field_name TEXT,
+    message TEXT,
+    status TEXT,
+    created_by TEXT,
+    created_at TEXT,
+    resolved_at TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_correction_requests_id ON correction_requests(id);
 
-CREATE TABLE IF NOT EXISTS drive_criteria (
+DROP TABLE IF EXISTS notifications;
+CREATE TABLE notifications (
     id TEXT PRIMARY KEY,
-    drive_id TEXT NOT NULL REFERENCES placement_drives(id) ON DELETE CASCADE,
-    min_cgpa REAL,
-    min_ssc_marks REAL,
-    min_hsc_marks REAL,
-    allowed_branches TEXT,
-    max_backlogs INTEGER DEFAULT 0
+    student_id TEXT,
+    audience TEXT,
+    title TEXT,
+    message TEXT,
+    priority TEXT,
+    read_at TEXT,
+    created_at TEXT,
+    expires_at TEXT,
+    action_url TEXT,
+    branches TEXT,
+    campaign_key TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_notifications_id ON notifications(id);
 
-CREATE TABLE IF NOT EXISTS drive_matches (
+DROP TABLE IF EXISTS interviews;
+CREATE TABLE interviews (
     id TEXT PRIMARY KEY,
-    drive_id TEXT NOT NULL REFERENCES placement_drives(id) ON DELETE CASCADE,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    matched_skills TEXT,
-    score REAL,
-    created_at TEXT DEFAULT (datetime('now'))
+    student_id TEXT,
+    company_name TEXT,
+    round_name TEXT,
+    scheduled_at TEXT,
+    status TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_interviews_id ON interviews(id);
 
-CREATE TABLE IF NOT EXISTS shortlists (
+DROP TABLE IF EXISTS offers;
+CREATE TABLE offers (
     id TEXT PRIMARY KEY,
-    drive_id TEXT NOT NULL REFERENCES placement_drives(id) ON DELETE CASCADE,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    status TEXT DEFAULT 'shortlisted',
-    created_at TEXT DEFAULT (datetime('now'))
+    student_id TEXT,
+    company_name TEXT,
+    job_title TEXT,
+    ctc TEXT,
+    offered_at TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_offers_id ON offers(id);
 
-CREATE TABLE IF NOT EXISTS drive_applications (
+DROP TABLE IF EXISTS dob_corrections;
+CREATE TABLE dob_corrections (
     id TEXT PRIMARY KEY,
-    drive_id TEXT NOT NULL REFERENCES placement_drives(id) ON DELETE CASCADE,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    applied_at TEXT DEFAULT (datetime('now'))
+    prn TEXT,
+    submitted_name TEXT,
+    submitted_dob TEXT,
+    department TEXT,
+    status TEXT,
+    created_at TEXT,
+    processed_at TEXT,
+    processed_by TEXT,
+    name_mismatch INTEGER DEFAULT 0
 );
+CREATE INDEX IF NOT EXISTS idx_dob_corrections_id ON dob_corrections(id);
 
-CREATE TABLE IF NOT EXISTS audit_log (
+DROP TABLE IF EXISTS student_push_subscriptions;
+CREATE TABLE student_push_subscriptions (
     id TEXT PRIMARY KEY,
-    action TEXT NOT NULL,
+    student_id TEXT,
+    endpoint TEXT,
+    subscription TEXT,
+    last_notified_at TEXT,
+    last_error TEXT,
+    created_at TEXT,
+    updated_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_student_push_subscriptions_id ON student_push_subscriptions(id);
+
+DROP TABLE IF EXISTS student_competitions;
+CREATE TABLE student_competitions (
+    id TEXT PRIMARY KEY,
+    student_id TEXT,
+    title TEXT,
+    organizer TEXT,
+    competition_type TEXT,
+    level TEXT,
+    result_status TEXT,
+    position_text TEXT,
+    participated_on TEXT,
+    team_type TEXT,
+    team_size REAL,
+    project_title TEXT,
+    source_url TEXT,
+    proof_url TEXT,
+    notes TEXT,
+    verification_status TEXT,
+    verified_by TEXT,
+    verified_at TEXT,
+    verification_note TEXT,
+    created_at TEXT,
+    updated_at TEXT,
+    verified_role TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_student_competitions_id ON student_competitions(id);
+
+DROP TABLE IF EXISTS student_profile_declarations;
+CREATE TABLE student_profile_declarations (
+    student_id TEXT PRIMARY KEY,
+    no_certificates INTEGER DEFAULT 0,
+    no_projects INTEGER DEFAULT 0,
+    no_research INTEGER DEFAULT 0,
+    no_internships INTEGER DEFAULT 0,
+    no_competitions INTEGER DEFAULT 0,
+    updated_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_student_profile_declarations_student_id ON student_profile_declarations(student_id);
+
+DROP TABLE IF EXISTS student_free_learning_progress;
+CREATE TABLE student_free_learning_progress (
+    id TEXT PRIMARY KEY,
+    student_id TEXT,
+    resource_id REAL,
+    state TEXT,
+    updated_at TEXT,
+    created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_student_free_learning_progress_id ON student_free_learning_progress(id);
+
+DROP TABLE IF EXISTS student_activity_log;
+CREATE TABLE student_activity_log (
+    id TEXT PRIMARY KEY,
+    student_id TEXT,
+    prn TEXT,
+    student_name TEXT,
+    branch TEXT,
+    class TEXT,
+    year TEXT,
+    action TEXT,
+    category TEXT,
     target_table TEXT,
     target_id TEXT,
-    details TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS profiles (
-    id TEXT PRIMARY KEY,
-    user_id TEXT UNIQUE,
-    role TEXT NOT NULL CHECK (role IN ('admin', 'tpc', 'observer')),
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    status TEXT DEFAULT 'active'
-);
-
-CREATE TABLE IF NOT EXISTS login_attempts (
-    id TEXT PRIMARY KEY,
-    prn_or_email TEXT NOT NULL,
-    success INTEGER NOT NULL,
-    ip_address TEXT,
-    attempted_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS correction_requests (
-    id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    field_name TEXT NOT NULL,
-    old_value TEXT,
-    new_value TEXT,
-    status TEXT DEFAULT 'pending',
-    created_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS notifications (
-    id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    title TEXT NOT NULL,
-    message TEXT NOT NULL,
-    type TEXT DEFAULT 'info',
-    read INTEGER DEFAULT 0,
-    created_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS saved_filters (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    filter_criteria TEXT NOT NULL,
-    created_by TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS assessments (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    description TEXT,
-    scheduled_at TEXT
-);
-
-CREATE TABLE IF NOT EXISTS interviews (
-    id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    company_name TEXT NOT NULL,
-    round_name TEXT NOT NULL,
-    scheduled_at TEXT,
-    status TEXT DEFAULT 'scheduled'
-);
-
-CREATE TABLE IF NOT EXISTS offers (
-    id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    company_name TEXT NOT NULL,
-    job_title TEXT NOT NULL,
-    ctc REAL NOT NULL,
-    offered_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS calendar_events (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    event_type TEXT,
-    start_time TEXT NOT NULL,
-    end_time TEXT
-);
-
-CREATE TABLE IF NOT EXISTS notification_reads (
-    id TEXT PRIMARY KEY,
-    notification_id TEXT NOT NULL REFERENCES notifications(id) ON DELETE CASCADE,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    read_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS import_batches (
-    id TEXT PRIMARY KEY,
-    batch_name TEXT NOT NULL,
-    records_count INTEGER DEFAULT 0,
-    created_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS dob_corrections (
-    id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    old_dob TEXT,
-    new_dob TEXT,
-    status TEXT DEFAULT 'pending',
-    created_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS student_push_subscriptions (
-    id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    endpoint TEXT NOT NULL,
-    p256dh TEXT NOT NULL,
-    auth TEXT NOT NULL,
-    created_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS student_competitions (
-    id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    rank TEXT,
-    year TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS student_profile_declarations (
-    id TEXT PRIMARY KEY,
-    student_id TEXT UNIQUE NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    is_declared INTEGER DEFAULT 0,
-    declared_at TEXT
-);
-
-CREATE TABLE IF NOT EXISTS student_free_learning_progress (
-    id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    course_key TEXT NOT NULL,
-    progress_percentage INTEGER DEFAULT 0,
-    updated_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS student_activity_log (
-    id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    activity_type TEXT NOT NULL,
     changed_fields TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
+    old_values TEXT,
+    new_values TEXT,
+    summary TEXT,
+    created_at TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_student_activity_log_id ON student_activity_log(id);
 
-CREATE TABLE IF NOT EXISTS notification_broadcasts (
+DROP TABLE IF EXISTS leaderboard_rank_state;
+CREATE TABLE leaderboard_rank_state (
     id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    message TEXT NOT NULL,
-    target_group TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
+    scope_key TEXT,
+    student_id TEXT,
+    current_rank REAL,
+    previous_rank REAL,
+    current_points REAL,
+    previous_points REAL,
+    rank_since TEXT,
+    longest_hold_seconds REAL,
+    longest_hold_rank REAL,
+    best_rank REAL,
+    hold_milestone_days REAL,
+    week_key TEXT,
+    week_start_points REAL,
+    week_start_rank REAL,
+    growth_streak_weeks REAL,
+    last_rank_delta REAL,
+    last_point_delta REAL,
+    last_movement_at TEXT,
+    updated_at TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_leaderboard_rank_state_id ON leaderboard_rank_state(id);
 
-CREATE TABLE IF NOT EXISTS notification_broadcast_deliveries (
+DROP TABLE IF EXISTS leaderboard_events;
+CREATE TABLE leaderboard_events (
     id TEXT PRIMARY KEY,
-    broadcast_id TEXT NOT NULL REFERENCES notification_broadcasts(id) ON DELETE CASCADE,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    delivered_at TEXT DEFAULT (datetime('now'))
+    event_key TEXT,
+    scope_key TEXT,
+    event_type TEXT,
+    student_id TEXT,
+    target_student_id TEXT,
+    rank_from REAL,
+    rank_to REAL,
+    points REAL,
+    point_delta REAL,
+    message TEXT,
+    broadcast INTEGER DEFAULT 0,
+    created_at TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_leaderboard_events_id ON leaderboard_events(id);
 
-CREATE TABLE IF NOT EXISTS leaderboard_rank_state (
+DROP TABLE IF EXISTS drive_criteria;
+CREATE TABLE drive_criteria (
     id TEXT PRIMARY KEY,
-    student_id TEXT UNIQUE NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    points INTEGER DEFAULT 0,
-    rank INTEGER,
-    updated_at TEXT DEFAULT (datetime('now'))
+    drive_id TEXT,
+    min_cgpa TEXT,
+    min_ssc_marks TEXT,
+    min_hsc_marks TEXT,
+    allowed_branches TEXT,
+    max_backlogs TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_drive_criteria_id ON drive_criteria(id);
 
-CREATE TABLE IF NOT EXISTS leaderboard_events (
+DROP TABLE IF EXISTS drive_matches;
+CREATE TABLE drive_matches (
     id TEXT PRIMARY KEY,
-    student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    event_type TEXT NOT NULL,
-    points_awarded INTEGER DEFAULT 0,
-    created_at TEXT DEFAULT (datetime('now'))
+    drive_id TEXT,
+    student_id TEXT,
+    matched_skills TEXT,
+    score TEXT,
+    created_at TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_drive_matches_id ON drive_matches(id);
+
+DROP TABLE IF EXISTS shortlists;
+CREATE TABLE shortlists (
+    id TEXT PRIMARY KEY,
+    drive_id TEXT,
+    student_id TEXT,
+    status TEXT,
+    created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_shortlists_id ON shortlists(id);
+
+DROP TABLE IF EXISTS drive_applications;
+CREATE TABLE drive_applications (
+    id TEXT PRIMARY KEY,
+    drive_id TEXT,
+    student_id TEXT,
+    applied_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_drive_applications_id ON drive_applications(id);
+
+DROP TABLE IF EXISTS notification_reads;
+CREATE TABLE notification_reads (
+    id TEXT PRIMARY KEY,
+    notification_id TEXT,
+    student_id TEXT,
+    key TEXT,
+    read_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_notification_reads_id ON notification_reads(id);
+
+DROP TABLE IF EXISTS notification_broadcast_deliveries;
+CREATE TABLE notification_broadcast_deliveries (
+    id TEXT PRIMARY KEY,
+    campaign_key TEXT,
+    subscription_id TEXT,
+    student_id TEXT,
+    status TEXT,
+    attempts REAL,
+    last_error TEXT,
+    updated_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_notification_broadcast_deliveries_id ON notification_broadcast_deliveries(id);
+
+DROP TABLE IF EXISTS d1_cutover_replay_log;
+CREATE TABLE d1_cutover_replay_log (
+    id TEXT PRIMARY KEY,
+    target_table TEXT,
+    operation TEXT,
+    pk_value TEXT,
+    payload TEXT,
+    created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_d1_cutover_replay_log_id ON d1_cutover_replay_log(id);
+

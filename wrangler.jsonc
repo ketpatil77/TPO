@@ -29,6 +29,13 @@
       "id": "3ce7e386abc24eceb2c09f9538243b48"
     }
   ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ait-tpo-production",
+      "database_id": "0d253ebf-d252-48da-89e5-573d879b11f4"
+    }
+  ],
   "r2_buckets": [
     {
       "binding": "RESUME_VAULT",
