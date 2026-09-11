@@ -40,8 +40,12 @@ router.post('/login', loginLimit, verifyTurnstile, validate(adminLoginSchema), a
             path: '/'
         });
         issueCsrfToken(res);
-        await db.update('profiles', { user_id: data.user.id }, { last_login_at: new Date().toISOString() });
-        await db.logAudit('observer_login', 'auth', data.user.id, { email: data.user.email, department: profile.department });
+        try {
+            await db.update('profiles', { user_id: data.user.id }, { last_login_at: new Date().toISOString() });
+        } catch (_) {}
+        try {
+            await db.logAudit('observer_login', 'auth', data.user.id, { email: data.user.email, department: profile.department });
+        } catch (_) {}
         return res.json({ success: true, observer: { email: data.user.email, department: profile.department } });
     } catch (err) {
         console.error({ event: 'observer_login_failed', message: err.message });

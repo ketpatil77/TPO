@@ -82,11 +82,13 @@ router.post('/login', adminLoginLimit, verifyTurnstile, validate(adminLoginSchem
         });
         issueCsrfToken(res);
 
-        if (!db.isLocal()) {
+        try {
             await db.update('profiles', { user_id: adminUser.id }, { last_login_at: new Date().toISOString() });
-        }
+        } catch (_) {}
 
-        await db.logAudit('admin_login', 'auth', adminUser.id, { email: adminUser.email });
+        try {
+            await db.logAudit('admin_login', 'auth', adminUser.id, { email: adminUser.email });
+        } catch (_) {}
 
         return res.json({
             success: true,
