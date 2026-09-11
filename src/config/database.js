@@ -68,6 +68,10 @@ const db = {
     },
 
     async select(table, filter = {}) {
+        if (process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            return new D1R2Adapter().select(table, filter);
+        }
         if (!useLocalDb) {
             let query = supabase.from(table).select('*');
             Object.keys(filter).forEach(key => { query = query.eq(key, filter[key]); });
@@ -80,6 +84,10 @@ const db = {
     },
 
     async selectOne(table, filter = {}) {
+        if (process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            return new D1R2Adapter().selectOne(table, filter);
+        }
         if (!useLocalDb) {
             let query = supabase.from(table).select('*').limit(1);
             Object.keys(filter).forEach(key => { query = query.eq(key, filter[key]); });
@@ -92,6 +100,10 @@ const db = {
     },
 
     async insert(table, data) {
+        if (process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            return new D1R2Adapter().insert(table, data);
+        }
         const id = data.id || crypto.randomUUID();
         const record = { ...data, id };
         if (!useLocalDb) {
@@ -114,6 +126,10 @@ const db = {
     },
 
     async upsert(table, data, onConflictKey = 'id') {
+        if (process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            return new D1R2Adapter().upsert(table, data, onConflictKey);
+        }
         if (!useLocalDb) {
             const { data: upserted, error } = await supabase.from(table).upsert([data], { onConflict: onConflictKey }).select();
             if (error) throw error;
@@ -124,6 +140,10 @@ const db = {
     },
 
     async upsertMany(table, rows, onConflictKey = 'id') {
+        if (process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            return new D1R2Adapter().upsertMany(table, rows, onConflictKey);
+        }
         if (!Array.isArray(rows) || rows.length === 0) return [];
         if (!useLocalDb) {
             const { data: upserted, error } = await supabase.from(table).upsert(rows, { onConflict: onConflictKey }).select();
@@ -149,6 +169,10 @@ const db = {
     },
 
     async replaceStudentSkills(studentId, skills) {
+        if (process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            return new D1R2Adapter().replaceStudentSkills(studentId, skills);
+        }
         if (!useLocalDb) {
             const { data, error } = await supabase.rpc('replace_student_skills', { target_student_id: studentId, new_skills: skills });
             if (error) throw error;
@@ -162,6 +186,10 @@ const db = {
     },
 
     async update(table, filter, data) {
+        if (process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            return new D1R2Adapter().update(table, filter, data);
+        }
         if (!useLocalDb) {
             let query = supabase.from(table).update(data);
             Object.keys(filter).forEach(k => { query = query.eq(k, filter[k]); });
@@ -183,6 +211,10 @@ const db = {
     },
 
     async delete(table, filter) {
+        if (process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            return new D1R2Adapter().delete(table, filter);
+        }
         if (!useLocalDb) {
             let query = supabase.from(table).delete();
             Object.keys(filter).forEach(k => { query = query.eq(k, filter[k]); });
@@ -212,6 +244,10 @@ const db = {
     },
 
     async deleteMany(table, key, values) {
+        if (process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            return new D1R2Adapter().deleteMany(table, key, values);
+        }
         const uniqueValues = [...new Set((values || []).filter(value => value !== null && value !== undefined))];
         if (!uniqueValues.length) return true;
         if (!useLocalDb) {
@@ -228,6 +264,10 @@ const db = {
     },
 
     async deleteAll(table) {
+        if (process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true') {
+            const D1R2Adapter = require('../db/adapters/D1R2Adapter');
+            return new D1R2Adapter().deleteAll(table);
+        }
         if (!useLocalDb) {
             const { error } = await supabase.from(table).delete().not('id', 'is', null);
             if (error) throw error;
