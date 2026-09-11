@@ -9,9 +9,10 @@ const pageMap = new Map([
 
 let expressHandler;
 async function ensureExpress(env) {
+    globalThis.cloudflareEnv = env;
+    Object.assign(process.env, env);
     if (expressHandler) return expressHandler;
     process.env.SUPABASE_URL = env.SUPABASE_URL; process.env.SUPABASE_KEY = env.SUPABASE_KEY; process.env.JWT_SECRET = env.JWT_SECRET;
-    globalThis.cloudflareEnv = env; Object.assign(process.env, env);
     const { default: app } = await import('../src/server.js');
     const { default: db } = await import('../src/config/database.js');
     db.init();
