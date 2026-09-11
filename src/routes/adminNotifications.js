@@ -46,4 +46,18 @@ router.post('/notifications', validate(noticeSchema), async (req, res) => {
     res.status(201).json({ success: true, data: notification, delivery });
 });
 
+router.delete('/notifications', async (req, res) => {
+    try {
+        await Promise.all([
+            db.deleteAll('notifications'),
+            db.deleteAll('notification_reads')
+        ]);
+        await db.logAudit('all_notifications_purge', 'notifications', null, { purged_by: req.admin.adminId });
+        res.json({ success: true, message: 'All notifications and read receipts deleted successfully.' });
+    } catch (error) {
+        console.error('Failed to purge notifications:', error.message);
+        res.status(500).json({ success: false, error: { code: 'PURGE_FAILED', message: 'Could not purge notifications.' } });
+    }
+});
+
 module.exports = router;
