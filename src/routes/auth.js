@@ -35,8 +35,8 @@ router.post('/login', studentLoginLimit, verifyTurnstile, validate(studentLoginS
 
         const cleanPrn = prn.trim();
         const cleanDob = dob.trim();
-        const loginKey = crypto.createHash('sha256').update(cleanPrn).digest('hex');
-        const attempt = await db.selectOne('login_attempts', { identifier_hash: loginKey });
+        let attempt = null;
+        try { attempt = await db.selectOne('login_attempts', { identifier_hash: loginKey }); } catch (_) {}
         if (attempt?.locked_until && new Date(attempt.locked_until) > new Date()) {
             const minutesLeft = Math.ceil((new Date(attempt.locked_until) - new Date()) / 60000);
             return res.status(429).json({ success: false, error: { code: 'LOGIN_LOCKED', message: `Login temporarily locked. Try again in ${minutesLeft} minute(s).` } });
@@ -63,6 +63,7 @@ router.post('/login', studentLoginLimit, verifyTurnstile, validate(studentLoginS
         // If first-time login / profile missing, prefill and create from Roster
         if (!studentRecord) {
             studentRecord = await db.insert('students', {
+                id: crypto.randomUUID(),
                 prn: rosterEntry.prn,
                 name: rosterEntry.name,
                 email: null,
@@ -103,7 +104,7 @@ router.post('/login', studentLoginLimit, verifyTurnstile, validate(studentLoginS
             path: '/'
         });
         issueCsrfToken(res);
-        if (attempt) await db.delete('login_attempts', { identifier_hash: loginKey });
+        try { if (attempt) await db.delete('login_attempts', { identifier_hash: loginKey }); } catch (_) {}
 
         return res.json({
             success: true,
@@ -154,7 +155,7 @@ async function recordFailure(identifierHash, existing, ip) {
         locked_until: failures >= MAX_FAILURES ? new Date(Date.now() + LOCK_MS).toISOString() : null,
         updated_at: new Date().toISOString()
     };
-    await db.upsert('login_attempts', data, 'identifier_hash');
+    try { await db.upsert('login_attempts', data, 'identifier_hash'); } catch (_) {}
     return failures;
 }
 
