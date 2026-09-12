@@ -196,6 +196,7 @@
                 const token = localStorage.getItem('tpo_token');
                 const response = await fetch('/api/student/workflow/notifications', {
                     cache: 'no-store',
+                    credentials: 'same-origin',
                     headers: token ? { Authorization: `Bearer ${token}` } : {}
                 });
                 if (!response.ok) throw new Error('Could not load mandatory placement alerts.');
@@ -231,16 +232,21 @@
                 const headers = {};
                 if (token) headers['Authorization'] = `Bearer ${token}`;
                 if (csrfToken) headers['x-csrf-token'] = csrfToken;
-                const response = await fetch(`/api/student/workflow/notifications/${encodeURIComponent(id)}/read`, {
-                    method: 'PUT',
-                    headers
-                });
-                if (!response.ok) {
-                    browserSetupStatus('Could not acknowledge the important update. Check your connection and retry.');
-                    return;
-                }
+                
+                // Hide immediately locally to prevent modal lock
                 currentImportant = null;
                 renderImportant(null, 0);
+
+                try {
+                    await fetch(`/api/student/workflow/notifications/${encodeURIComponent(id)}/read`, {
+                        method: 'PUT',
+                        credentials: 'same-origin',
+                        headers
+                    });
+                } catch (err) {
+                    console.warn('Failed to report alert acknowledgment to backend:', err);
+                }
+
                 if (typeof originalLoadStudentNotifications === 'function') {
                     try { await originalLoadStudentNotifications(); } catch (_) {}
                 }
