@@ -42,15 +42,8 @@ router.post('/login', studentLoginLimit, verifyTurnstile, validate(studentLoginS
             return res.status(429).json({ success: false, error: { code: 'LOGIN_LOCKED', message: `Login temporarily locked. Try again in ${minutesLeft} minute(s).` } });
         }
 
-        // 1. Look up student entry in Roster table (bypass cache for critical auth checks)
-        let rosterEntry;
-        if (!db.isLocal()) {
-            const { data, error } = await db.supabaseClient().from('roster').select('*').eq('prn', cleanPrn).maybeSingle();
-            if (error) throw error;
-            rosterEntry = data;
-        } else {
-            rosterEntry = await db.selectOne('roster', { prn: cleanPrn });
-        }
+        // 1. Look up student entry in Roster table
+        const rosterEntry = await db.selectOne('roster', { prn: cleanPrn });
 
         if (!rosterEntry) {
             const failures = await recordFailure(loginKey, attempt, req.ip);
