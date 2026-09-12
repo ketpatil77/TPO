@@ -159,8 +159,10 @@
       cache: 'no-store',
       headers: { Authorization: `Bearer ${token()}`, 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
     });
-    const json = await response.json();
-    if (!response.ok || !json.success) throw new Error(json.error?.message || json.error || 'Could not calculate ranking.');
+    const text = await response.text();
+    let json = {};
+    try { json = JSON.parse(text); } catch (_) {}
+    if (!response.ok || !json.success) throw new Error(json.error?.message || json.error || `Ranking server returned status ${response.status}`);
     return json.data;
   }
 
