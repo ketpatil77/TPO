@@ -123,8 +123,8 @@ router.post('/login', studentLoginLimit, verifyTurnstile, validate(studentLoginS
         });
 
     } catch (err) {
-        console.error('Error during student login:', err);
-        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Unable to complete authentication.' } });
+        console.error('Error during student login:', err.message, err.stack);
+        return res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: err.message || 'Unable to complete authentication.' } });
     }
 });
 
