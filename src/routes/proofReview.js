@@ -16,9 +16,15 @@ function storage() {
 }
 
 async function readR2Proof(path, env = globalThis.cloudflareEnv) {
-    const bucket = env?.CERTIFICATE_VAULT;
-    if (!path || !bucket?.get) return null;
-    const object = await bucket.get(path);
+    if (!path) return null;
+    const certBucket = env?.CERTIFICATE_VAULT || globalThis.cloudflareEnv?.CERTIFICATE_VAULT;
+    const resumeBucket = env?.RESUME_VAULT || globalThis.cloudflareEnv?.RESUME_VAULT;
+    let object = null;
+    if (path.startsWith('internships/') || path.startsWith('resumes/')) {
+        object = (await resumeBucket?.get(path)) || (await certBucket?.get(path));
+    } else {
+        object = (await certBucket?.get(path)) || (await resumeBucket?.get(path));
+    }
     if (!object) return null;
     const bytes = Buffer.from(await object.arrayBuffer());
     return { bytes, mime: object.httpMetadata?.contentType || null, size: Number(object.size) || bytes.length };
@@ -196,7 +202,7 @@ function createRouter(role) {
             }
         } catch (error) { console.error('R2 proof read failed, using legacy storage fallback:', error.message); }
 
-        if (!evidenceStorage) return res.status(503).json({ success: false, error: { code: 'VAULT_NOT_CONFIGURED', message: 'Proof storage is not configured.' } });
+        if (!evidenceStorage) return res.status(404).json({ success: false, error: { code: 'NO_EVIDENCE', message: 'Proof file is unavailable.' } });
 
         if (typeof evidenceStorage.createSignedUrl === 'function') {
             try {

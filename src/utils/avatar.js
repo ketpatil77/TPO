@@ -44,13 +44,15 @@ async function uploadAvatar(req, res, owner) {
     if (!image) {
         return res.status(400).json({ success: false, error: { code: 'INVALID_IMAGE', message: 'Valid JPG, JPEG, or PNG profile picture required.' } });
     }
-    if (db.isLocal()) return res.status(503).json({ success: false, error: { code: 'STORAGE_UNAVAILABLE', message: 'Profile picture storage requires Supabase.' } });
+    const vault = globalThis.cloudflareEnv?.CERTIFICATE_VAULT || globalThis.cloudflareEnv?.RESUME_VAULT;
+    if (!vault && db.isLocal()) {
+        return res.status(503).json({ success: false, error: { code: 'STORAGE_UNAVAILABLE', message: 'Profile picture storage requires R2 or Supabase.' } });
+    }
     const record = await db.selectOne(owner.table, owner.filter);
     if (!record) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Profile not found.' } });
     const version = Date.now();
     const path = `${owner.folder}/${owner.id}/avatar_v${version}.${image.extension}`;
     
-    const vault = globalThis.cloudflareEnv?.CERTIFICATE_VAULT || globalThis.cloudflareEnv?.RESUME_VAULT;
     if (vault) {
         if (record.avatar_path) await vault.delete(record.avatar_path).catch(() => {});
         await vault.put(path, req.file.buffer, { httpMetadata: { contentType: image.contentType, cacheControl: 'public, max-age=31536000, immutable' } });
@@ -89,13 +91,13 @@ async function deleteAvatar(res, owner) {
 }
 
 async function signedAvatar(res, path) {
-    if (db.isLocal()) {
-        return res.json({ success: true, data: { url: `https://ui-avatars.com/api/?name=Local+User&background=random`, expires_in: 3600 } });
-    }
     const isD1 = process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true';
     const vault = globalThis.cloudflareEnv?.CERTIFICATE_VAULT || globalThis.cloudflareEnv?.RESUME_VAULT;
     if (isD1 || vault) {
         return res.json({ success: true, data: { url: `/api/student/student-avatars/${encodeURIComponent(res.req?.student?.studentId || path)}`, expires_in: 86400 } });
+    }
+    if (db.isLocal()) {
+        return res.json({ success: true, data: { url: `https://ui-avatars.com/api/?name=Local+User&background=random`, expires_in: 3600 } });
     }
     const { data, error } = await db.supabaseClient().storage.from('avatars').createSignedUrl(path, 86400);
     if (error) throw error;
@@ -104,8 +106,6 @@ async function signedAvatar(res, path) {
 
 async function redirectAvatar(res, path) {
     if (!path) return res.status(404).send('Profile picture not uploaded.');
-    if (db.isLocal()) return res.status(404).send('Profile picture unavailable in local mode.');
-    
     const isD1 = process.env.USE_D1_BACKEND === 'true' || globalThis.cloudflareEnv?.USE_D1_BACKEND === 'true';
     const vault = globalThis.cloudflareEnv?.CERTIFICATE_VAULT || globalThis.cloudflareEnv?.RESUME_VAULT;
     if (isD1 || vault) {
@@ -119,11 +119,11 @@ async function redirectAvatar(res, path) {
             }
         } catch (_) {}
     }
+    if (db.isLocal()) return res.status(404).send('Profile picture unavailable in local mode.');
     
     const { data, error } = await db.supabaseClient().storage.from('avatars').createSignedUrl(path, AVATAR_REDIRECT_SIGNED_SECONDS);
     if (error || !data?.signedUrl) return res.status(404).send('Profile picture unavailable.');
     
-    // Cloudflare Edge CDN public cache header so edge caches the redirect for 24 hours
     res.setHeader('Cache-Control', `public, max-age=${AVATAR_REDIRECT_CACHE_SECONDS}, s-maxage=86400, stale-while-revalidate=600`);
     return res.redirect(302, data.signedUrl);
 }
