@@ -18,7 +18,8 @@
     "PROOF_EXPIRY_CRON": "0 * * * *",
     "READ_ONLY_MODE": "false",
     "MAINTENANCE_MODE": "false",
-    "USE_D1_BACKEND": "true"
+    "USE_D1_BACKEND": "true",
+    "ADMIN_DEV_PASSWORD": "TpoAdmin2026!"
   },
   "assets": {
     "directory": "./public",

@@ -76,7 +76,7 @@ router.post('/login', loginLimit, verifyTurnstile, validate(adminLoginSchema), a
             department: observerDept, issuedAt: new Date().toISOString(), sessionVersion: sessionVer
         }, JWT_SECRET, { expiresIn: '8h' });
         res.cookie('observerToken', token, {
-            httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict',
+            httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax',
             path: '/'
         });
         issueCsrfToken(res);

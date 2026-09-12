@@ -94,7 +94,7 @@ router.post('/login', adminLoginLimit, verifyTurnstile, validate(adminLoginSchem
         res.cookie('adminToken', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax',
             path: '/'
         });
         issueCsrfToken(res);
