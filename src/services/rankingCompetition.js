@@ -54,7 +54,7 @@ function holdText(seconds) {
 }
 
 async function notify(data) {
-  try { return await createStudentNotification({...data,id:crypto.randomUUID(),branches:[],priority:'important',action_url:'/dashboard?tab=ranking',created_at:new Date().toISOString()}); }
+  try { return await createStudentNotification({...data,id:crypto.randomUUID(),branches:[],priority:'normal',action_url:'/dashboard?tab=ranking',created_at:new Date().toISOString()}); }
   catch(error) { console.warn('Leaderboard notification delivery failed:',error.message); return null; }
 }
 

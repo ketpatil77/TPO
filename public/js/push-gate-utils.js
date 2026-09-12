@@ -161,7 +161,7 @@
                 modal.setAttribute('role', 'dialog');
                 modal.setAttribute('aria-modal', 'true');
                 modal.setAttribute('aria-labelledby', 'mandatoryImportantTitle');
-                modal.innerHTML = `<section class="mandatory-important-card"><div class="mandatory-important-kicker">● Important placement update <span id="mandatoryImportantCount"></span></div><h2 id="mandatoryImportantTitle"></h2><p id="mandatoryImportantMessage"></p><div id="mandatoryImportantMeta" class="mandatory-important-meta"></div><div class="mandatory-important-actions"><button id="mandatoryImportantAcknowledge" class="btn btn-secondary" type="button">Acknowledge</button><button id="mandatoryImportantOpen" class="btn btn-primary" type="button">Open update</button></div></section>`;
+                modal.innerHTML = `<section class="mandatory-important-card"><div class="mandatory-important-kicker">● Important placement update <span id="mandatoryImportantCount"></span></div><h2 id="mandatoryImportantTitle"></h2><p id="mandatoryImportantMessage"></p><div id="mandatoryImportantMeta" class="mandatory-important-meta"></div><div class="mandatory-important-actions"><button id="mandatoryImportantAcknowledge" class="btn btn-secondary" type="button">Acknowledge</button><button id="mandatoryImportantOpen" class="btn btn-primary" type="button">Open update</button><button id="mandatoryImportantDismissAll" class="btn btn-outline-secondary" type="button" style="grid-column:1/-1;margin-top:4px">Dismiss All Alerts</button></div></section>`;
                 document.body.appendChild(modal);
 
                 modal.querySelector('#mandatoryImportantAcknowledge').addEventListener('click', async () => {
@@ -171,6 +171,22 @@
                 modal.querySelector('#mandatoryImportantOpen').addEventListener('click', async () => {
                     if (!currentImportant) return;
                     await acknowledgeImportant(currentImportant.id, true);
+                });
+                modal.querySelector('#mandatoryImportantDismissAll').addEventListener('click', async () => {
+                    currentImportant = null;
+                    renderImportant(null, 0);
+                    const token = localStorage.getItem('tpo_token');
+                    const csrfMatch = document.cookie.match(/(?:^|; )csrfToken=([^;]+)/);
+                    const csrfToken = csrfMatch ? decodeURIComponent(csrfMatch[1]) : '';
+                    const headers = {};
+                    if (token) headers['Authorization'] = `Bearer ${token}`;
+                    if (csrfToken) headers['x-csrf-token'] = csrfToken;
+                    try {
+                        await fetch('/api/student/workflow/notifications/read-all', { method: 'PUT', credentials: 'same-origin', headers });
+                    } catch (_) {}
+                    if (typeof originalLoadStudentNotifications === 'function') {
+                        try { await originalLoadStudentNotifications(); } catch (_) {}
+                    }
                 });
                 return modal;
             }
