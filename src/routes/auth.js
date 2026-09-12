@@ -35,6 +35,7 @@ router.post('/login', studentLoginLimit, verifyTurnstile, validate(studentLoginS
 
         const cleanPrn = prn.trim();
         const cleanDob = dob.trim();
+        const loginKey = crypto.createHash('sha256').update(cleanPrn).digest('hex');
         let attempt = null;
         try { attempt = await db.selectOne('login_attempts', { identifier_hash: loginKey }); } catch (_) {}
         if (attempt?.locked_until && new Date(attempt.locked_until) > new Date()) {
