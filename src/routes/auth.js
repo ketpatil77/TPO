@@ -43,8 +43,12 @@ router.post('/login', studentLoginLimit, verifyTurnstile, validate(studentLoginS
             return res.status(429).json({ success: false, error: { code: 'LOGIN_LOCKED', message: `Login temporarily locked. Try again in ${minutesLeft} minute(s).` } });
         }
 
-        // 1. Look up student entry in Roster table
-        const rosterEntry = await db.selectOne('roster', { prn: cleanPrn });
+        // 1. Look up student entry in Roster table (try exact string match first, then numeric PRN match if stored as integer/bigint)
+        let rosterEntry = await db.selectOne('roster', { prn: cleanPrn });
+        if (!rosterEntry && /^\d+$/.test(cleanPrn)) {
+            const allRoster = await db.select('roster');
+            rosterEntry = allRoster.find(r => String(r.prn || '').trim() === cleanPrn) || null;
+        }
 
         if (!rosterEntry) {
             const failures = await recordFailure(loginKey, attempt, req.ip);
@@ -60,6 +64,10 @@ router.post('/login', studentLoginLimit, verifyTurnstile, validate(studentLoginS
 
         // 3. Check if student profile already exists in `students` table
         let studentRecord = await db.selectOne('students', { prn: cleanPrn });
+        if (!studentRecord && /^\d+$/.test(cleanPrn)) {
+            const allStudents = await db.select('students');
+            studentRecord = allStudents.find(s => String(s.prn || '').trim() === cleanPrn) || null;
+        }
 
         // If first-time login / profile missing, prefill and create from Roster
         if (!studentRecord) {
