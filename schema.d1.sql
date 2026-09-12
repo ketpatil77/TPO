@@ -33,14 +33,22 @@ CREATE INDEX IF NOT EXISTS idx_roster_id ON roster(id);
 DROP TABLE IF EXISTS placement_drives;
 CREATE TABLE placement_drives (
     id TEXT PRIMARY KEY,
+    company TEXT,
+    role TEXT,
+    jd_text TEXT,
     company_name TEXT,
     job_title TEXT,
     description TEXT,
     ctc TEXT,
     location TEXT,
     drive_date TEXT,
+    application_deadline TEXT,
     status TEXT,
-    created_at TEXT
+    created_by TEXT,
+    approved_by TEXT,
+    approved_at TEXT,
+    created_at TEXT,
+    updated_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_placement_drives_id ON placement_drives(id);
 
@@ -484,13 +492,21 @@ DROP TABLE IF EXISTS drive_criteria;
 CREATE TABLE drive_criteria (
     id TEXT PRIMARY KEY,
     drive_id TEXT,
-    min_cgpa TEXT,
+    branches TEXT,
+    min_cgpa REAL,
+    graduation_year TEXT,
+    required_skills TEXT,
+    preferred_skills TEXT,
+    keywords TEXT,
+    confirmed_by TEXT,
+    confirmed_at TEXT,
     min_ssc_marks TEXT,
     min_hsc_marks TEXT,
     allowed_branches TEXT,
     max_backlogs TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_drive_criteria_id ON drive_criteria(id);
+CREATE INDEX IF NOT EXISTS idx_drive_criteria_drive_id ON drive_criteria(drive_id);
 
 DROP TABLE IF EXISTS drive_matches;
 CREATE TABLE drive_matches (
