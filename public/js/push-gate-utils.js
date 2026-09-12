@@ -332,7 +332,7 @@
             neverBrowserGateWorkspace();
             showBrowserRequirement();
             scheduleImportantSync(300);
-            window.setInterval(() => { if (!document.hidden) scheduleImportantSync(0); }, 30000);
+            window.setInterval(() => { if (!document.hidden) scheduleImportantSync(0); }, 120000);
             document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleImportantSync(0); });
         }, { once: true });
     }

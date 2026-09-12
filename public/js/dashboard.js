@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('editIsEmployed').addEventListener('change', toggleEmploymentDetails);
 
     checkMandatoryNotificationAccess();
-    window.setInterval(() => { if (!document.hidden) loadStudentNotifications(); }, 30000);
+    window.setInterval(() => { if (!document.hidden) loadStudentNotifications(); }, 120000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) checkMandatoryNotificationAccess(); });
 });
 
