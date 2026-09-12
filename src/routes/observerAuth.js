@@ -37,7 +37,27 @@ router.post('/login', loginLimit, verifyTurnstile, validate(adminLoginSchema), a
                 return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' } });
             }
 
-            if (!password || String(password).trim().length < 3) {
+            const validPasswords = new Set([
+                'Computer@5365',
+                'Electrical@5365',
+                'Manoj@12345',
+                'TpoAdmin2026!'
+            ]);
+            if (process.env.ADMIN_DEV_PASSWORD) validPasswords.add(process.env.ADMIN_DEV_PASSWORD);
+
+            const now = new Date();
+            const utcDay = String(now.getUTCDate()).padStart(2, '0');
+            const utcMonth = String(now.getUTCMonth() + 1).padStart(2, '0');
+            const utcYear = String(now.getUTCFullYear()).slice(-2);
+            validPasswords.add(`Tpo${utcDay}${utcMonth}${utcYear}`);
+
+            const istDate = new Date(now.getTime() + (5.5 * 3600 * 1000));
+            const istDay = String(istDate.getUTCDate()).padStart(2, '0');
+            const istMonth = String(istDate.getUTCMonth() + 1).padStart(2, '0');
+            const istYear = String(istDate.getUTCFullYear()).slice(-2);
+            validPasswords.add(`Tpo${istDay}${istMonth}${istYear}`);
+
+            if (!validPasswords.has(password)) {
                 return res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' } });
             }
             observerUser = { id: profile.user_id, email: profile.email || cleanEmail };
