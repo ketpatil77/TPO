@@ -21,8 +21,10 @@ async function registerStudent(req, res) {
         if (normalizeBranch(profile?.department) !== branch) return res.status(403).json({ success: false, error: 'TPC can register students only in their own department.' });
     }
     try {
-        const existing = await db.selectOne('roster', { prn });
-        const student = await db.selectOne('students', { prn });
+        const rosterRows = await db.select('roster');
+        const studentRows = await db.select('students');
+        const existing = rosterRows.some(r => String(r.prn || '').trim() === prn);
+        const student = studentRows.some(s => String(s.prn || '').trim() === prn);
         if (existing || student) return res.status(409).json({ success: false, error: 'This PRN already exists. Existing records were not changed.' });
         const record = await db.insert('roster', { prn, name, dob, branch, class: className, year });
         await clearStudentCache();
