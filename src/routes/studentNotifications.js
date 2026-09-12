@@ -101,4 +101,29 @@ router.get('/notifications', async (req, res) => {
     }
 });
 
+router.put('/notifications/:id/read', async (req, res) => {
+    try {
+        const [item, profile] = await Promise.all([db.selectOne('notifications', { id: req.params.id }), db.selectOne('students', { id: req.student.studentId })]);
+        if (!item || !visible(item, profile, req.student.studentId)) return res.status(404).json({ success: false, error: 'Notification not found.' });
+        const data = await db.upsert('notification_reads', { key: `${item.id}:${req.student.studentId}`, notification_id: item.id, student_id: req.student.studentId, read_at: new Date().toISOString() }, 'key');
+        res.json({ success: true, data });
+    } catch (error) {
+        console.error('Failed to mark notification read:', error.message);
+        res.status(500).json({ success: false, error: 'Could not mark notification read.' });
+    }
+});
+
+router.put('/notifications/read-all', async (req, res) => {
+    try {
+        const [all, profile] = await Promise.all([db.select('notifications'), db.selectOne('students', { id: req.student.studentId })]);
+        const now = Date.now();
+        const items = all.filter(item => visible(item, profile, req.student.studentId) && (!item.expires_at || new Date(item.expires_at).getTime() > now));
+        await Promise.all(items.map(item => db.upsert('notification_reads', { key: `${item.id}:${req.student.studentId}`, notification_id: item.id, student_id: req.student.studentId, read_at: new Date().toISOString() }, 'key')));
+        res.json({ success: true, updated: items.length });
+    } catch (error) {
+        console.error('Failed to mark all notifications read:', error.message);
+        res.status(500).json({ success: false, error: 'Could not mark all notifications read.' });
+    }
+});
+
 module.exports = router;
