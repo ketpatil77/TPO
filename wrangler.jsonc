@@ -17,7 +17,8 @@
     "PUSH_REMINDER_CRON": "0 4 */3 * *",
     "PROOF_EXPIRY_CRON": "0 * * * *",
     "READ_ONLY_MODE": "false",
-    "MAINTENANCE_MODE": "true"
+    "MAINTENANCE_MODE": "false",
+    "USE_D1_BACKEND": "true"
   },
   "assets": {
     "directory": "./public",

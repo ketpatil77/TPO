@@ -1,0 +1,1 @@
+SELECT count(1) as cnt FROM leaderboard_rank_state;

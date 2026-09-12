@@ -4,6 +4,7 @@ DROP TABLE IF EXISTS profiles;
 CREATE TABLE profiles (
     id TEXT PRIMARY KEY,
     user_id TEXT,
+    email TEXT,
     role TEXT,
     status TEXT,
     created_at TEXT,
@@ -14,6 +15,8 @@ CREATE TABLE profiles (
     session_version REAL
 );
 CREATE INDEX IF NOT EXISTS idx_profiles_id ON profiles(id);
+CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email);
+CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON profiles(user_id);
 
 DROP TABLE IF EXISTS roster;
 CREATE TABLE roster (
