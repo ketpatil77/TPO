@@ -114,6 +114,7 @@ router.post('/login', adminLoginLimit, verifyTurnstile, validate(adminLoginSchem
         return res.json({
             success: true,
             message: 'Admin authentication successful!',
+            token,
             admin: { email: adminUser.email, role: adminRole, display_name: adminDisplayName }
         });
     } catch (err) {

@@ -1,10 +1,4 @@
 (function () {
-    const onDashboard = ['/dashboard','/admin/dashboard','/observer/dashboard'].includes(location.pathname);
-    if (!onDashboard) {
-        localStorage.removeItem('tpo_token');
-        localStorage.removeItem('tpo_admin_token');
-        localStorage.removeItem('tpo_student');
-    }
     const nativeFetch = window.fetch.bind(window);
     function cookie(name) {
         const part = document.cookie.split('; ').find(value => value.startsWith(`${name}=`));

@@ -115,6 +115,7 @@ router.post('/login', studentLoginLimit, verifyTurnstile, validate(studentLoginS
         return res.json({
             success: true,
             message: 'Login successful!',
+            token,
             student: studentRecord
         });
 

@@ -175,6 +175,14 @@ async function login(event, role) {
         if (!response.ok) throw new Error(result.error?.message || result.error || 'Unable to sign in.');
 
         clearLegacyAuthTokens();
+        if (role === 'student' && result.student) {
+            if (result.token) localStorage.setItem('tpo_token', result.token);
+            localStorage.setItem('tpo_student', JSON.stringify(result.student));
+        } else if (role === 'admin' && result.token) {
+            localStorage.setItem('tpo_admin_token', result.token);
+        } else if (role === 'observer' && result.token) {
+            localStorage.setItem('tpo_observer_token', result.token);
+        }
         await verifyFreshSession(config);
 
         navigating = true;
