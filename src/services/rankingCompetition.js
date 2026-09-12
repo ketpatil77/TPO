@@ -136,6 +136,7 @@ async function enrichCollegeLeaderboard(data,currentStudentId,{now=new Date()}={
   if(!states.length){await initializeBaseline(rows,now,wk);return attach(data,await db.select('leaderboard_rank_state',{scope_key:SCOPE_KEY}),[],currentStudentId,now);}
   await weeklyWinner(states,rowsById,wk);
 
+  const updatesToRun = [];
   for(let i=0;i<rows.length;i+=1){
     const row=rows[i], below=nearestDifferentRank(rows,i,1), old=oldById.get(row.student_id);
     if(!old){try{await db.upsert('leaderboard_rank_state',baseState(row,now,wk),'student_id');}catch(_){}continue;}
@@ -170,7 +171,12 @@ async function enrichCollegeLeaderboard(data,currentStudentId,{now=new Date()}={
       }
     }
     await pressure(row,below,now);
-    await db.update('leaderboard_rank_state',{id:old.id},{previous_rank:old.current_rank,current_rank:row.rank,previous_points:old.current_points,current_points:row.points,rank_since:same?old.rank_since:iso(now),longest_hold_seconds:longest,longest_hold_rank:longestRank,best_rank:best,hold_milestone_days:milestone,week_key:wk,week_start_points:rolled?row.points:old.week_start_points,week_start_rank:rolled?row.rank:old.week_start_rank,growth_streak_weeks:growth,last_rank_delta:lastRank,last_point_delta:lastPoint,last_movement_at:lastAt,updated_at:iso(now)});
+    if (!same || rankDelta !== 0 || pointDelta !== 0 || rolled) {
+      updatesToRun.push({id:old.id,previous_rank:old.current_rank,current_rank:row.rank,previous_points:old.current_points,current_points:row.points,rank_since:same?old.rank_since:iso(now),longest_hold_seconds:longest,longest_hold_rank:longestRank,best_rank:best,hold_milestone_days:milestone,week_key:wk,week_start_points:rolled?row.points:old.week_start_points,week_start_rank:rolled?row.rank:old.week_start_rank,growth_streak_weeks:growth,last_rank_delta:lastRank,last_point_delta:lastPoint,last_movement_at:lastAt,updated_at:iso(now)});
+    }
+  }
+  if (updatesToRun.length) {
+    try { await db.upsertMany('leaderboard_rank_state', updatesToRun); } catch (_) {}
   }
   const [fresh,events]=await Promise.all([db.select('leaderboard_rank_state',{scope_key:SCOPE_KEY}),db.select('leaderboard_events',{scope_key:SCOPE_KEY})]);
   return attach(data,fresh,events.filter(e=>e.broadcast).sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))).slice(0,12),currentStudentId,now);
