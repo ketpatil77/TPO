@@ -191,7 +191,7 @@
 
   async function ensureSnapshot(force = false) {
     if (snapshot && !force) return renderFiltered(false);
-    if (loadingPromise && !force) return loadingPromise;
+    if (loadingPromise) return loadingPromise;
     const shell = document.querySelector('#tab-ranking .leaderboard-shell');
     const list = document.getElementById('rankingList');
     shell?.classList.add('is-loading');
@@ -214,7 +214,10 @@
       renderRules(data.rules || {});
       renderFiltered(false);
     }).catch(error => {
-      if (list) list.innerHTML = `<div class="leaderboard-empty"><strong>Ranking unavailable</strong><p>${esc(error.message)}</p></div>`;
+      console.warn('Leaderboard refresh delayed:', error.message);
+      if (!snapshot && list) {
+        list.innerHTML = `<div class="leaderboard-empty"><strong>Ranking unavailable</strong><p>${esc(error.message)}</p></div>`;
+      }
     }).finally(() => {
       shell?.classList.remove('is-loading');
       loadingPromise = null;
