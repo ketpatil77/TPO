@@ -8,8 +8,10 @@
     <script src="/js/theme.js?v=20260812-advanced1"></script>
     <link rel="stylesheet" href="/css/design-tokens.css?v=20260919-tokens1">
     <link rel="stylesheet" href="/css/styles.css?v=20260901-motion1">
+    <link rel="stylesheet" href="/css/tpo-sidebar.css?v=20260919-sidebar1">
     <link rel="stylesheet" href="/css/portal-layout-20260814.css?v=20260818-uifinal1">
     <link rel="stylesheet" href="/css/portal-identifiers-20260814.css?v=20260818-uifinal1">
+    <script src="/js/tpo-sidebar.js?v=20260919-sidebar1" defer></script>
     <script src="/js/responsive-tables.js?v=20260817-responsive1" defer></script>
     <script src="/vendor/chart.umd.min.js?v=4.5.1" defer></script>
     <script src="/vendor/fullcalendar.global.min.js?v=6.1.15" defer></script>
@@ -70,6 +72,9 @@
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container navbar-inner">
+            <button id="tpoMobileNavTrigger" class="tpo-mobile-nav-trigger" type="button" aria-label="Open navigation menu" aria-expanded="false">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
             <a href="/admin/dashboard" class="brand">
                 <div class="brand-icon">TPO</div>
                 <div>
@@ -87,6 +92,99 @@
     </nav>
 
     <main id="adminDashboard" class="container dashboard-wrapper">
+        <!-- TPO Left Sidebar Navigation (Nexus Design System) -->
+        <aside id="adminSidebar" class="tpo-sidebar tabs-nav admin-tabs" role="tablist" aria-label="Administrator workspace sections">
+            <!-- Sidebar Header -->
+            <div class="tpo-sidebar-header">
+                <a href="/admin/dashboard" class="tpo-sidebar-brand">
+                    <div class="tpo-brand-icon">AIT</div>
+                    <div class="tpo-brand-text">
+                        <span class="tpo-brand-title">AIT Portal</span>
+                        <span class="tpo-brand-subtitle">Administrator TPO</span>
+                    </div>
+                </a>
+                <button id="tpoSidebarCollapseBtn" class="tpo-sidebar-toggle-btn" type="button" title="Collapse sidebar" aria-label="Collapse sidebar" aria-expanded="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <button id="tpoSidebarCloseBtn" class="tpo-sidebar-close-btn" type="button" title="Close menu" aria-label="Close menu">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <!-- Sidebar Scrollable Navigation Body -->
+            <div class="tpo-sidebar-body">
+                <!-- Group 1: General -->
+                <div class="tpo-sidebar-section">
+                    <div class="tpo-sidebar-section-title">GENERAL</div>
+                    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-analytics" onclick="switchAdminTab('analytics', this); loadAdminAnalytics();">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                        <span class="tab-label">Analytics</span>
+                    </button>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-students" onclick="switchAdminTab('students', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <span class="tab-label">Students</span>
+                    </button>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-calendar" onclick="switchAdminTab('calendar', this); renderCalendar();">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        <span class="tab-label">Calendar</span>
+                    </button>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-workflow" onclick="switchAdminTab('workflow', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span class="tab-label">Applications & Alerts</span>
+                        <span class="tpo-sidebar-badge badge-live">Live</span>
+                    </button>
+                </div>
+
+                <!-- Group 2: Operations -->
+                <div class="tpo-sidebar-section">
+                    <div class="tpo-sidebar-section-title">OPERATIONS</div>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-jd-matching" onclick="switchAdminTab('jd-matching', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                        <span class="tab-label">Placement Drives</span>
+                    </button>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-roster" onclick="switchAdminTab('roster', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span class="tab-label">Roster Upload</span>
+                    </button>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-readiness" onclick="switchAdminTab('readiness', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <span class="tab-label">Data Readiness</span>
+                    </button>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-audit-logs" onclick="switchAdminTab('audit-logs', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span class="tab-label">Audit History</span>
+                    </button>
+                </div>
+
+                <!-- Group 3: System & Security -->
+                <div class="tpo-sidebar-section">
+                    <div class="tpo-sidebar-section-title">SYSTEM & SECURITY</div>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-advanced" onclick="switchAdminTab('advanced', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+                        <span class="tab-label">Advanced Operations</span>
+                    </button>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-intelligence" onclick="switchAdminTab('intelligence', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        <span class="tab-label">Security Suite</span>
+                        <span class="tpo-sidebar-badge badge-beta">PRO</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="tpo-sidebar-footer">
+                <div class="tpo-sidebar-workspace-card">
+                    <div class="tpo-workspace-avatar">TPO</div>
+                    <div class="tpo-workspace-info">
+                        <span class="tpo-workspace-name">AIT Placement</span>
+                        <span class="tpo-workspace-role">Admin Workspace</span>
+                    </div>
+                    <span class="tpo-workspace-indicator" title="Active workspace session"></span>
+                </div>
+                <div class="tpo-sidebar-copyright">© 2026 Placement Portal AIT</div>
+            </div>
+        </aside>
+
         <!-- Header Banner -->
         <div class="glass-card header-banner" style="margin-bottom: 1.5rem;">
             <div>
@@ -107,20 +205,6 @@
                     <div id="statRosterCount" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">0</div>
                 </div>
             </div>
-        </div>
-
-        <!-- Navigation Tabs -->
-        <div class="tabs-nav admin-tabs" role="tablist" aria-label="Administrator workspace sections">
-            <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-analytics" onclick="switchAdminTab('analytics', this); loadAdminAnalytics();">Analytics</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-calendar" onclick="switchAdminTab('calendar', this); renderCalendar();">Calendar</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-students" onclick="switchAdminTab('students', this)">Students</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-roster" onclick="switchAdminTab('roster', this)">Roster upload</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-audit-logs" onclick="switchAdminTab('audit-logs', this)">Audit history</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-jd-matching" onclick="switchAdminTab('jd-matching', this)">Placement drives</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-readiness" onclick="switchAdminTab('readiness', this)">Data readiness</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-workflow" onclick="switchAdminTab('workflow', this)">Applications & alerts</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-advanced" onclick="switchAdminTab('advanced', this)">Advanced operations</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-intelligence" onclick="switchAdminTab('intelligence', this)">Security & intelligence</button>
         </div>
 
         <!-- Analytics Tab -->
