@@ -1,0 +1,296 @@
+/**
+ * Placement Portal AIT - TPO Students Directory & Filter Bar Component
+ * Design System implementation matching Reference UI ("Nexus" Dashboard Language)
+ * Responsive 4-column filter grid, crisp data table styling, and dark mode tokens.
+ */
+
+/* ==========================================================================
+   1. FILTER BAR (Grid & Controls)
+   ========================================================================== */
+body.admin-dashboard-page #tab-students .filter-bar {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 1rem !important;
+    align-items: start !important;
+    background: var(--ds-surface-card, #ffffff) !important;
+    border: 1px solid var(--ds-border, #edf0f5) !important;
+    border-radius: var(--ds-radius-lg, 16px) !important;
+    padding: 1.25rem 1.5rem !important;
+    margin-bottom: 1.25rem !important;
+    box-shadow: var(--ds-shadow-card, 0 1px 3px rgba(15, 23, 42, 0.03)) !important;
+    box-sizing: border-box !important;
+    transition: background-color 200ms ease, border-color 200ms ease !important;
+}
+
+@media (max-width: 1100px) {
+    body.admin-dashboard-page #tab-students .filter-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    body.admin-dashboard-page #tab-students .filter-bar {
+        grid-template-columns: 1fr !important;
+        padding: 1rem !important;
+        gap: 0.85rem !important;
+    }
+}
+
+/* Filter Fields */
+#tab-students .filter-field {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+@media (min-width: 1101px) {
+    #tab-students .filter-field-search {
+        grid-column: span 2 !important;
+    }
+}
+
+#tab-students .form-label {
+    font-family: var(--ds-font-primary) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--ds-text-heading, #0f172a) !important;
+    margin: 0 0 2px 0 !important;
+    line-height: 1.2 !important;
+}
+
+#tab-students .form-input,
+#tab-students .form-select {
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    padding: 0 12px !important;
+    border-radius: var(--ds-radius-md, 10px) !important;
+    background: var(--ds-surface-subtle, #f1f5f9) !important;
+    border: 1px solid var(--ds-border, #edf0f5) !important;
+    font-family: var(--ds-font-primary) !important;
+    font-size: 13px !important;
+    color: var(--ds-text-heading, #0f172a) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    outline: none !important;
+    transition: all 180ms ease !important;
+}
+
+#tab-students .form-input:focus,
+#tab-students .form-select:focus {
+    background: var(--ds-surface-card, #ffffff) !important;
+    border-color: var(--ds-primary, #6366f1) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important;
+}
+
+#tab-students .form-hint {
+    font-family: var(--ds-font-primary) !important;
+    font-size: 11px !important;
+    color: var(--ds-text-subtle, #94a3b8) !important;
+    margin-top: 2px !important;
+}
+
+/* Filter Actions Toolbar */
+#tab-students .filter-actions {
+    grid-column: 1 / -1 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    margin-top: 0.5rem !important;
+    padding-top: 1rem !important;
+    border-top: 1px solid var(--ds-border-light, #f1f4f9) !important;
+    width: 100% !important;
+}
+
+#tab-students .filter-action-divider {
+    height: 20px !important;
+    width: 1px !important;
+    background: var(--ds-border, #edf0f5) !important;
+    margin: 0 4px !important;
+}
+
+@media (max-width: 640px) {
+    #tab-students .filter-action-divider {
+        display: none !important;
+    }
+}
+
+#tab-students .filter-actions .btn {
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 12px !important;
+    border-radius: var(--ds-radius-sm, 8px) !important;
+    font-family: var(--ds-font-primary) !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 180ms ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    box-shadow: none !important;
+}
+
+#tab-students .filter-actions .btn-primary {
+    background: var(--ds-primary, #6366f1) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.22) !important;
+}
+
+#tab-students .filter-actions .btn-primary:hover {
+    background: var(--ds-primary-hover, #4f46e5) !important;
+}
+
+#tab-students .filter-actions .btn-secondary {
+    background: var(--ds-surface-subtle, #f1f5f9) !important;
+    border: 1px solid var(--ds-border, #edf0f5) !important;
+    color: var(--ds-text-body, #334155) !important;
+}
+
+#tab-students .filter-actions .btn-secondary:hover {
+    background: var(--ds-primary-light, #eef2ff) !important;
+    color: var(--ds-primary, #6366f1) !important;
+    border-color: var(--ds-primary, #6366f1) !important;
+}
+
+
+/* ==========================================================================
+   2. STUDENT DIRECTORY TABLE CARD & DATA TABLE
+   ========================================================================== */
+body.admin-dashboard-page #tab-students .student-table-shell {
+    background: var(--ds-surface-card, #ffffff) !important;
+    border: 1px solid var(--ds-border, #edf0f5) !important;
+    border-radius: var(--ds-radius-lg, 16px) !important;
+    padding: 0 !important;
+    box-shadow: var(--ds-shadow-card, 0 1px 3px rgba(15, 23, 42, 0.03)) !important;
+    overflow: hidden !important;
+    margin-bottom: 1rem !important;
+    box-sizing: border-box !important;
+    transition: background-color 200ms ease, border-color 200ms ease !important;
+}
+
+/* Table Scroll Container */
+#tab-students .student-table-shell {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+}
+
+body.admin-dashboard-page #tab-students table.data-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-family: var(--ds-font-primary) !important;
+    margin: 0 !important;
+}
+
+/* Header Row */
+body.admin-dashboard-page #tab-students table.data-table thead th {
+    background: var(--ds-surface-muted, #f8fafc) !important;
+    font-family: var(--ds-font-primary) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: var(--ds-text-subtle, #94a3b8) !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid var(--ds-border, #edf0f5) !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+}
+
+/* Table Body Rows */
+body.admin-dashboard-page #tab-students table.data-table tbody tr {
+    border-bottom: 1px solid var(--ds-border-light, #f1f4f9) !important;
+    transition: background-color 150ms ease !important;
+}
+
+body.admin-dashboard-page #tab-students table.data-table tbody tr:last-child {
+    border-bottom: none !important;
+}
+
+body.admin-dashboard-page #tab-students table.data-table tbody tr:hover {
+    background: var(--ds-surface-subtle, #f1f5f9) !important;
+}
+
+body.admin-dashboard-page #tab-students table.data-table tbody td {
+    padding: 12px 16px !important;
+    font-family: var(--ds-font-primary) !important;
+    font-size: 13.5px !important;
+    color: var(--ds-text-body, #334155) !important;
+    vertical-align: middle !important;
+    line-height: 1.4 !important;
+}
+
+/* Pagination Bar */
+#tab-students .pagination-bar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0.75rem 0.25rem !important;
+    font-family: var(--ds-font-primary) !important;
+    font-size: 13px !important;
+    color: var(--ds-text-muted, #64748b) !important;
+}
+
+
+/* ==========================================================================
+   3. DARK MODE COMPATIBILITY
+   ========================================================================== */
+:root[data-theme="dark"] body.admin-dashboard-page #tab-students .filter-bar,
+:root[data-theme="dark"] body.admin-dashboard-page #tab-students .student-table-shell {
+    background: #0f172a !important;
+    border-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+:root[data-theme="dark"] #tab-students .form-label {
+    color: #f8fafc !important;
+}
+
+:root[data-theme="dark"] #tab-students .form-input,
+:root[data-theme="dark"] #tab-students .form-select {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(148, 163, 184, 0.14) !important;
+    color: #f8fafc !important;
+}
+
+:root[data-theme="dark"] #tab-students .form-hint {
+    color: #64748b !important;
+}
+
+:root[data-theme="dark"] #tab-students .filter-actions {
+    border-top-color: rgba(148, 163, 184, 0.12) !important;
+}
+
+:root[data-theme="dark"] #tab-students .filter-action-divider {
+    background: rgba(148, 163, 184, 0.14) !important;
+}
+
+:root[data-theme="dark"] #tab-students .filter-actions .btn-secondary {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(148, 163, 184, 0.14) !important;
+    color: #cbd5e1 !important;
+}
+
+:root[data-theme="dark"] body.admin-dashboard-page #tab-students table.data-table thead th {
+    background: #0b1120 !important;
+    border-bottom-color: rgba(148, 163, 184, 0.14) !important;
+    color: #94a3b8 !important;
+}
+
+:root[data-theme="dark"] body.admin-dashboard-page #tab-students table.data-table tbody tr {
+    border-bottom-color: rgba(148, 163, 184, 0.08) !important;
+}
+
+:root[data-theme="dark"] body.admin-dashboard-page #tab-students table.data-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+:root[data-theme="dark"] body.admin-dashboard-page #tab-students table.data-table tbody td {
+    color: #cbd5e1 !important;
+}
