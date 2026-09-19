@@ -1,0 +1,334 @@
+/**
+ * Placement Portal AIT - Design Tokens & Primitives
+ * System extracted from Reference UI ("Nexus" Dashboard Language)
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    /* Color Palette - Canvas & Surfaces (Light SaaS default) */
+    --ds-bg-canvas: #f6f8fb;
+    --ds-surface-card: #ffffff;
+    --ds-surface-elevated: #ffffff;
+    --ds-surface-muted: #f8fafc;
+    --ds-surface-subtle: #f1f5f9;
+    --ds-surface-input: #ffffff;
+    --ds-surface-hover: #f8fafc;
+    --ds-surface-active: #f1f5f9;
+
+    /* Borders & Hairlines */
+    --ds-border: #edf0f5;
+    --ds-border-light: #f1f4f9;
+    --ds-border-hover: #cbd5e1;
+    --ds-border-focus: #818cf8;
+    --ds-divider: #eef2f6;
+
+    /* Brand & Accent Palette (Indigo + Cyan from reference) */
+    --ds-primary: #6366f1;
+    --ds-primary-hover: #4f46e5;
+    --ds-primary-active: #4338ca;
+    --ds-primary-light: #eef2ff;
+    --ds-primary-text: #ffffff;
+    --ds-primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    --ds-accent-gradient: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+
+    --ds-accent-cyan: #06b6d4;
+    --ds-accent-cyan-light: #ecfeff;
+    --ds-accent-teal: #14b8a6;
+    --ds-accent-purple: #8b5cf6;
+    --ds-accent-purple-light: #f5f3ff;
+
+    /* Chart specific tokens */
+    --ds-chart-bar-active: linear-gradient(180deg, #6366f1 0%, #7c3aed 100%);
+    --ds-chart-bar-muted: #e2e8f0;
+    --ds-chart-donut-1: #6366f1;
+    --ds-chart-donut-2: #06b6d4;
+    --ds-chart-donut-3: #e2e8f0;
+
+    /* Typography & Ink */
+    --ds-font-primary: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --ds-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+    --ds-text-heading: #0f172a;   /* Slate 900 */
+    --ds-text-body: #334155;      /* Slate 700 */
+    --ds-text-muted: #64748b;     /* Slate 500 */
+    --ds-text-subtle: #94a3b8;    /* Slate 400 */
+    --ds-text-disabled: #cbd5e1;  /* Slate 300 */
+    --ds-text-inverse: #ffffff;
+
+    /* Semantic Status Tokens */
+    --ds-success: #10b981;
+    --ds-success-bg: #ecfdf5;
+    --ds-success-text: #059669;
+    --ds-success-border: #a7f3d0;
+
+    --ds-danger: #ef4444;
+    --ds-danger-bg: #fef2f2;
+    --ds-danger-text: #e11d48;
+    --ds-danger-border: #fecdd3;
+
+    --ds-warning: #f59e0b;
+    --ds-warning-bg: #fffbeb;
+    --ds-warning-text: #d97706;
+    --ds-warning-border: #fde68a;
+
+    --ds-info: #6366f1;
+    --ds-info-bg: #eef2ff;
+    --ds-info-text: #4f46e5;
+    --ds-info-border: #c7d2fe;
+
+    /* Spacing Scale */
+    --ds-space-xxs: 2px;
+    --ds-space-xs: 4px;
+    --ds-space-sm: 8px;
+    --ds-space-md: 12px;
+    --ds-space-lg: 16px;
+    --ds-space-xl: 20px;
+    --ds-space-2xl: 24px;
+    --ds-space-3xl: 32px;
+    --ds-space-4xl: 40px;
+
+    /* Border Radius Scale */
+    --ds-radius-xs: 6px;
+    --ds-radius-sm: 8px;
+    --ds-radius-md: 12px;
+    --ds-radius-lg: 16px;
+    --ds-radius-xl: 20px;
+    --ds-radius-full: 9999px;
+
+    /* Shadows (Multi-layer soft ambient shadows from reference) */
+    --ds-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.03);
+    --ds-shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.02);
+    --ds-shadow-card: 0 2px 6px -1px rgba(15, 23, 42, 0.02), 0 8px 24px -4px rgba(15, 23, 42, 0.04);
+    --ds-shadow-card-hover: 0 4px 12px -2px rgba(15, 23, 42, 0.04), 0 12px 32px -4px rgba(15, 23, 42, 0.08);
+    --ds-shadow-dropdown: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+    --ds-shadow-modal: 0 20px 40px -8px rgba(15, 23, 42, 0.12), 0 12px 16px -6px rgba(15, 23, 42, 0.04);
+
+    /* Transitions */
+    --ds-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --ds-transition-base: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+    --ds-transition-smooth: 320ms cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Backward-Compatibility Layer for existing CSS variables */
+    --font-default: var(--ds-font-primary);
+    --bg-main: var(--ds-bg-canvas);
+    --bg-card: var(--ds-surface-card);
+    --bg-glass: var(--ds-surface-card);
+    --surface-muted: var(--ds-surface-muted);
+    --border-color: var(--ds-border);
+    --border-glow: var(--ds-border-light);
+    
+    --primary: var(--ds-primary);
+    --primary-hover: var(--ds-primary-hover);
+    --primary-light: var(--ds-primary-light);
+    --accent: var(--ds-accent-cyan);
+    --accent-glow: rgba(6, 182, 212, 0.15);
+
+    --text-heading: var(--ds-text-heading);
+    --text-body: var(--ds-text-body);
+    --text-muted: var(--ds-text-muted);
+    --text-secondary: var(--ds-text-muted);
+
+    --success: var(--ds-success);
+    --warning: var(--ds-warning);
+    --danger: var(--ds-danger);
+    --info: var(--ds-info);
+
+    --radius-sm: var(--ds-radius-sm);
+    --radius-md: var(--ds-radius-md);
+    --radius-lg: var(--ds-radius-lg);
+    --radius-full: var(--ds-radius-full);
+
+    --shadow-subtle: var(--ds-shadow-card);
+    --shadow-glow: none;
+}
+
+/* Dark Mode SaaS Variant */
+:root[data-theme="dark"] {
+    --ds-bg-canvas: #0b0f19;
+    --ds-surface-card: #131b2e;
+    --ds-surface-elevated: #19233c;
+    --ds-surface-muted: #151e33;
+    --ds-surface-subtle: #1e293b;
+    --ds-surface-input: #0f1523;
+    --ds-surface-hover: #1e293b;
+    --ds-surface-active: #27354f;
+
+    --ds-border: rgba(148, 163, 184, 0.16);
+    --ds-border-light: rgba(148, 163, 184, 0.1);
+    --ds-border-hover: rgba(148, 163, 184, 0.3);
+    --ds-border-focus: #818cf8;
+    --ds-divider: rgba(148, 163, 184, 0.12);
+
+    --ds-text-heading: #f8fafc;
+    --ds-text-body: #cbd5e1;
+    --ds-text-muted: #94a3b8;
+    --ds-text-subtle: #64748b;
+    --ds-text-disabled: #475569;
+
+    --ds-success-bg: rgba(16, 185, 129, 0.15);
+    --ds-danger-bg: rgba(239, 68, 68, 0.15);
+    --ds-warning-bg: rgba(245, 158, 11, 0.15);
+    --ds-info-bg: rgba(99, 102, 241, 0.15);
+
+    --ds-shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+    --ds-shadow-card-hover: 0 8px 30px -4px rgba(0, 0, 0, 0.5);
+
+    /* Keep backward compatibility in dark mode */
+    --bg-main: var(--ds-bg-canvas);
+    --bg-card: var(--ds-surface-card);
+    --bg-glass: var(--ds-surface-card);
+    --surface-muted: var(--ds-surface-muted);
+    --border-color: var(--ds-border);
+    --text-heading: var(--ds-text-heading);
+    --text-body: var(--ds-text-body);
+    --text-muted: var(--ds-text-muted);
+}
+
+/* ==========================================================================
+   GLOBAL DESIGN SYSTEM PRIMITIVES
+   ========================================================================== */
+
+/* Typography Base Classes */
+.ds-font-numbers {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+}
+
+.ds-section-label {
+    font-family: var(--ds-font-primary);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ds-text-subtle);
+}
+
+/* Card Primitive (Reference Image cards: white, radius-16, subtle border, soft shadow) */
+.ds-card {
+    background: var(--ds-surface-card);
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-lg);
+    box-shadow: var(--ds-shadow-card);
+    padding: var(--ds-space-2xl);
+    transition: box-shadow var(--ds-transition-base), border-color var(--ds-transition-base);
+}
+
+.ds-card:hover {
+    box-shadow: var(--ds-shadow-card-hover);
+    border-color: var(--ds-border-hover);
+}
+
+/* Trend Pill Badges (Reference Image KPI trends: e.g. +15.8% green pill, -34.0% red pill) */
+.ds-trend-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: var(--ds-radius-full);
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+}
+
+.ds-trend-pill.positive {
+    background: var(--ds-success-bg);
+    color: var(--ds-success-text);
+}
+
+.ds-trend-pill.negative {
+    background: var(--ds-danger-bg);
+    color: var(--ds-danger-text);
+}
+
+.ds-trend-pill.neutral {
+    background: var(--ds-surface-subtle);
+    color: var(--ds-text-muted);
+}
+
+/* Status Pill Badges */
+.ds-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--ds-radius-full);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+}
+
+.ds-badge-primary {
+    background: var(--ds-primary-light);
+    color: var(--ds-primary);
+}
+
+.ds-badge-success {
+    background: var(--ds-success-bg);
+    color: var(--ds-success-text);
+}
+
+.ds-badge-danger {
+    background: var(--ds-danger-bg);
+    color: var(--ds-danger-text);
+}
+
+.ds-badge-warning {
+    background: var(--ds-warning-bg);
+    color: var(--ds-warning-text);
+}
+
+.ds-badge-muted {
+    background: var(--ds-surface-subtle);
+    color: var(--ds-text-muted);
+}
+
+/* Buttons Primitives */
+.ds-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-family: var(--ds-font-primary);
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--ds-radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all var(--ds-transition-fast);
+}
+
+.ds-btn-primary {
+    background: var(--ds-primary);
+    color: var(--ds-primary-text);
+}
+
+.ds-btn-primary:hover {
+    background: var(--ds-primary-hover);
+}
+
+.ds-btn-secondary {
+    background: var(--ds-surface-card);
+    border-color: var(--ds-border);
+    color: var(--ds-text-body);
+}
+
+.ds-btn-secondary:hover {
+    background: var(--ds-surface-subtle);
+    border-color: var(--ds-border-hover);
+    color: var(--ds-text-heading);
+}
+
+.ds-btn-ghost {
+    background: transparent;
+    color: var(--ds-text-muted);
+}
+
+.ds-btn-ghost:hover {
+    background: var(--ds-surface-subtle);
+    color: var(--ds-text-heading);
+}
