@@ -73,6 +73,7 @@
     <link rel="stylesheet" href="/css/tpo-roster.css?v=20260919-roster1">
     <link rel="stylesheet" href="/css/tpo-workflow.css?v=20260919-workflow1">
     <link rel="stylesheet" href="/css/tpo-drives.css?v=20260919-drives1">
+    <link rel="stylesheet" href="/css/tpo-advanced.css?v=20260919-advanced1">
     <script src="/js/tpo-sidebar.js?v=20260919-sidebar2" defer></script>
 </head>
 <body class="admin-dashboard-page">
@@ -501,53 +502,141 @@
             </section>
         </div>
 
+        <!-- TAB: ADVANCED OPERATIONS -->
         <div id="tab-advanced" class="tab-content" role="tabpanel">
-            <div class="section-header"><div><span class="eyebrow" id="advancedRoleEyebrow">Advanced operations</span><h3>Advanced placement operations</h3></div><button class="btn btn-secondary" onclick="loadAdvancedOperations()">Refresh</button></div>
+            <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <div>
+                    <span class="eyebrow" id="advancedRoleEyebrow">Advanced operations</span>
+                    <h3>Advanced placement operations</h3>
+                </div>
+                <button class="btn btn-secondary" onclick="loadAdvancedOperations()">Refresh</button>
+            </div>
+
             <div id="advancedMetrics" class="metric-grid"></div>
-            <section class="glass-card feature-panel"><h3>Advanced student search</h3><div class="advanced-search-grid"><div class="form-group"><label class="form-label" for="advancedQuery">Student search</label><input id="advancedQuery" class="form-input" placeholder="Name, PRN, branch, skill"></div><div class="form-group"><label class="form-label" for="advancedBranch">Branch</label><select id="advancedBranch" class="form-select"><option value="all">All branches</option><option>AIML</option><option>CT</option><option>EE</option><option>ME</option><option>CE</option><option>E&amp;C</option></select></div><div class="form-group"><label class="form-label" for="advancedCgpa">Minimum CGPA</label><input id="advancedCgpa" class="form-input" type="number" min="0" max="10" step=".01" placeholder="e.g. 7.0"></div><div class="form-group"><label class="form-label" for="advancedSkill">Required skill</label><input id="advancedSkill" class="form-input" placeholder="e.g. Java"></div><button class="btn btn-primary" onclick="runAdvancedSearch()">Search</button><button class="btn btn-secondary" onclick="saveCurrentFilter()">Save filter</button></div><div id="savedFilters" class="workflow-actions"></div><div id="advancedResults" class="record-stack advanced-results bounded-workspace-list"></div></section>
-            <div class="grid-2 advanced-forms">
-                <form id="assessmentForm" class="glass-card feature-panel"><h3>Training / assessment</h3><div class="form-group"><label class="form-label">Student UUID</label><input name="student_id" class="form-input" required></div><div class="form-group"><label class="form-label">Assessment type</label><select name="type" class="form-select"><option value="aptitude">Aptitude</option><option value="coding">Coding</option><option value="mock_interview">Mock interview</option><option value="training">Training</option></select></div><div class="form-group"><label class="form-label">Assessment title</label><input name="title" class="form-input" required></div><div class="grid-2"><div class="form-group"><label class="form-label">Score</label><input name="score" class="form-input" type="number"></div><div class="form-group"><label class="form-label">Maximum score</label><input name="max_score" class="form-input" type="number"></div></div><div class="form-group"><label class="form-label">Attended on</label><input name="attended_on" class="form-input" type="date"></div><button class="btn btn-primary">Save assessment</button></form>
-                <form id="interviewForm" class="glass-card feature-panel"><h3>Interview scheduling</h3><div class="form-group"><label class="form-label">Student UUID</label><input name="student_id" class="form-input"></div><div class="form-group"><label class="form-label">Drive UUID</label><input name="drive_id" class="form-input"></div><div class="grid-2"><div class="form-group"><label class="form-label">Starts at</label><input name="starts_at" class="form-input" type="datetime-local" required></div><div class="form-group"><label class="form-label">Ends at</label><input name="ends_at" class="form-input" type="datetime-local" required></div></div><div class="form-group"><label class="form-label">Venue</label><input name="venue" class="form-input"></div><div class="form-group"><label class="form-label">Panel members</label><input name="panel" class="form-input"></div><button class="btn btn-primary">Schedule interview</button></form>
-                <form id="offerForm" class="glass-card feature-panel"><h3>Offer tracking</h3><div class="form-group"><label class="form-label">Student UUID</label><input name="student_id" class="form-input" required></div><div class="grid-2"><div class="form-group"><label class="form-label">Company</label><input name="company" class="form-input" required></div><div class="form-group"><label class="form-label">Role</label><input name="role" class="form-input" required></div></div><div class="form-group"><label class="form-label">Package (LPA)</label><input name="package_lpa" class="form-input" type="number" min="0" step=".01"></div><div class="form-group"><label class="form-label">Offer status</label><select name="status" class="form-select"><option>offered</option><option>accepted</option><option>declined</option><option>joined</option></select></div><button class="btn btn-primary">Save offer</button></form>
-                <form id="calendarForm" class="glass-card feature-panel"><h3>Placement calendar</h3><div class="form-group"><label class="form-label">Event title</label><input name="title" class="form-input" required></div><div class="form-group"><label class="form-label">Event type</label><select name="event_type" class="form-select"><option>drive</option><option>test</option><option>interview</option><option>training</option><option>deadline</option><option>other</option></select></div><div class="form-group"><label class="form-label">Starts at</label><input name="starts_at" class="form-input" type="datetime-local" required></div><div class="form-group"><label class="form-label">Location or link</label><input name="location" class="form-input"></div><button class="btn btn-primary">Add event</button></form>
-                <form id="changeStudentPasswordFormDashboard" class="glass-card feature-panel" style="grid-column: span 2;">
+
+            <section class="glass-card feature-panel">
+                <h3>Advanced student search</h3>
+                <div class="advanced-search-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="advancedQuery">Student search</label>
+                        <input id="advancedQuery" class="form-input" placeholder="Name, PRN, branch, skill">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="advancedBranch">Branch</label>
+                        <select id="advancedBranch" class="form-select">
+                            <option value="all">All branches</option>
+                            <option>AIML</option>
+                            <option>CT</option>
+                            <option>EE</option>
+                            <option>ME</option>
+                            <option>CE</option>
+                            <option>E&amp;C</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="advancedCgpa">Minimum CGPA</label>
+                        <input id="advancedCgpa" class="form-input" type="number" min="0" max="10" step=".01" placeholder="e.g. 7.0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="advancedSkill">Required skill</label>
+                        <input id="advancedSkill" class="form-input" placeholder="e.g. Java">
+                    </div>
+                    <button class="btn btn-primary" onclick="runAdvancedSearch()">Search</button>
+                    <button class="btn btn-secondary" onclick="saveCurrentFilter()">Save filter</button>
+                </div>
+                <div id="savedFilters" class="workflow-actions" style="margin-top: 0.75rem;"></div>
+                <div id="advancedResults" class="record-stack advanced-results bounded-workspace-list" style="margin-top: 1rem;"></div>
+            </section>
+
+            <div class="grid-2 advanced-forms" style="margin-top: 1.5rem;">
+                <form id="assessmentForm" class="glass-card feature-panel">
+                    <h3>Training / assessment</h3>
+                    <div class="form-group"><label class="form-label">Student UUID</label><input name="student_id" class="form-input" required></div>
+                    <div class="form-group"><label class="form-label">Assessment type</label><select name="type" class="form-select"><option value="aptitude">Aptitude</option><option value="coding">Coding</option><option value="mock_interview">Mock interview</option><option value="training">Training</option></select></div>
+                    <div class="form-group"><label class="form-label">Assessment title</label><input name="title" class="form-input" required></div>
+                    <div class="grid-2"><div class="form-group"><label class="form-label">Score</label><input name="score" class="form-input" type="number"></div><div class="form-group"><label class="form-label">Maximum score</label><input name="max_score" class="form-input" type="number"></div></div>
+                    <div class="form-group"><label class="form-label">Attended on</label><input name="attended_on" class="form-input" type="date"></div>
+                    <button class="btn btn-primary" type="submit">Save assessment</button>
+                </form>
+
+                <form id="interviewForm" class="glass-card feature-panel">
+                    <h3>Interview scheduling</h3>
+                    <div class="form-group"><label class="form-label">Student UUID</label><input name="student_id" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Drive UUID</label><input name="drive_id" class="form-input"></div>
+                    <div class="grid-2"><div class="form-group"><label class="form-label">Starts at</label><input name="starts_at" class="form-input" type="datetime-local" required></div><div class="form-group"><label class="form-label">Ends at</label><input name="ends_at" class="form-input" type="datetime-local" required></div></div>
+                    <div class="form-group"><label class="form-label">Venue</label><input name="venue" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Panel members</label><input name="panel" class="form-input"></div>
+                    <button class="btn btn-primary" type="submit">Schedule interview</button>
+                </form>
+
+                <form id="offerForm" class="glass-card feature-panel">
+                    <h3>Offer tracking</h3>
+                    <div class="form-group"><label class="form-label">Student UUID</label><input name="student_id" class="form-input" required></div>
+                    <div class="grid-2"><div class="form-group"><label class="form-label">Company</label><input name="company" class="form-input" required></div><div class="form-group"><label class="form-label">Role</label><input name="role" class="form-input" required></div></div>
+                    <div class="form-group"><label class="form-label">Package (LPA)</label><input name="package_lpa" class="form-input" type="number" min="0" step=".01"></div>
+                    <div class="form-group"><label class="form-label">Offer status</label><select name="status" class="form-select"><option>offered</option><option>accepted</option><option>declined</option><option>joined</option></select></div>
+                    <button class="btn btn-primary" type="submit">Save offer</button>
+                </form>
+
+                <form id="calendarForm" class="glass-card feature-panel">
+                    <h3>Placement calendar</h3>
+                    <div class="form-group"><label class="form-label">Event title</label><input name="title" class="form-input" required></div>
+                    <div class="form-group"><label class="form-label">Event type</label><select name="event_type" class="form-select"><option>drive</option><option>test</option><option>interview</option><option>training</option><option>deadline</option><option>other</option></select></div>
+                    <div class="form-group"><label class="form-label">Starts at</label><input name="starts_at" class="form-input" type="datetime-local" required></div>
+                    <div class="form-group"><label class="form-label">Location or link</label><input name="location" class="form-input"></div>
+                    <button class="btn btn-primary" type="submit">Add event</button>
+                </form>
+
+                <form id="changeStudentPasswordFormDashboard" class="glass-card feature-panel full-width-card" style="grid-column: span 2;">
                     <h3>Change Student Password</h3>
                     <p class="section-note">Reset student's login DOB password.</p>
-                    <div class="form-group">
-                        <label class="form-label" for="dashStudentPrn">Student PRN</label>
-                        <input id="dashStudentPrn" class="form-input" required placeholder="PRN to change password">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label" for="dashStudentPrn">Student PRN</label>
+                            <input id="dashStudentPrn" class="form-input" required placeholder="PRN to change password">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="dashNewDob">New DOB (Password)</label>
+                            <input id="dashNewDob" class="form-input" required placeholder="e.g. 310703 or 2003-07-31">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" for="dashNewDob">New DOB (Password)</label>
-                        <input id="dashNewDob" class="form-input" required placeholder="e.g. 310703 or 2003-07-31">
-                    </div>
-                    <button class="btn btn-primary" type="submit">Update password</button>
+                    <button class="btn btn-primary" type="submit" style="margin-top: 0.5rem;">Update password</button>
                     <div id="changePasswordStatus" style="margin-top: 0.5rem; font-size: 0.85rem;" class="form-hint" hidden></div>
                 </form>
 
-                <section class="glass-card feature-panel" style="grid-column: span 2;">
+                <section class="glass-card feature-panel full-width-card" style="grid-column: span 2;">
                     <h3>DOB Correction Requests</h3>
                     <p class="section-note">Approve or reject student submissions for DOB password correction.</p>
-                    <div style="overflow-x: auto; margin-top: 1rem;">
+                    <div class="dob-corrections-table-shell">
                         <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
                             <thead>
-                                <tr style="border-bottom: 2px solid #334155; color: #94a3b8;">
-                                    <th style="padding: 8px;">PRN</th>
-                                    <th style="padding: 8px;">Name</th>
-                                    <th style="padding: 8px;">Submitted DOB</th>
-                                    <th style="padding: 8px;">Branch</th>
-                                    <th style="padding: 8px;">Status</th>
-                                    <th style="padding: 8px; text-align: right;">Action</th>
+                                <tr style="border-bottom: 2px solid var(--card-border, #334155);">
+                                    <th style="padding: 10px;">PRN</th>
+                                    <th style="padding: 10px;">Name</th>
+                                    <th style="padding: 10px;">Submitted DOB</th>
+                                    <th style="padding: 10px;">Branch</th>
+                                    <th style="padding: 10px;">Status</th>
+                                    <th style="padding: 10px; text-align: right;">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="dobCorrectionsAdminList">
-                                <tr><td colspan="6" style="padding: 16px; text-align: center; color: #94a3b8;">Loading requests...</td></tr>
+                                <tr><td colspan="6" style="padding: 16px; text-align: center; color: var(--text-muted);">Loading requests...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </section>
             </div>
-            <div class="grid-2"><section><h3>Upcoming calendar</h3><div id="calendarList" class="record-stack bounded-history-list"></div></section><section><h3>Interviews and offers</h3><div id="operationsList" class="record-stack bounded-history-list"></div></section></div>
+
+            <div class="grid-2" style="margin-top: 1.5rem;">
+                <section class="glass-card feature-panel">
+                    <h3>Upcoming calendar</h3>
+                    <div id="calendarList" class="record-stack bounded-history-list" style="margin-top: 0.75rem;"></div>
+                </section>
+                <section class="glass-card feature-panel">
+                    <h3>Interviews and offers</h3>
+                    <div id="operationsList" class="record-stack bounded-history-list" style="margin-top: 0.75rem;"></div>
+                </section>
+            </div>
         </div>
 
         <div id="tab-intelligence" class="tab-content" role="tabpanel">

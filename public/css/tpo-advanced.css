@@ -1,0 +1,156 @@
+/* ==========================================================================
+   Nexus Design System - TPO Advanced Operations (#tab-advanced)
+   ========================================================================== */
+
+/* Container */
+.admin-dashboard-page #tab-advanced {
+    display: none;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.admin-dashboard-page #tab-advanced.active {
+    display: flex;
+}
+
+/* Feature Panels */
+.admin-dashboard-page #tab-advanced .feature-panel,
+.admin-dashboard-page #tab-advanced .glass-card {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.5rem !important;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05)) !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-dashboard-page #tab-advanced h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.35rem 0;
+}
+
+/* Metrics Grid */
+#advancedMetrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Advanced Search Grid */
+.advanced-search-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto auto;
+    gap: 1rem;
+    align-items: flex-end;
+    margin-top: 1rem;
+}
+
+.advanced-search-grid .btn {
+    height: 40px;
+    padding: 0 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: var(--radius-md, 8px);
+}
+
+/* Advanced Operations Form Grid */
+.advanced-forms {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1.5rem !important;
+}
+
+.advanced-forms form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+}
+
+.advanced-forms .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.advanced-forms .form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-heading, #0f172a);
+}
+
+.advanced-forms .form-input,
+.advanced-forms .form-select {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    color: var(--text-heading, #0f172a);
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--input-border, #cbd5e1);
+    border-radius: var(--radius-md, 8px);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.advanced-forms .form-input:focus,
+.advanced-forms .form-select:focus {
+    outline: none;
+    border-color: var(--primary, #4f46e5);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.advanced-forms .btn[type="submit"],
+.advanced-forms .btn:not(.btn-sm) {
+    height: 40px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: var(--radius-md, 8px);
+    align-self: flex-start;
+}
+
+/* Full Width Spanning Cards */
+.advanced-forms .full-width-card,
+.advanced-forms style[style*="grid-column: span 2"] {
+    grid-column: 1 / -1 !important;
+}
+
+/* DOB Corrections Table Shell */
+.dob-corrections-table-shell {
+    overflow-x: auto;
+    margin-top: 1rem;
+    border-radius: var(--radius-lg, 12px);
+    border: 1px solid var(--card-border, #e2e8f0);
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] .admin-dashboard-page #tab-advanced .feature-panel,
+[data-theme="dark"] .admin-dashboard-page #tab-advanced .glass-card {
+    background: var(--card-bg, #1e293b) !important;
+    border-color: var(--card-border, #334155) !important;
+}
+
+[data-theme="dark"] .advanced-forms .form-input,
+[data-theme="dark"] .advanced-forms .form-select,
+[data-theme="dark"] .advanced-search-grid .form-input,
+[data-theme="dark"] .advanced-search-grid .form-select {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 991px) {
+    .advanced-forms {
+        grid-template-columns: 1fr !important;
+    }
+
+    .advanced-search-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .advanced-search-grid .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
