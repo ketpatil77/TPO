@@ -125,14 +125,14 @@
 }
 
 /* ==========================================================================
-   TAB 1: OVERVIEW (#tab-overview)
+   TAB 1 & 2: OVERVIEW & PROFILE
    ========================================================================== */
 
-#tab-overview, #tab-edit-profile {
+#tab-overview, #tab-edit-profile, #tab-internships, #tab-certificates, #tab-projects, #tab-research, #tab-diploma, #tab-opportunities, #tab-jobs, #tab-alumni {
     display: none;
 }
 
-#tab-overview.active, #tab-edit-profile.active {
+#tab-overview.active, #tab-edit-profile.active, #tab-internships.active, #tab-certificates.active, #tab-projects.active, #tab-research.active, #tab-diploma.active, #tab-opportunities.active, #tab-jobs.active, #tab-alumni.active {
     display: block;
 }
 
@@ -142,7 +142,8 @@
     gap: 1.5rem !important;
 }
 
-.overview-panel {
+.overview-panel,
+.diploma-workspace-panel {
     background: var(--card-bg, #ffffff) !important;
     border: 1px solid var(--card-border, #e2e8f0) !important;
     border-radius: var(--radius-xl, 16px) !important;
@@ -423,19 +424,22 @@
     gap: 1rem;
 }
 
-.profile-editor-form .grid-2 {
+.profile-editor-form .grid-2,
+.diploma-workspace-panel .grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.25rem;
 }
 
-.profile-editor-form .form-group {
+.profile-editor-form .form-group,
+.diploma-workspace-panel .form-group {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
 }
 
-.profile-editor-form .form-label {
+.profile-editor-form .form-label,
+.diploma-workspace-panel .form-label {
     font-size: 0.8125rem;
     font-weight: 600;
     color: var(--text-heading, #0f172a);
@@ -443,7 +447,8 @@
 
 .profile-editor-form .form-input,
 .profile-editor-form .form-select,
-.profile-editor-form .form-textarea {
+.profile-editor-form .form-textarea,
+.diploma-workspace-panel .form-input {
     width: 100%;
     padding: 0.625rem 0.875rem;
     font-size: 0.875rem;
@@ -456,7 +461,8 @@
 
 .profile-editor-form .form-input:focus,
 .profile-editor-form .form-select:focus,
-.profile-editor-form .form-textarea:focus {
+.profile-editor-form .form-textarea:focus,
+.diploma-workspace-panel .form-input:focus {
     outline: none;
     border-color: var(--primary, #4f46e5);
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
@@ -502,12 +508,116 @@
     color: var(--text-muted, #64748b);
 }
 
-.profile-save-bar .btn {
+.profile-save-bar .btn,
+.diploma-workspace-panel .btn {
     height: 42px;
     padding: 0 1.5rem;
     font-size: 0.875rem;
     font-weight: 600;
     border-radius: var(--radius-md, 8px);
+}
+
+/* ==========================================================================
+   TABS 3-5: EXPERIENCE, PORTFOLIO & OPPORTUNITIES
+   ========================================================================== */
+
+.student-dashboard-page .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.student-dashboard-page .section-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.15rem 0;
+}
+
+.student-dashboard-page .section-header .section-note {
+    font-size: 0.8125rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+.student-dashboard-page .section-header .eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary, #4f46e5);
+    display: block;
+}
+
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+}
+
+/* Opportunity Hero & Grid */
+.opportunity-hero {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.5rem 1.75rem !important;
+    margin-bottom: 1.5rem !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+.opportunity-hero h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.25rem 0;
+}
+
+.opportunity-hero p {
+    font-size: 0.85rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+.opportunity-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.opportunity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.opportunity-panel {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.5rem !important;
+}
+
+.opportunity-panel .panel-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.opportunity-panel h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0;
+}
+
+.panel-icon {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--primary, #4f46e5);
 }
 
 /* Dark Theme Overrides */
@@ -519,7 +629,10 @@
 [data-theme="dark"] .student-dashboard-page .navbar,
 [data-theme="dark"] .student-dashboard-page .header-banner,
 [data-theme="dark"] .overview-panel,
-[data-theme="dark"] .student-profile-editor {
+[data-theme="dark"] .student-profile-editor,
+[data-theme="dark"] .diploma-workspace-panel,
+[data-theme="dark"] .opportunity-hero,
+[data-theme="dark"] .opportunity-panel {
     background: #1e293b !important;
     border-color: #334155 !important;
 }
@@ -557,7 +670,8 @@
 
 [data-theme="dark"] .profile-editor-form .form-input,
 [data-theme="dark"] .profile-editor-form .form-select,
-[data-theme="dark"] .profile-editor-form .form-textarea {
+[data-theme="dark"] .profile-editor-form .form-textarea,
+[data-theme="dark"] .diploma-workspace-panel .form-input {
     background: #0f172a;
     border-color: #334155;
     color: #f8fafc;
@@ -565,11 +679,13 @@
 
 /* Responsive Media Queries */
 @media (max-width: 991px) {
-    .overview-layout {
+    .overview-layout,
+    .opportunity-grid {
         grid-template-columns: 1fr !important;
     }
 
-    .profile-editor-form .grid-2 {
+    .profile-editor-form .grid-2,
+    .diploma-workspace-panel .grid-2 {
         grid-template-columns: 1fr;
     }
 
@@ -579,7 +695,8 @@
 }
 
 @media (max-width: 767px) {
-    .student-dashboard-page .header-banner {
+    .student-dashboard-page .header-banner,
+    .opportunity-hero {
         flex-direction: column;
         align-items: flex-start;
         gap: 1rem;
