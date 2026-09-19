@@ -70,6 +70,7 @@
     <link rel="stylesheet" href="/css/tpo-header.css?v=20260919-header1">
     <link rel="stylesheet" href="/css/tpo-analytics.css?v=20260919-analytics1">
     <link rel="stylesheet" href="/css/tpo-students.css?v=20260919-students1">
+    <link rel="stylesheet" href="/css/tpo-roster.css?v=20260919-roster1">
     <script src="/js/tpo-sidebar.js?v=20260919-sidebar2" defer></script>
 </head>
 <body class="admin-dashboard-page">
@@ -314,61 +315,93 @@
         <div id="tab-roster" class="tab-content" role="tabpanel">
             <div class="glass-card roster-workspace-panel">
                 <div class="upload-heading-row">
-                    <div><h3>Bulk Preload Roster Dataset</h3><p>Prepare department data using official format.</p></div>
-                    <div class="workflow-actions"><a class="btn btn-primary" href="/templates/AIT-roster-template.xlsx" download="AIT-roster-template.xlsx">Download Excel template</a><a class="btn btn-secondary" href="/templates/ait-roster-template.csv" download="AIT-roster-template.csv">CSV version</a></div>
+                    <div>
+                        <h3>Bulk Preload Roster Dataset</h3>
+                        <p>Prepare department data using official format.</p>
+                    </div>
+                    <div class="workflow-actions">
+                        <a class="btn btn-primary" href="/templates/AIT-roster-template.xlsx" download="AIT-roster-template.xlsx">Download Excel template</a>
+                        <a class="btn btn-secondary" href="/templates/ait-roster-template.csv" download="AIT-roster-template.csv">CSV version</a>
+                    </div>
                 </div>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+
+                <p>
                     Upload up to 10,000 students per Excel or CSV file containing <code>prn, name, dob, branch, class, year</code>. PRN is an identifier and DOB uses <code>DD-MM-YYYY</code>. Processing uses safe 250-row database batches. Re-uploading updates existing PRN records without duplicates.
                 </p>
 
-                <p>PRNs are identifiers, not numbers. In Excel, format the PRN column as Text before entering digits. If Excel already rounded a PRN, re-enter the original value. CSV does not preserve Excel cell formatting.</p>
+                <div class="roster-prn-notice">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <div>
+                        <strong>Important PRN Formatting Notice:</strong> PRNs are identifiers, not numbers. In Excel, format the PRN column as Text before entering digits. If Excel already rounded a PRN, re-enter the original value. CSV does not preserve Excel cell formatting.
+                    </div>
+                </div>
+
                 <div class="roster-input-grid">
-                <div class="roster-file-column">
-                <div id="dropzone" class="upload-dropzone" onclick="document.getElementById('csvFileInput').click()">
-                    <div class="upload-file-mark" aria-hidden="true">XLSX</div>
-                    <h4>Click or Drag & Drop Excel / CSV File Here</h4>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">PRN and DOB stay readable; maximum 10 MB</p>
-                    <input type="file" id="csvFileInput" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" style="display: none;" onchange="handleFileSelected(event)">
+                    <div class="roster-file-column">
+                        <div id="dropzone" class="upload-dropzone" onclick="document.getElementById('csvFileInput').click()">
+                            <div class="upload-file-mark" aria-hidden="true">XLSX / CSV</div>
+                            <h4>Click or Drag & Drop Excel / CSV File Here</h4>
+                            <p>PRN and DOB stay readable; maximum 10 MB</p>
+                            <input type="file" id="csvFileInput" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" style="display: none;" onchange="handleFileSelected(event)">
+                        </div>
+
+                        <div id="selectedFileInfo" style="display: none;">
+                            <strong id="selectedFileName">file.csv</strong> (<span id="selectedFileSize">0 KB</span>)
+                        </div>
+                    </div>
+
+                    <div class="form-group roster-paste-column">
+                        <label class="form-label" for="rawCsvText">Or paste raw CSV data:</label>
+                        <textarea id="rawCsvText" class="form-textarea" rows="5" placeholder="prn,name,dob,branch,class,year&#10;24053651251520,Amit Kumar,15-01-2004,CT,BE-A,Final Year"></textarea>
+                    </div>
                 </div>
 
-                <div id="selectedFileInfo" style="display: none; margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid var(--border-color);">
-                    <strong id="selectedFileName">file.csv</strong> (<span id="selectedFileSize">0 KB</span>)
-                </div>
-                </div>
-
-                <div class="form-group roster-paste-column">
-                    <label class="form-label" for="rawCsvText">Or paste raw CSV data:</label>
-                    <textarea id="rawCsvText" class="form-textarea" rows="5" placeholder="prn,name,dob,branch,class,year&#10;24053651251520,Amit Kumar,15-01-2004,CT,BE-A,Final Year"></textarea>
-                </div>
+                <div class="workflow-actions">
+                    <button id="previewRosterBtn" class="btn btn-secondary" type="button" onclick="previewRosterUpload()">Preview and validate</button>
+                    <button id="uploadRosterBtn" class="btn btn-primary" type="button" onclick="submitRosterUpload()">Process roster dataset</button>
                 </div>
 
-                <div class="workflow-actions"><button id="previewRosterBtn" class="btn btn-secondary" type="button" onclick="previewRosterUpload()">Preview and validate</button><button id="uploadRosterBtn" class="btn btn-primary" type="button" onclick="submitRosterUpload()">Process roster dataset</button></div>
-                <div id="importProgress" class="import-progress" hidden><div><span id="importProgressText">Preparing import...</span><strong id="importProgressPercent">0%</strong></div><progress id="importProgressBar" max="100" value="0"></progress></div>
+                <div id="importProgress" class="import-progress" hidden>
+                    <div>
+                        <span id="importProgressText">Preparing import...</span>
+                        <strong id="importProgressPercent">0%</strong>
+                    </div>
+                    <progress id="importProgressBar" max="100" value="0"></progress>
+                </div>
+
                 <div id="rosterPreview" class="record-stack" style="margin-top:1rem"></div>
             </div>
 
-
-
-            <div id="uploadSummaryBox" style="display: none; margin-top: 1.5rem; padding: 1.25rem; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color);">
-                    <h4>Upload Results Summary</h4>
-                    <div class="grid-4" style="margin-top: 0.75rem;">
-                        <div style="background: rgba(16,185,129,0.1); padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid rgba(16,185,129,0.3);">
-                            <span style="font-size: 0.75rem; color: #6ee7b7;">Added</span>
-                            <div id="sumAdded" style="font-size: 1.4rem; font-weight: 700; color: #10b981;">0</div>
-                        </div>
-                        <div style="background: var(--surface-muted); padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid var(--border-color);">
-                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Updated</span>
-                            <div id="sumUpdated" style="font-size: 1.4rem; font-weight: 700; color: var(--primary);">0</div>
-                        </div>
-                        <div style="background: rgba(239,68,68,0.1); padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid rgba(239,68,68,0.3);">
-                            <span style="font-size: 0.75rem; color: #fca5a5;">Failed</span>
-                            <div id="sumFailed" style="font-size: 1.4rem; font-weight: 700; color: #ef4444;">0</div>
-                        </div>
+            <div id="uploadSummaryBox" style="display: none;">
+                <h4>Upload Results Summary</h4>
+                <div class="upload-summary-grid">
+                    <div class="summary-tile tile-added">
+                        <span class="summary-tile-label">Added</span>
+                        <div id="sumAdded" class="summary-tile-value">0</div>
                     </div>
-                    <div id="uploadErrorList" style="margin-top: 1rem; font-size: 0.85rem; color: #fca5a5;"></div>
+                    <div class="summary-tile tile-updated">
+                        <span class="summary-tile-label">Updated</span>
+                        <div id="sumUpdated" class="summary-tile-value">0</div>
+                    </div>
+                    <div class="summary-tile tile-failed">
+                        <span class="summary-tile-label">Failed</span>
+                        <div id="sumFailed" class="summary-tile-value">0</div>
+                    </div>
                 </div>
-                <section class="launch-subsection"><div class="section-header"><div><h3>Import history</h3><p class="section-note">Latest 50 imports. Scroll history below.</p></div><button class="btn btn-secondary btn-sm" onclick="loadImportHistory()">Refresh</button></div><div id="importHistory" class="record-stack bounded-history-list"></div></section>
+                <div id="uploadErrorList" style="margin-top: 1rem; font-size: 0.85rem; color: #fca5a5;"></div>
             </div>
+
+            <section class="launch-subsection" style="margin-top: 1.5rem;">
+                <div class="section-header">
+                    <div>
+                        <h3>Import history</h3>
+                        <p class="section-note">Latest 50 imports. Scroll history below.</p>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="loadImportHistory()">Refresh</button>
+                </div>
+                <div id="importHistory" class="record-stack bounded-history-list"></div>
+            </section>
+        </div>
         </div>
 
         <!-- TAB 3: AUDIT TRAIL LOGS -->

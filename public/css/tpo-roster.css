@@ -1,0 +1,483 @@
+/* ==========================================================================
+   Nexus Design System - TPO Roster Upload & History Workspace (#tab-roster)
+   ========================================================================== */
+
+.admin-dashboard-page #tab-roster {
+    display: none;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.admin-dashboard-page #tab-roster.active {
+    display: flex;
+}
+
+/* Roster Workspace Card Container */
+.roster-workspace-panel {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.75rem !important;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05)) !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Heading Row */
+.upload-heading-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.upload-heading-row h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.25rem 0;
+    letter-spacing: -0.01em;
+}
+
+.upload-heading-row p {
+    font-size: 0.875rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+/* Template Download Action Buttons */
+.upload-heading-row .workflow-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.upload-heading-row .workflow-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 38px;
+    padding: 0 1rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border-radius: var(--radius-md, 8px);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+/* Informational & Warning Callouts */
+.roster-workspace-panel > p {
+    font-size: 0.875rem;
+    color: var(--text-secondary, #475569);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.roster-workspace-panel code {
+    background: var(--bg-muted, #f1f5f9);
+    color: var(--primary, #4f46e5);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.8125rem;
+}
+
+/* Notice Box for PRN format */
+.roster-prn-notice {
+    background: rgba(245, 158, 11, 0.08) !important;
+    border: 1px solid rgba(245, 158, 11, 0.25) !important;
+    border-radius: var(--radius-lg, 12px) !important;
+    padding: 0.875rem 1.125rem !important;
+    margin-bottom: 1.5rem !important;
+    font-size: 0.84rem !important;
+    color: #b45309 !important;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+/* Grid Layout for Dropzone + Textarea */
+.roster-input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.roster-file-column,
+.roster-paste-column {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Modern File Dropzone */
+.admin-dashboard-page #tab-roster .upload-dropzone {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 220px !important;
+    padding: 2rem 1.5rem !important;
+    border: 2px dashed var(--card-border, #cbd5e1) !important;
+    border-radius: var(--radius-lg, 12px) !important;
+    background: var(--bg-muted, #f8fafc) !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+}
+
+.admin-dashboard-page #tab-roster .upload-dropzone:hover,
+.admin-dashboard-page #tab-roster .upload-dropzone.drag-over {
+    border-color: var(--primary, #4f46e5) !important;
+    background: var(--primary-light, #eef2ff) !important;
+    transform: translateY(-1px);
+}
+
+.upload-file-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: var(--primary, #4f46e5);
+    background: var(--card-bg, #ffffff);
+    border: 1px solid rgba(79, 70, 229, 0.2);
+    border-radius: 6px;
+    margin-bottom: 0.875rem;
+    text-transform: uppercase;
+}
+
+.admin-dashboard-page #tab-roster .upload-dropzone h4 {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: var(--text-heading, #0f172a) !important;
+    margin: 0 0 0.35rem 0 !important;
+}
+
+.admin-dashboard-page #tab-roster .upload-dropzone p {
+    font-size: 0.8125rem !important;
+    color: var(--text-muted, #64748b) !important;
+    margin: 0 !important;
+}
+
+/* Selected File Card */
+#selectedFileInfo {
+    margin-top: 0.75rem !important;
+    padding: 0.75rem 1rem !important;
+    background: var(--bg-muted, #f1f5f9) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-md, 8px) !important;
+    font-size: 0.85rem !important;
+    color: var(--text-heading, #0f172a) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+}
+
+/* Raw CSV Paste Column */
+.roster-paste-column .form-label {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text-heading, #0f172a);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.roster-paste-column .form-textarea {
+    width: 100%;
+    min-height: 220px;
+    padding: 0.875rem 1rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    background: var(--card-bg, #ffffff);
+    color: var(--text-heading, #0f172a);
+    border: 1px solid var(--input-border, #cbd5e1);
+    border-radius: var(--radius-lg, 12px);
+    resize: vertical;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.roster-paste-column .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary, #4f46e5);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+/* Actions Row */
+.roster-workspace-panel > .workflow-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.roster-workspace-panel > .workflow-actions .btn {
+    height: 42px;
+    padding: 0 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-md, 8px);
+}
+
+/* Import Progress Indicator */
+.import-progress {
+    margin-top: 1.25rem;
+    padding: 1rem 1.25rem;
+    background: var(--bg-muted, #f8fafc);
+    border: 1px solid var(--card-border, #e2e8f0);
+    border-radius: var(--radius-lg, 12px);
+}
+
+.import-progress > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text-heading, #0f172a);
+}
+
+.import-progress progress {
+    width: 100%;
+    height: 8px;
+    border-radius: 9999px;
+    overflow: hidden;
+    appearance: none;
+}
+
+.import-progress progress::-webkit-progress-bar {
+    background: var(--card-border, #e2e8f0);
+    border-radius: 9999px;
+}
+
+.import-progress progress::-webkit-progress-value {
+    background: var(--primary, #4f46e5);
+    border-radius: 9999px;
+}
+
+/* Upload Summary Box */
+#uploadSummaryBox {
+    margin-top: 1.5rem !important;
+    padding: 1.5rem !important;
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05)) !important;
+}
+
+#uploadSummaryBox h4 {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    color: var(--text-heading, #0f172a) !important;
+    margin: 0 0 1rem 0 !important;
+}
+
+.upload-summary-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 1rem !important;
+}
+
+.summary-tile {
+    padding: 1rem !important;
+    border-radius: var(--radius-lg, 12px) !important;
+    text-align: center !important;
+}
+
+.summary-tile.tile-added {
+    background: rgba(16, 185, 129, 0.08) !important;
+    border: 1px solid rgba(16, 185, 129, 0.2) !important;
+}
+
+.summary-tile.tile-updated {
+    background: rgba(79, 70, 229, 0.08) !important;
+    border: 1px solid rgba(79, 70, 229, 0.2) !important;
+}
+
+.summary-tile.tile-failed {
+    background: rgba(239, 68, 68, 0.08) !important;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+}
+
+.summary-tile-label {
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+.tile-added .summary-tile-label { color: #059669 !important; }
+.tile-updated .summary-tile-label { color: var(--primary, #4f46e5) !important; }
+.tile-failed .summary-tile-label { color: #dc2626 !important; }
+
+.summary-tile-value {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    margin-top: 0.25rem !important;
+}
+
+.tile-added .summary-tile-value { color: #10b981 !important; }
+.tile-updated .summary-tile-value { color: var(--primary, #4f46e5) !important; }
+.tile-failed .summary-tile-value { color: #ef4444 !important; }
+
+#uploadErrorList {
+    margin-top: 1rem !important;
+    padding: 0.875rem 1rem !important;
+    background: rgba(239, 68, 68, 0.06) !important;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+    border-radius: var(--radius-md, 8px) !important;
+    font-size: 0.85rem !important;
+    color: #dc2626 !important;
+}
+
+/* Import History Section */
+.admin-dashboard-page #tab-roster .launch-subsection {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.5rem !important;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05)) !important;
+}
+
+.admin-dashboard-page #tab-roster .launch-subsection .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.admin-dashboard-page #tab-roster .launch-subsection .section-header h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.15rem 0;
+}
+
+.admin-dashboard-page #tab-roster .launch-subsection .section-note {
+    font-size: 0.8125rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+#importHistory {
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Dark Theme Adaptations */
+[data-theme="dark"] .admin-dashboard-page #tab-roster .roster-workspace-panel,
+[data-theme="dark"] .admin-dashboard-page #tab-roster #uploadSummaryBox,
+[data-theme="dark"] .admin-dashboard-page #tab-roster .launch-subsection {
+    background: var(--card-bg, #1e293b) !important;
+    border-color: var(--card-border, #334155) !important;
+}
+
+[data-theme="dark"] .roster-workspace-panel code {
+    background: #0f172a;
+    color: #818cf8;
+}
+
+[data-theme="dark"] .roster-prn-notice {
+    background: rgba(245, 158, 11, 0.15) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+    color: #fcd34d !important;
+}
+
+[data-theme="dark"] .admin-dashboard-page #tab-roster .upload-dropzone {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .admin-dashboard-page #tab-roster .upload-dropzone:hover {
+    background: rgba(79, 70, 229, 0.15) !important;
+    border-color: #6366f1 !important;
+}
+
+[data-theme="dark"] .upload-file-mark {
+    background: #1e293b;
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #818cf8;
+}
+
+[data-theme="dark"] .roster-paste-column .form-textarea {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+[data-theme="dark"] #selectedFileInfo {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .summary-tile.tile-added {
+    background: rgba(16, 185, 129, 0.15) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+[data-theme="dark"] .summary-tile.tile-updated {
+    background: rgba(99, 102, 241, 0.15) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+[data-theme="dark"] .summary-tile.tile-failed {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+[data-theme="dark"] .tile-added .summary-tile-label { color: #34d399 !important; }
+[data-theme="dark"] .tile-updated .summary-tile-label { color: #818cf8 !important; }
+[data-theme="dark"] .tile-failed .summary-tile-label { color: #fca5a5 !important; }
+
+/* Responsive Media Queries */
+@media (max-width: 991px) {
+    .roster-input-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 767px) {
+    .roster-workspace-panel {
+        padding: 1.25rem !important;
+    }
+
+    .upload-heading-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .upload-heading-row .workflow-actions {
+        width: 100%;
+    }
+
+    .upload-heading-row .workflow-actions .btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .roster-workspace-panel > .workflow-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .roster-workspace-panel > .workflow-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .upload-summary-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
