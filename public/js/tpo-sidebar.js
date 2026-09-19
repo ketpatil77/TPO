@@ -1,6 +1,6 @@
 /**
  * Placement Portal AIT - TPO Sidebar Controller
- * Handles mobile off-canvas drawer, desktop collapse/open, and tooltip hydration.
+ * Handles mobile off-canvas drawer, desktop collapse/open, and tooltip management.
  */
 
 (function () {
@@ -20,20 +20,41 @@
             document.body.appendChild(backdrop);
         }
 
-        // Hydrate tooltips for icon rail collapsed mode
-        function hydrateTabTooltips() {
+        // Manage tooltips: only show in collapsed icon-rail mode
+        function syncTooltips() {
+            const isCollapsed = body.classList.contains('sidebar-collapsed');
             sidebar.querySelectorAll('.tab-btn').forEach(btn => {
-                const label = btn.querySelector('.tab-label');
-                const text = label ? label.textContent.trim() : btn.textContent.trim();
-                if (text && !btn.getAttribute('title')) {
-                    btn.setAttribute('title', text);
+                if (isCollapsed) {
+                    const label = btn.querySelector('.tab-label');
+                    const text = label ? label.textContent.trim() : btn.textContent.trim();
+                    if (text) btn.setAttribute('title', text);
+                } else {
+                    btn.removeAttribute('title');
                 }
             });
         }
-        hydrateTabTooltips();
+        syncTooltips();
 
-        // Observe dynamic tab additions (from competition-review.js, evidence-review.js, etc.)
-        const observer = new MutationObserver(() => hydrateTabTooltips());
+        // Observe dynamic tab additions (from flagged-review-queue.js, proof-review-ui.js, etc.)
+        const observer = new MutationObserver((mutations) => {
+            let needsTooltipSync = false;
+            mutations.forEach(mutation => {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('tab-btn')) {
+                        // If node was directly appended to sidebar instead of into a section
+                        if (node.parentElement === sidebar) {
+                            const bodyContainer = sidebar.querySelector('.tpo-sidebar-body');
+                            const targetSection = bodyContainer ? bodyContainer.querySelector('.tpo-sidebar-section:last-child') : null;
+                            if (targetSection) {
+                                targetSection.appendChild(node);
+                            }
+                        }
+                        needsTooltipSync = true;
+                    }
+                });
+            });
+            if (needsTooltipSync) syncTooltips();
+        });
         observer.observe(sidebar, { childList: true, subtree: true });
 
         // Update collapse button state & label
@@ -50,6 +71,7 @@
             const willCollapse = typeof forceState === 'boolean' ? forceState : !body.classList.contains('sidebar-collapsed');
             body.classList.toggle('sidebar-collapsed', willCollapse);
             updateCollapseButtonState(willCollapse);
+            syncTooltips();
             try {
                 localStorage.setItem('tpo-sidebar-collapsed', String(willCollapse));
             } catch (_) {}
@@ -62,6 +84,7 @@
                 toggleDesktopCollapse(true);
             } else {
                 updateCollapseButtonState(false);
+                syncTooltips();
             }
         } catch (_) {}
 
@@ -82,6 +105,17 @@
                 e.preventDefault();
                 e.stopPropagation();
                 toggleDesktopCollapse();
+            });
+        }
+
+        // Allow clicking the collapsed brand icon to re-expand
+        const brand = sidebar.querySelector('.tpo-sidebar-brand');
+        if (brand) {
+            brand.addEventListener('click', (e) => {
+                if (body.classList.contains('sidebar-collapsed')) {
+                    e.preventDefault();
+                    toggleDesktopCollapse(false);
+                }
             });
         }
 
@@ -128,6 +162,7 @@
             if (window.innerWidth >= 1024 && body.classList.contains('sidebar-open')) {
                 body.classList.remove('sidebar-open');
             }
+            syncTooltips();
         });
     }
 
