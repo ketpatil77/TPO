@@ -1,7 +1,7 @@
 /**
  * Placement Portal AIT - TPO Header & Top Navigation Component
  * Design System implementation matching Reference UI ("Nexus" Dashboard Language)
- * Clean top bar, search shortcut pill, profile cluster, and elevated header banner.
+ * Rock-solid responsive layout for desktop, tablet, and mobile screens.
  */
 
 /* ==========================================================================
@@ -63,7 +63,8 @@ body.admin-dashboard-page .navbar {
 
 @media (max-width: 768px) {
     .navbar-inner {
-        padding: 0 1rem !important;
+        padding: 0 0.85rem !important;
+        gap: 0.5rem !important;
     }
 }
 
@@ -146,8 +147,14 @@ body.admin-dashboard-page .navbar {
 .tpo-header-right {
     display: flex !important;
     align-items: center !important;
-    gap: 12px !important;
+    gap: 10px !important;
     flex-shrink: 0 !important;
+}
+
+@media (max-width: 480px) {
+    .tpo-header-right {
+        gap: 6px !important;
+    }
 }
 
 /* User Profile Picture Button */
@@ -170,6 +177,7 @@ body.admin-dashboard-page .navbar {
     overflow: hidden !important;
     transition: all 180ms ease !important;
     box-shadow: var(--ds-shadow-xs, 0 1px 2px rgba(15, 23, 42, 0.04)) !important;
+    flex-shrink: 0 !important;
 }
 
 .profile-picture-button:hover {
@@ -199,6 +207,7 @@ body.admin-dashboard-page .navbar {
     line-height: 1 !important;
     letter-spacing: 0.01em !important;
     border: 1px solid rgba(16, 185, 129, 0.2) !important;
+    white-space: nowrap !important;
 }
 
 #adminRoleBadge.badge::before {
@@ -221,7 +230,7 @@ body.admin-dashboard-page .navbar {
 #adminLogoutBtn.btn {
     height: 34px !important;
     min-height: 34px !important;
-    padding: 0 14px !important;
+    padding: 0 12px !important;
     border-radius: var(--ds-radius-sm, 8px) !important;
     background: var(--ds-surface-subtle, #f1f5f9) !important;
     border: 1px solid var(--ds-border, #edf0f5) !important;
@@ -235,6 +244,15 @@ body.admin-dashboard-page .navbar {
     align-items: center !important;
     justify-content: center !important;
     box-shadow: none !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+}
+
+@media (max-width: 480px) {
+    #adminLogoutBtn.btn {
+        padding: 0 9px !important;
+        font-size: 11.5px !important;
+    }
 }
 
 #adminLogoutBtn.btn:hover {
@@ -263,6 +281,17 @@ body.admin-dashboard-page .header-banner {
     transition: background-color 200ms ease, border-color 200ms ease !important;
 }
 
+@media (max-width: 768px) {
+    body.admin-dashboard-page .header-banner {
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+        gap: 1rem !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        border-radius: var(--ds-radius-md, 12px) !important;
+    }
+}
+
 .tpo-banner-info {
     display: flex !important;
     flex-direction: column !important;
@@ -280,6 +309,12 @@ body.admin-dashboard-page .header-banner {
     margin: 0 0 4px 0 !important;
 }
 
+@media (max-width: 768px) {
+    .tpo-banner-info h2 {
+        font-size: 18px !important;
+    }
+}
+
 .tpo-banner-info p {
     font-family: var(--ds-font-primary) !important;
     font-size: 13.5px !important;
@@ -287,6 +322,13 @@ body.admin-dashboard-page .header-banner {
     color: var(--ds-text-muted, #64748b) !important;
     line-height: 1.4 !important;
     margin: 0 !important;
+}
+
+@media (max-width: 768px) {
+    .tpo-banner-info p {
+        font-size: 12.5px !important;
+        line-height: 1.35 !important;
+    }
 }
 
 /* Banner Right Action & KPI Cluster */
@@ -301,6 +343,9 @@ body.admin-dashboard-page .header-banner {
 @media (max-width: 768px) {
     .tpo-banner-actions {
         width: 100% !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.75rem !important;
     }
 }
 
@@ -314,6 +359,13 @@ body.admin-dashboard-page .header-banner {
     padding: 3px !important;
     box-sizing: border-box !important;
     transition: all 180ms ease !important;
+}
+
+@media (max-width: 768px) {
+    .tpo-impersonate-group {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+    }
 }
 
 .tpo-impersonate-group:focus-within {
@@ -331,10 +383,12 @@ body.admin-dashboard-page .header-banner {
     font-family: var(--ds-font-primary) !important;
     font-size: 13px !important;
     color: var(--ds-text-heading, #0f172a) !important;
-    min-width: 160px !important;
+    min-width: 140px !important;
+    flex: 1 1 auto !important;
     margin: 0 !important;
     outline: none !important;
     box-shadow: none !important;
+    width: 100% !important;
 }
 
 #impersonatePrn.form-input::placeholder {
@@ -356,6 +410,14 @@ body.admin-dashboard-page .header-banner {
     white-space: nowrap !important;
     transition: background-color 180ms ease !important;
     box-shadow: 0 2px 6px rgba(99, 102, 241, 0.25) !important;
+    flex-shrink: 0 !important;
+}
+
+@media (max-width: 480px) {
+    #btnImpersonate.btn {
+        padding: 0 10px !important;
+        font-size: 11.5px !important;
+    }
 }
 
 #btnImpersonate.btn:hover {
@@ -368,13 +430,21 @@ body.admin-dashboard-page .header-banner {
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 6px 16px !important;
+    padding: 8px 14px !important;
     background: var(--ds-surface-subtle, #f1f5f9) !important;
     border: 1px solid var(--ds-border, #edf0f5) !important;
     border-radius: var(--ds-radius-md, 10px) !important;
     min-width: 100px !important;
     box-sizing: border-box !important;
     text-align: center !important;
+}
+
+@media (max-width: 768px) {
+    .tpo-stat-tile {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 6px 10px !important;
+    }
 }
 
 .tpo-stat-label {
@@ -385,6 +455,13 @@ body.admin-dashboard-page .header-banner {
     letter-spacing: 0.05em !important;
     color: var(--ds-text-subtle, #94a3b8) !important;
     line-height: 1.2 !important;
+    white-space: nowrap !important;
+}
+
+@media (max-width: 480px) {
+    .tpo-stat-label {
+        font-size: 9.5px !important;
+    }
 }
 
 .tpo-stat-value {
@@ -395,6 +472,12 @@ body.admin-dashboard-page .header-banner {
     letter-spacing: -0.02em !important;
     margin-top: 2px !important;
     font-feature-settings: "tnum" !important;
+}
+
+@media (max-width: 480px) {
+    .tpo-stat-value {
+        font-size: 17px !important;
+    }
 }
 
 #statFilteredCount.tpo-stat-value {
