@@ -72,6 +72,7 @@
     <link rel="stylesheet" href="/css/tpo-students.css?v=20260919-students1">
     <link rel="stylesheet" href="/css/tpo-roster.css?v=20260919-roster1">
     <link rel="stylesheet" href="/css/tpo-workflow.css?v=20260919-workflow1">
+    <link rel="stylesheet" href="/css/tpo-drives.css?v=20260919-drives1">
     <script src="/js/tpo-sidebar.js?v=20260919-sidebar2" defer></script>
 </head>
 <body class="admin-dashboard-page">
@@ -567,7 +568,7 @@
             </div>
         </div>
 
-        <!-- TAB 3: AUDIT TRAIL LOGS -->
+        <!-- TAB: AUDIT TRAIL LOGS -->
         <div id="tab-audit-logs" class="tab-content" role="tabpanel">
             <div class="section-header">
                 <h3>System Audit Trail Logs</h3>
@@ -591,20 +592,65 @@
             </div>
         </div>
 
-        <!-- TAB 4: JD MATCHING -->
+        <!-- TAB: PLACEMENT DRIVES & JD MATCHING -->
         <div id="tab-jd-matching" class="tab-content" role="tabpanel">
             <div class="drive-workspace">
                 <form id="driveForm" class="glass-card drive-create-panel">
                     <h3 class="drive-wide">Create Placement Drive</h3>
-                    <div class="form-group"><label class="form-label" for="driveCompany">Company</label><input id="driveCompany" class="form-input" required maxlength="150"></div>
-                    <div class="form-group"><label class="form-label" for="driveRole">Role</label><input id="driveRole" class="form-input" required maxlength="150"></div>
-                    <div class="form-group drive-wide"><label class="form-label" for="driveJd">Job Description</label><textarea id="driveJd" class="form-textarea" rows="5" minlength="20" maxlength="50000" required></textarea></div>
-                    <div class="grid-2"><div class="form-group"><label class="form-label" for="driveDeadline">Application deadline</label><input id="driveDeadline" type="date" class="form-input"></div><div class="form-group"><label class="form-label" for="driveStatus">Drive status</label><select id="driveStatus" class="form-select"><option value="draft" selected>Draft</option><option value="review_pending">Submit for review</option><option value="closed">Closed</option></select></div></div>
-                    <div class="form-group"><label class="form-label" for="driveCgpa">Minimum CGPA</label><input id="driveCgpa" type="number" class="form-input" min="0" max="10" step="0.01" value="0"></div>
-                    <fieldset class="form-group branch-selector"><legend class="form-label">Eligible branches</legend><p class="section-note">Select one or more. Leave all unchecked only when every branch is eligible.</p><div id="driveBranches" class="branch-option-grid"><label><input type="checkbox" value="AIML"> AIML</label><label><input type="checkbox" value="CT"> CT</label><label><input type="checkbox" value="EE"> EE</label><label><input type="checkbox" value="ME"> ME</label><label><input type="checkbox" value="CE"> CE</label><label><input type="checkbox" value="E&amp;C"> E&amp;C</label></div></fieldset>
-                    <div class="form-group"><label class="form-label" for="driveRequiredSkills">Required skills</label><input id="driveRequiredSkills" class="form-input" placeholder="JavaScript, SQL"></div>
-                    <div class="form-group"><label class="form-label" for="drivePreferredSkills">Preferred skills</label><input id="drivePreferredSkills" class="form-input"></div>
-                    <div class="form-group"><label class="form-label" for="driveKeywords">JD keywords</label><input id="driveKeywords" class="form-input" placeholder="backend, cloud, API"></div>
+                    <div class="form-group">
+                        <label class="form-label" for="driveCompany">Company</label>
+                        <input id="driveCompany" class="form-input" required maxlength="150">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="driveRole">Role</label>
+                        <input id="driveRole" class="form-input" required maxlength="150">
+                    </div>
+                    <div class="form-group drive-wide">
+                        <label class="form-label" for="driveJd">Job Description</label>
+                        <textarea id="driveJd" class="form-textarea" rows="5" minlength="20" maxlength="50000" required></textarea>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label" for="driveDeadline">Application deadline</label>
+                            <input id="driveDeadline" type="date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="driveStatus">Drive status</label>
+                            <select id="driveStatus" class="form-select">
+                                <option value="draft" selected>Draft</option>
+                                <option value="review_pending">Submit for review</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="driveCgpa">Minimum CGPA</label>
+                        <input id="driveCgpa" type="number" class="form-input" min="0" max="10" step="0.01" value="0">
+                    </div>
+                    <fieldset class="form-group branch-selector">
+                        <legend class="form-label">Eligible branches</legend>
+                        <p class="section-note" style="margin-bottom:0.5rem;">Select one or more. Leave all unchecked only when every branch is eligible.</p>
+                        <div id="driveBranches" class="branch-option-grid">
+                            <label><input type="checkbox" value="AIML"> AIML</label>
+                            <label><input type="checkbox" value="CT"> CT</label>
+                            <label><input type="checkbox" value="EE"> EE</label>
+                            <label><input type="checkbox" value="ME"> ME</label>
+                            <label><input type="checkbox" value="CE"> CE</label>
+                            <label><input type="checkbox" value="E&amp;C"> E&amp;C</label>
+                        </div>
+                    </fieldset>
+                    <div class="form-group">
+                        <label class="form-label" for="driveRequiredSkills">Required skills</label>
+                        <input id="driveRequiredSkills" class="form-input" placeholder="JavaScript, SQL">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="drivePreferredSkills">Preferred skills</label>
+                        <input id="drivePreferredSkills" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="driveKeywords">JD keywords</label>
+                        <input id="driveKeywords" class="form-input" placeholder="backend, cloud, API">
+                    </div>
                     <button class="btn btn-primary" type="submit">Create drive and rank candidates</button>
                 </form>
                 <section class="glass-card drive-list-panel">
