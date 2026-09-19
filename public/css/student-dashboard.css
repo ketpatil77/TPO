@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Nexus Design System - Student Workspace (#tab-overview & Header)
+   Nexus Design System - Student Workspace (dashboard.html)
    ========================================================================== */
 
 .student-dashboard-page {
@@ -128,11 +128,11 @@
    TAB 1: OVERVIEW (#tab-overview)
    ========================================================================== */
 
-#tab-overview {
+#tab-overview, #tab-edit-profile {
     display: none;
 }
 
-#tab-overview.active {
+#tab-overview.active, #tab-edit-profile.active {
     display: block;
 }
 
@@ -358,6 +358,158 @@
     font-weight: 600;
 }
 
+/* ==========================================================================
+   TAB 2: EDIT PROFILE & CGPA (#tab-edit-profile)
+   ========================================================================== */
+
+.student-profile-editor {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.75rem !important;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05)) !important;
+}
+
+.profile-editor-heading {
+    margin-bottom: 1.5rem;
+}
+
+.profile-editor-heading h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.25rem 0;
+}
+
+.profile-editor-heading p {
+    font-size: 0.85rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+.profile-form-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.75rem 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--card-border, #e2e8f0);
+}
+
+.profile-form-section-title span {
+    font-size: 0.8125rem;
+    font-weight: 800;
+    color: var(--primary, #4f46e5);
+    background: var(--primary-light, #eef2ff);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+}
+
+.profile-form-section-title strong {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    display: block;
+}
+
+.profile-form-section-title small {
+    font-size: 0.75rem;
+    color: var(--text-muted, #64748b);
+}
+
+.profile-editor-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.profile-editor-form .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+.profile-editor-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.profile-editor-form .form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-heading, #0f172a);
+}
+
+.profile-editor-form .form-input,
+.profile-editor-form .form-select,
+.profile-editor-form .form-textarea {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    color: var(--text-heading, #0f172a);
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--input-border, #cbd5e1);
+    border-radius: var(--radius-md, 8px);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-editor-form .form-input:focus,
+.profile-editor-form .form-select:focus,
+.profile-editor-form .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary, #4f46e5);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.grid-semesters {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 0.5rem;
+}
+
+.grid-semesters > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    text-align: center;
+}
+
+.grid-semesters .form-hint {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+}
+
+.grid-semesters .form-input {
+    padding: 0.5rem 0.25rem;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.profile-save-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--card-border, #e2e8f0);
+}
+
+.profile-save-bar span {
+    font-size: 0.8125rem;
+    color: var(--text-muted, #64748b);
+}
+
+.profile-save-bar .btn {
+    height: 42px;
+    padding: 0 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-md, 8px);
+}
+
 /* Dark Theme Overrides */
 [data-theme="dark"] .student-dashboard-page {
     background: #0f172a;
@@ -366,7 +518,8 @@
 
 [data-theme="dark"] .student-dashboard-page .navbar,
 [data-theme="dark"] .student-dashboard-page .header-banner,
-[data-theme="dark"] .overview-panel {
+[data-theme="dark"] .overview-panel,
+[data-theme="dark"] .student-profile-editor {
     background: #1e293b !important;
     border-color: #334155 !important;
 }
@@ -402,10 +555,26 @@
     border-right-color: #334155;
 }
 
+[data-theme="dark"] .profile-editor-form .form-input,
+[data-theme="dark"] .profile-editor-form .form-select,
+[data-theme="dark"] .profile-editor-form .form-textarea {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
 /* Responsive Media Queries */
 @media (max-width: 991px) {
     .overview-layout {
         grid-template-columns: 1fr !important;
+    }
+
+    .profile-editor-form .grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .grid-semesters {
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 
@@ -434,5 +603,20 @@
 
     .overview-semester-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-semesters {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .profile-save-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .profile-save-bar .btn {
+        width: 100%;
+        justify-content: center;
     }
 }
