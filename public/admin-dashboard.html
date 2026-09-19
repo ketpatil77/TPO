@@ -67,6 +67,7 @@
     <link rel="stylesheet" href="/css/student-experience-v1.css?v=20260906-engagement4">
     <script src="/js/student-experience-v1.js?v=20260906-engagement4" defer></script>
     <link rel="stylesheet" href="/css/tpo-sidebar.css?v=20260919-sidebar2">
+    <link rel="stylesheet" href="/css/tpo-header.css?v=20260919-header1">
     <script src="/js/tpo-sidebar.js?v=20260919-sidebar2" defer></script>
 </head>
 <body class="admin-dashboard-page">
@@ -74,17 +75,17 @@
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container navbar-inner">
-            <button id="tpoMobileNavTrigger" class="tpo-mobile-nav-trigger" type="button" aria-label="Open navigation menu" aria-expanded="false">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-            </button>
-            <a href="/admin/dashboard" class="brand">
-                <div class="brand-icon">TPO</div>
-                <div>
-                    <div class="brand-title">AIT Placement Portal</div>
-                    <div class="brand-subtitle">Administrator Workspace</div>
+            <div class="tpo-header-left">
+                <button id="tpoMobileNavTrigger" class="tpo-mobile-nav-trigger" type="button" aria-label="Open navigation menu" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <div class="tpo-header-search">
+                    <svg viewBox="0 0 24 24" class="tpo-search-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" class="tpo-search-input" placeholder="Search students, drives, PRN..." aria-label="Quick search">
+                    <span class="tpo-search-shortcut">⌘K</span>
                 </div>
-            </a>
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            </div>
+            <div class="tpo-header-right">
                 <button id="adminAvatarButton" class="profile-picture-button" type="button" title="Update admin profile picture" aria-label="Update admin profile picture"><img id="adminAvatarImage" alt=""><span aria-hidden="true">A</span></button>
                 <input id="adminAvatarFile" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" hidden>
                 <span id="adminRoleBadge" class="badge badge-online">Administrator</span>
@@ -187,24 +188,24 @@
             </div>
         </aside>
 
-        <!-- Header Banner -->
-        <div class="glass-card header-banner" style="margin-bottom: 1.5rem;">
-            <div>
+        <!-- Header Banner (Nexus Design System) -->
+        <div class="header-banner">
+            <div class="tpo-banner-info">
                 <h2>Placement operations</h2>
                 <p>Manage student records, roster data, reports, audit history, and placement drives.</p>
             </div>
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <div style="background: rgba(0,0,0,0.3); padding: 0.75rem 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.5rem;">
-                    <input type="text" id="impersonatePrn" class="form-input" placeholder="Enter PRN to login..." aria-label="Student PRN to impersonate" style="margin-bottom: 0; min-width: 150px; height: 36px; font-size: 0.85rem;" autocomplete="off">
-                    <button id="btnImpersonate" class="btn btn-primary" style="height: 36px; padding: 0 1rem; font-size: 0.85rem;">Login as Student</button>
+            <div class="tpo-banner-actions">
+                <div class="tpo-impersonate-group">
+                    <input type="text" id="impersonatePrn" class="form-input" placeholder="Enter PRN to login..." aria-label="Student PRN to impersonate" autocomplete="off">
+                    <button id="btnImpersonate" class="btn btn-primary">Login as Student</button>
                 </div>
-                <div style="background: rgba(0,0,0,0.3); padding: 0.75rem 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Filtered Students</div>
-                    <div id="statFilteredCount" style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">0</div>
+                <div class="tpo-stat-tile">
+                    <span class="tpo-stat-label">Filtered Students</span>
+                    <span id="statFilteredCount" class="tpo-stat-value">0</span>
                 </div>
-                <div style="background: rgba(0,0,0,0.3); padding: 0.75rem 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Total Roster</div>
-                    <div id="statRosterCount" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">0</div>
+                <div class="tpo-stat-tile">
+                    <span class="tpo-stat-label">Total Roster</span>
+                    <span id="statRosterCount" class="tpo-stat-value">0</span>
                 </div>
             </div>
         </div>
