@@ -1,0 +1,255 @@
+/* ==========================================================================
+   Nexus Design System - TPO Workflow, Alerts & Readiness (#tab-workflow, #tab-readiness)
+   ========================================================================== */
+
+/* Workspace Containers */
+.admin-dashboard-page #tab-workflow,
+.admin-dashboard-page #tab-readiness {
+    display: none;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.admin-dashboard-page #tab-workflow.active,
+.admin-dashboard-page #tab-readiness.active {
+    display: flex;
+}
+
+/* Feature Panel Card Base */
+.admin-dashboard-page #tab-workflow .feature-panel,
+.admin-dashboard-page #tab-readiness .glass-card {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.5rem !important;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05)) !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-dashboard-page #tab-workflow .feature-panel h3,
+.admin-dashboard-page #tab-readiness h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.35rem 0;
+    letter-spacing: -0.01em;
+}
+
+.admin-dashboard-page #tab-workflow .section-note,
+.admin-dashboard-page #tab-readiness .section-note {
+    font-size: 0.8125rem;
+    color: var(--text-muted, #64748b);
+    margin: 0 0 1.25rem 0;
+}
+
+/* 2-Column Workflow Grid */
+.notification-admin-layout.workflow-workspace {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1.5rem !important;
+}
+
+/* Notification Form Controls */
+#notificationForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+#notificationForm .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+}
+
+#notificationForm .form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-heading, #0f172a);
+}
+
+#notificationForm .form-input,
+#notificationForm .form-textarea {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    color: var(--text-heading, #0f172a);
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--input-border, #cbd5e1);
+    border-radius: var(--radius-md, 8px);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#notificationForm .form-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+#notificationForm .form-input:focus,
+#notificationForm .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary, #4f46e5);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+/* Branch Checkbox Option Grid */
+.notice-audience {
+    border: 1px solid var(--card-border, #e2e8f0);
+    border-radius: var(--radius-lg, 12px);
+    padding: 1rem;
+    background: var(--bg-muted, #f8fafc);
+}
+
+.notice-audience legend {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-heading, #0f172a);
+    padding: 0 0.4rem;
+}
+
+.notice-all-branches {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary, #4f46e5);
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+}
+
+.branch-option-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.branch-option-grid label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8125rem;
+    color: var(--text-secondary, #475569);
+    cursor: pointer;
+}
+
+/* Expiry & Action Destination 2-Col Grid */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.field-help {
+    font-size: 0.75rem;
+    color: var(--text-muted, #64748b);
+}
+
+.notice-important {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #dc2626;
+    margin: 0.5rem 0;
+    cursor: pointer;
+}
+
+#sendNotificationBtn {
+    height: 40px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-md, 8px);
+    align-self: flex-start;
+}
+
+/* Pipeline & History Scroll Containers */
+.bounded-workspace-list,
+.bounded-card-grid {
+    max-height: 450px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+/* Sent Notifications Grid */
+.sent-notification-panel {
+    margin-top: 0.5rem;
+}
+
+.sent-notification-panel .eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary, #4f46e5);
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.sent-notification-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* Data Readiness Tab (#tab-readiness) */
+#readinessMetrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+#readinessMetrics .metric-tile {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--card-border, #e2e8f0);
+    border-radius: var(--radius-lg, 12px);
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05));
+}
+
+#tab-readiness .table-responsive {
+    overflow-x: auto;
+    border-radius: var(--radius-lg, 12px);
+    border: 1px solid var(--card-border, #e2e8f0);
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] .admin-dashboard-page #tab-workflow .feature-panel,
+[data-theme="dark"] .admin-dashboard-page #tab-readiness .glass-card,
+[data-theme="dark"] #readinessMetrics .metric-tile {
+    background: var(--card-bg, #1e293b) !important;
+    border-color: var(--card-border, #334155) !important;
+}
+
+[data-theme="dark"] #notificationForm .form-input,
+[data-theme="dark"] #notificationForm .form-textarea,
+[data-theme="dark"] .notice-audience {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 991px) {
+    .notification-admin-layout.workflow-workspace {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .branch-option-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .sent-notification-grid {
+        grid-template-columns: 1fr;
+    }
+}

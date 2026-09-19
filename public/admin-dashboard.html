@@ -71,6 +71,7 @@
     <link rel="stylesheet" href="/css/tpo-analytics.css?v=20260919-analytics1">
     <link rel="stylesheet" href="/css/tpo-students.css?v=20260919-students1">
     <link rel="stylesheet" href="/css/tpo-roster.css?v=20260919-roster1">
+    <link rel="stylesheet" href="/css/tpo-workflow.css?v=20260919-workflow1">
     <script src="/js/tpo-sidebar.js?v=20260919-sidebar2" defer></script>
 </head>
 <body class="admin-dashboard-page">
@@ -404,19 +405,99 @@
         </div>
         </div>
 
-        <!-- TAB 3: AUDIT TRAIL LOGS -->
+        <!-- TAB: DATA READINESS -->
         <div id="tab-readiness" class="tab-content" role="tabpanel">
-            <div class="section-header"><div><h3>Student data readiness</h3><p class="section-note">Missing profiles, resumes, CGPA, and required fields.</p></div><button class="btn btn-secondary" onclick="loadReadiness()">Refresh</button></div>
+            <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <div>
+                    <h3>Student data readiness</h3>
+                    <p class="section-note" style="margin:0;">Missing profiles, resumes, CGPA, and required fields.</p>
+                </div>
+                <button class="btn btn-secondary" onclick="loadReadiness()">Refresh</button>
+            </div>
             <div id="readinessMetrics" class="metric-grid"></div>
-            <div class="glass-card table-responsive"><table class="data-table"><thead><tr><th>Student</th><th>Branch</th><th>Completion</th><th>Missing</th><th>Action</th></tr></thead><tbody id="readinessRows"></tbody></table></div>
+            <div class="glass-card table-responsive" style="padding:0;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Branch</th>
+                            <th>Completion</th>
+                            <th>Missing</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="readinessRows"></tbody>
+                </table>
+            </div>
         </div>
 
+        <!-- TAB: APPLICATIONS & ALERTS WORKFLOW -->
         <div id="tab-workflow" class="tab-content" role="tabpanel">
             <div class="notification-admin-layout workflow-workspace">
-                <section class="glass-card feature-panel"><h3>Send student alert</h3><form id="notificationForm"><div class="form-group"><label class="form-label" for="noticeTitle">Title</label><input id="noticeTitle" class="form-input" required minlength="2" maxlength="120"></div><div class="form-group"><label class="form-label" for="noticeMessage">Message</label><textarea id="noticeMessage" class="form-textarea" required minlength="3" maxlength="2000"></textarea></div><fieldset class="form-group notice-audience"><legend class="form-label">Send to branches</legend><label class="notice-all-branches"><input id="noticeAllBranches" type="checkbox" checked onchange="toggleNoticeBranches()"> All branches</label><div id="noticeBranches" class="branch-option-grid"><label><input type="checkbox" value="AIML" disabled> AIML</label><label><input type="checkbox" value="CT" disabled> CT</label><label><input type="checkbox" value="EE" disabled> EE</label><label><input type="checkbox" value="ME" disabled> ME</label><label><input type="checkbox" value="CE" disabled> CE</label><label><input type="checkbox" value="E&amp;C" disabled> E&amp;C</label></div><small class="field-help">Uncheck All branches to select multiple departments.</small></fieldset><div class="grid-2"><div class="form-group"><label class="form-label" for="noticeExpiry">Expires (optional)</label><input id="noticeExpiry" type="datetime-local" class="form-input"><small class="field-help">Leave blank to keep alert visible.</small></div><div class="form-group"><label class="form-label" for="noticeAction">Open destination</label><input id="noticeAction" class="form-input" value="/dashboard?tab=opportunities"><small class="field-help">Opens inside student session.</small></div></div><label class="form-label notice-important"><input id="noticeImportant" type="checkbox"> Mark important</label><button id="sendNotificationBtn" class="btn btn-primary" type="submit">Send alert</button><div id="notificationFormError" class="form-error" role="alert" aria-live="polite"></div></form></section>
-                <section class="glass-card feature-panel"><h3>Application pipeline</h3><p class="section-note">Update candidates through test, interview, selection, or rejection.</p><div id="applicationPipeline" class="record-stack bounded-workspace-list"></div></section>
+                <section class="glass-card feature-panel">
+                    <h3>Send student alert</h3>
+                    <form id="notificationForm">
+                        <div class="form-group">
+                            <label class="form-label" for="noticeTitle">Title</label>
+                            <input id="noticeTitle" class="form-input" required minlength="2" maxlength="120">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="noticeMessage">Message</label>
+                            <textarea id="noticeMessage" class="form-textarea" required minlength="3" maxlength="2000"></textarea>
+                        </div>
+                        <fieldset class="form-group notice-audience">
+                            <legend class="form-label">Send to branches</legend>
+                            <label class="notice-all-branches">
+                                <input id="noticeAllBranches" type="checkbox" checked onchange="toggleNoticeBranches()"> All branches
+                            </label>
+                            <div id="noticeBranches" class="branch-option-grid">
+                                <label><input type="checkbox" value="AIML" disabled> AIML</label>
+                                <label><input type="checkbox" value="CT" disabled> CT</label>
+                                <label><input type="checkbox" value="EE" disabled> EE</label>
+                                <label><input type="checkbox" value="ME" disabled> ME</label>
+                                <label><input type="checkbox" value="CE" disabled> CE</label>
+                                <label><input type="checkbox" value="E&amp;C" disabled> E&amp;C</label>
+                            </div>
+                            <small class="field-help">Uncheck All branches to select multiple departments.</small>
+                        </fieldset>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label" for="noticeExpiry">Expires (optional)</label>
+                                <input id="noticeExpiry" type="datetime-local" class="form-input">
+                                <small class="field-help">Leave blank to keep alert visible.</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="noticeAction">Open destination</label>
+                                <input id="noticeAction" class="form-input" value="/dashboard?tab=opportunities">
+                                <small class="field-help">Opens inside student session.</small>
+                            </div>
+                        </div>
+                        <label class="form-label notice-important">
+                            <input id="noticeImportant" type="checkbox"> Mark important
+                        </label>
+                        <button id="sendNotificationBtn" class="btn btn-primary" type="submit">Send alert</button>
+                        <div id="notificationFormError" class="form-error" role="alert" aria-live="polite"></div>
+                    </form>
+                </section>
+
+                <section class="glass-card feature-panel">
+                    <h3>Application pipeline</h3>
+                    <p class="section-note">Update candidates through test, interview, selection, or rejection.</p>
+                    <div id="applicationPipeline" class="record-stack bounded-workspace-list"></div>
+                </section>
             </div>
-            <section class="glass-card feature-panel sent-notification-panel"><div class="section-header"><div><span class="eyebrow">Delivery history</span><h3>Sent notifications</h3><p class="section-note">Latest 50 alerts. Scroll history below.</p></div><button class="btn btn-secondary" onclick="loadSentNotifications()">Refresh history</button></div><div id="sentNotifications" class="sent-notification-grid bounded-card-grid"></div></section>
+
+            <section class="glass-card feature-panel sent-notification-panel" style="margin-top: 1.5rem;">
+                <div class="section-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span class="eyebrow">Delivery history</span>
+                        <h3>Sent notifications</h3>
+                        <p class="section-note" style="margin:0;">Latest 50 alerts. Scroll history below.</p>
+                    </div>
+                    <button class="btn btn-secondary" onclick="loadSentNotifications()">Refresh history</button>
+                </div>
+                <div id="sentNotifications" class="sent-notification-grid bounded-card-grid"></div>
+            </section>
         </div>
 
         <div id="tab-advanced" class="tab-content" role="tabpanel">
