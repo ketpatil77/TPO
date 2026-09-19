@@ -68,6 +68,7 @@
     <script src="/js/student-experience-v1.js?v=20260906-engagement4" defer></script>
     <link rel="stylesheet" href="/css/tpo-sidebar.css?v=20260919-sidebar2">
     <link rel="stylesheet" href="/css/tpo-header.css?v=20260919-header1">
+    <link rel="stylesheet" href="/css/tpo-analytics.css?v=20260919-analytics1">
     <script src="/js/tpo-sidebar.js?v=20260919-sidebar2" defer></script>
 </head>
 <body class="admin-dashboard-page">
@@ -210,26 +211,29 @@
             </div>
         </div>
 
-        <!-- Analytics Tab -->
+        <!-- Analytics Tab (Nexus Design System) -->
         <div id="tab-analytics" class="tab-content active" role="tabpanel">
             <div class="header-split">
-                <div><h2 class="section-title">Dashboard Analytics</h2><p>Visual overview of placement statistics.</p></div>
+                <div>
+                    <h2 class="section-title">Dashboard Analytics</h2>
+                    <p>Visual overview of placement statistics.</p>
+                </div>
                 <button class="btn btn-secondary btn-sm" onclick="loadAdminAnalytics()">Refresh Data</button>
             </div>
             <div class="analytics-charts-grid">
-                <div class="glass-card" style="padding: 1rem;">
+                <div class="glass-card">
                     <canvas id="placementChart"></canvas>
                 </div>
-                <div class="glass-card" style="padding: 1rem;">
+                <div class="glass-card">
                     <canvas id="ctcChart"></canvas>
                 </div>
-                <div class="glass-card" style="padding: 1rem;">
+                <div class="glass-card">
                     <canvas id="completionChart"></canvas>
                 </div>
-                <div class="glass-card" style="padding: 1rem;">
+                <div class="glass-card">
                     <canvas id="packageChart"></canvas>
                 </div>
-                <div class="glass-card" style="padding: 1rem;">
+                <div class="glass-card">
                     <canvas id="recruitersChart"></canvas>
                 </div>
             </div>

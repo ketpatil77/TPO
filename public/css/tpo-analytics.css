@@ -1,0 +1,145 @@
+/**
+ * Placement Portal AIT - TPO Analytics Charts Component
+ * Design System implementation matching Reference UI ("Nexus" Dashboard Language)
+ * Responsive grid layout, crisp elevated cards, and mobile-ready Chart canvas sizing.
+ */
+
+/* ==========================================================================
+   1. ANALYTICS HEADER & REFRESH ACTION
+   ========================================================================== */
+#tab-analytics .header-split {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 1rem !important;
+    margin-bottom: 1.25rem !important;
+    flex-wrap: wrap !important;
+}
+
+#tab-analytics .section-title {
+    font-family: var(--ds-font-primary) !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: var(--ds-text-heading, #0f172a) !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.015em !important;
+    margin: 0 0 2px 0 !important;
+}
+
+#tab-analytics .header-split p {
+    font-family: var(--ds-font-primary) !important;
+    font-size: 13px !important;
+    color: var(--ds-text-muted, #64748b) !important;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+}
+
+#tab-analytics .header-split .btn {
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 14px !important;
+    border-radius: var(--ds-radius-sm, 8px) !important;
+    background: var(--ds-surface-subtle, #f1f5f9) !important;
+    border: 1px solid var(--ds-border, #edf0f5) !important;
+    color: var(--ds-text-body, #334155) !important;
+    font-family: var(--ds-font-primary) !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 180ms ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+    white-space: nowrap !important;
+}
+
+#tab-analytics .header-split .btn:hover {
+    background: var(--ds-primary-light, #eef2ff) !important;
+    color: var(--ds-primary, #6366f1) !important;
+    border-color: var(--ds-primary, #6366f1) !important;
+}
+
+
+/* ==========================================================================
+   2. CHARTS GRID & ELEVATED CARD PRIMITIVES
+   ========================================================================== */
+body.admin-dashboard-page .analytics-charts-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 1.25rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+@media (max-width: 900px) {
+    body.admin-dashboard-page .analytics-charts-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+}
+
+/* Individual Chart Card Container */
+body.admin-dashboard-page .analytics-charts-grid > .glass-card,
+body.admin-dashboard-page .analytics-charts-grid > div {
+    background: var(--ds-surface-card, #ffffff) !important;
+    border: 1px solid var(--ds-border, #edf0f5) !important;
+    border-radius: var(--ds-radius-lg, 16px) !important;
+    padding: 1.25rem 1.5rem !important;
+    box-shadow: var(--ds-shadow-card, 0 1px 3px rgba(15, 23, 42, 0.03)) !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    height: 320px !important;
+    min-height: 320px !important;
+    max-height: 320px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease !important;
+}
+
+@media (max-width: 600px) {
+    body.admin-dashboard-page .analytics-charts-grid > .glass-card,
+    body.admin-dashboard-page .analytics-charts-grid > div {
+        padding: 1rem !important;
+        height: 270px !important;
+        min-height: 270px !important;
+        max-height: 270px !important;
+        border-radius: var(--ds-radius-md, 12px) !important;
+    }
+}
+
+/* Make Chart.js Canvas responsive within card */
+body.admin-dashboard-page .analytics-charts-grid canvas {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+    box-sizing: border-box !important;
+}
+
+
+/* ==========================================================================
+   3. DARK MODE COMPATIBILITY
+   ========================================================================== */
+:root[data-theme="dark"] #tab-analytics .section-title {
+    color: #f8fafc !important;
+}
+
+:root[data-theme="dark"] #tab-analytics .header-split p {
+    color: #94a3b8 !important;
+}
+
+:root[data-theme="dark"] #tab-analytics .header-split .btn {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(148, 163, 184, 0.14) !important;
+    color: #cbd5e1 !important;
+}
+
+:root[data-theme="dark"] body.admin-dashboard-page .analytics-charts-grid > .glass-card,
+:root[data-theme="dark"] body.admin-dashboard-page .analytics-charts-grid > div {
+    background: #0f172a !important;
+    border-color: rgba(148, 163, 184, 0.14) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
