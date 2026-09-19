@@ -49,31 +49,39 @@ body.admin-dashboard-page .navbar {
     }
 }
 
-.navbar-inner {
+/* Ensure navbar-inner stays on a single line on all screen sizes */
+body.admin-dashboard-page .navbar .navbar-inner,
+body.admin-dashboard-page .navbar-inner {
     display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
     align-items: center !important;
     justify-content: space-between !important;
     height: 100% !important;
+    width: 100% !important;
     max-width: 100% !important;
-    padding: 0 1.5rem !important;
+    padding: 0 1.25rem !important;
     margin: 0 auto !important;
     box-sizing: border-box !important;
-    gap: 1rem !important;
+    gap: 0.75rem !important;
+    overflow: hidden !important;
 }
 
 @media (max-width: 768px) {
-    .navbar-inner {
-        padding: 0 0.85rem !important;
+    body.admin-dashboard-page .navbar .navbar-inner,
+    body.admin-dashboard-page .navbar-inner {
+        padding: 0 0.75rem !important;
         gap: 0.5rem !important;
     }
 }
 
-/* Navbar Brand / Search Section */
+/* Navbar Left Section */
 .tpo-header-left {
     display: flex !important;
     align-items: center !important;
-    gap: 12px !important;
+    gap: 10px !important;
     min-width: 0 !important;
+    flex-shrink: 0 !important;
 }
 
 /* Global Search Input Pill (Nexus Reference UI) */
@@ -86,7 +94,7 @@ body.admin-dashboard-page .navbar {
     border-radius: var(--ds-radius-full, 9999px) !important;
     padding: 0 14px !important;
     height: 36px !important;
-    width: 240px !important;
+    width: 220px !important;
     max-width: 320px !important;
     transition: all 180ms ease !important;
     box-sizing: border-box !important;
@@ -102,7 +110,7 @@ body.admin-dashboard-page .navbar {
     background: var(--ds-surface-card, #ffffff) !important;
     border-color: var(--ds-primary, #6366f1) !important;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important;
-    width: 280px !important;
+    width: 260px !important;
 }
 
 .tpo-search-icon {
@@ -143,25 +151,53 @@ body.admin-dashboard-page .navbar {
     flex-shrink: 0 !important;
 }
 
-/* Navbar Right Actions Cluster */
-.tpo-header-right {
+/* Navbar Right Actions Cluster - Strict Single Row Alignment */
+body.admin-dashboard-page .navbar .tpo-header-right,
+body.admin-dashboard-page .navbar-inner > div:last-child {
     display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
     align-items: center !important;
-    gap: 10px !important;
+    justify-content: flex-end !important;
+    width: auto !important;
+    max-width: none !important;
+    gap: 8px !important;
     flex-shrink: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
-@media (max-width: 480px) {
-    .tpo-header-right {
-        gap: 6px !important;
-    }
+/* Theme Toggle Button (injected by theme.js or in markup) */
+body.admin-dashboard-page .navbar .theme-toggle,
+body.admin-dashboard-page .navbar [data-theme-toggle] {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    border-radius: var(--ds-radius-sm, 8px) !important;
+    background: var(--ds-surface-subtle, #f1f5f9) !important;
+    border: 1px solid var(--ds-border, #edf0f5) !important;
+    color: var(--ds-text-body, #334155) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
 }
 
 /* User Profile Picture Button */
 .profile-picture-button {
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
     border-radius: 50% !important;
     border: 2px solid var(--ds-primary-light, #eef2ff) !important;
     padding: 0 !important;
@@ -227,9 +263,10 @@ body.admin-dashboard-page .navbar {
 }
 
 /* Sign Out Button */
-#adminLogoutBtn.btn {
+body.admin-dashboard-page #adminLogoutBtn.btn {
     height: 34px !important;
     min-height: 34px !important;
+    max-height: 34px !important;
     padding: 0 12px !important;
     border-radius: var(--ds-radius-sm, 8px) !important;
     background: var(--ds-surface-subtle, #f1f5f9) !important;
@@ -249,13 +286,13 @@ body.admin-dashboard-page .navbar {
 }
 
 @media (max-width: 480px) {
-    #adminLogoutBtn.btn {
-        padding: 0 9px !important;
+    body.admin-dashboard-page #adminLogoutBtn.btn {
+        padding: 0 8px !important;
         font-size: 11.5px !important;
     }
 }
 
-#adminLogoutBtn.btn:hover {
+body.admin-dashboard-page #adminLogoutBtn.btn:hover {
     background: #fef2f2 !important;
     color: #e11d48 !important;
     border-color: rgba(225, 29, 72, 0.2) !important;
@@ -278,6 +315,8 @@ body.admin-dashboard-page .header-banner {
     margin-bottom: 1.5rem !important;
     box-shadow: var(--ds-shadow-card, 0 1px 3px rgba(15, 23, 42, 0.03)) !important;
     box-sizing: border-box !important;
+    height: auto !important;
+    min-height: 0 !important;
     transition: background-color 200ms ease, border-color 200ms ease !important;
 }
 
@@ -285,7 +324,7 @@ body.admin-dashboard-page .header-banner {
     body.admin-dashboard-page .header-banner {
         padding: 1rem !important;
         margin-bottom: 1rem !important;
-        gap: 1rem !important;
+        gap: 0.85rem !important;
         flex-direction: column !important;
         align-items: stretch !important;
         border-radius: var(--ds-radius-md, 12px) !important;
@@ -296,7 +335,7 @@ body.admin-dashboard-page .header-banner {
     display: flex !important;
     flex-direction: column !important;
     min-width: 0 !important;
-    flex: 1 1 280px !important;
+    flex: 1 1 240px !important;
 }
 
 .tpo-banner-info h2 {
@@ -311,7 +350,8 @@ body.admin-dashboard-page .header-banner {
 
 @media (max-width: 768px) {
     .tpo-banner-info h2 {
-        font-size: 18px !important;
+        font-size: 17px !important;
+        margin-bottom: 2px !important;
     }
 }
 
@@ -322,11 +362,12 @@ body.admin-dashboard-page .header-banner {
     color: var(--ds-text-muted, #64748b) !important;
     line-height: 1.4 !important;
     margin: 0 !important;
+    display: block !important;
 }
 
 @media (max-width: 768px) {
     .tpo-banner-info p {
-        font-size: 12.5px !important;
+        font-size: 12px !important;
         line-height: 1.35 !important;
     }
 }
@@ -335,7 +376,7 @@ body.admin-dashboard-page .header-banner {
 .tpo-banner-actions {
     display: flex !important;
     align-items: center !important;
-    gap: 0.85rem !important;
+    gap: 0.75rem !important;
     flex-wrap: wrap !important;
     flex: 0 0 auto !important;
 }
@@ -345,7 +386,7 @@ body.admin-dashboard-page .header-banner {
         width: 100% !important;
         display: grid !important;
         grid-template-columns: 1fr 1fr !important;
-        gap: 0.75rem !important;
+        gap: 0.65rem !important;
     }
 }
 
@@ -383,7 +424,7 @@ body.admin-dashboard-page .header-banner {
     font-family: var(--ds-font-primary) !important;
     font-size: 13px !important;
     color: var(--ds-text-heading, #0f172a) !important;
-    min-width: 140px !important;
+    min-width: 130px !important;
     flex: 1 1 auto !important;
     margin: 0 !important;
     outline: none !important;
@@ -395,7 +436,8 @@ body.admin-dashboard-page .header-banner {
     color: var(--ds-text-subtle, #94a3b8) !important;
 }
 
-#btnImpersonate.btn {
+/* Fix legacy pseudoelement duplication on impersonation button */
+body.admin-dashboard-page #btnImpersonate.btn {
     height: 34px !important;
     min-height: 34px !important;
     padding: 0 14px !important;
@@ -413,14 +455,19 @@ body.admin-dashboard-page .header-banner {
     flex-shrink: 0 !important;
 }
 
+body.admin-dashboard-page #btnImpersonate.btn::after {
+    display: none !important;
+    content: none !important;
+}
+
 @media (max-width: 480px) {
-    #btnImpersonate.btn {
+    body.admin-dashboard-page #btnImpersonate.btn {
         padding: 0 10px !important;
         font-size: 11.5px !important;
     }
 }
 
-#btnImpersonate.btn:hover {
+body.admin-dashboard-page #btnImpersonate.btn:hover {
     background: var(--ds-primary-hover, #4f46e5) !important;
 }
 
@@ -430,11 +477,11 @@ body.admin-dashboard-page .header-banner {
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 8px 14px !important;
+    padding: 8px 12px !important;
     background: var(--ds-surface-subtle, #f1f5f9) !important;
     border: 1px solid var(--ds-border, #edf0f5) !important;
     border-radius: var(--ds-radius-md, 10px) !important;
-    min-width: 100px !important;
+    min-width: 90px !important;
     box-sizing: border-box !important;
     text-align: center !important;
 }
@@ -512,7 +559,7 @@ body.admin-dashboard-page .header-banner {
     color: #94a3b8 !important;
 }
 
-:root[data-theme="dark"] #adminLogoutBtn.btn {
+:root[data-theme="dark"] body.admin-dashboard-page #adminLogoutBtn.btn {
     background: rgba(255, 255, 255, 0.06) !important;
     border-color: rgba(148, 163, 184, 0.14) !important;
     color: #cbd5e1 !important;
