@@ -18,3 +18,5 @@ output/
 .scratch/
 scratch/
 .agents/
+.commandcode/
+DESIGN.md
