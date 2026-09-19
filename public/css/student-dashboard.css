@@ -1,0 +1,169 @@
+/* ==========================================================================
+   Nexus Design System - Student Workspace Navbar, Header & Navigation (dashboard.html)
+   ========================================================================== */
+
+.student-dashboard-page {
+    background: var(--bg-canvas, #f6f8fb);
+    color: var(--text-body, #334155);
+    font-family: var(--font-body, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+    min-height: 100vh;
+}
+
+/* Student Top Navbar */
+.student-dashboard-page .navbar {
+    background: var(--card-bg, #ffffff) !important;
+    border-bottom: 1px solid var(--card-border, #e2e8f0) !important;
+    padding: 0.625rem 0 !important;
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.03)) !important;
+}
+
+.student-dashboard-page .navbar-inner {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+}
+
+/* Header Profile Banner */
+.student-dashboard-page .header-banner {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.5rem 1.75rem !important;
+    margin-bottom: 1.5rem !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05)) !important;
+}
+
+.student-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.student-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--primary-light, #eef2ff);
+    color: var(--primary, #4f46e5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    border: 2px solid var(--card-border, #e2e8f0);
+    overflow: hidden;
+}
+
+.student-info h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.25rem 0;
+}
+
+.student-info p {
+    font-size: 0.85rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+#overallCgpaBadge {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    padding: 0.5rem 1.125rem !important;
+    border-radius: 9999px !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+    color: #059669 !important;
+    border: 1px solid rgba(16, 185, 129, 0.25) !important;
+}
+
+/* Student Navigation Tabs Bar */
+.student-dashboard-page .tabs-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--card-border, #e2e8f0);
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.student-dashboard-page .tabs-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.student-dashboard-page .tabs-nav .tab-btn {
+    padding: 0.625rem 1.125rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.student-dashboard-page .tabs-nav .tab-btn:hover {
+    color: var(--text-heading, #0f172a);
+    background: var(--bg-muted, #f1f5f9);
+}
+
+.student-dashboard-page .tabs-nav .tab-btn.active {
+    color: var(--primary, #4f46e5);
+    background: var(--primary-light, #eef2ff);
+    font-weight: 700;
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] .student-dashboard-page {
+    background: #0f172a;
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .student-dashboard-page .navbar,
+[data-theme="dark"] .student-dashboard-page .header-banner {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .student-avatar {
+    background: #0f172a;
+    border-color: #334155;
+    color: #818cf8;
+}
+
+[data-theme="dark"] .student-dashboard-page .tabs-nav {
+    border-color: #334155;
+}
+
+[data-theme="dark"] .student-dashboard-page .tabs-nav .tab-btn {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .student-dashboard-page .tabs-nav .tab-btn.active {
+    color: #818cf8;
+    background: rgba(99, 102, 241, 0.15);
+}
+
+/* Responsive Media Queries */
+@media (max-width: 767px) {
+    .student-dashboard-page .header-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .student-meta {
+        flex-direction: row;
+    }
+}
