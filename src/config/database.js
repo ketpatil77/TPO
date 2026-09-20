@@ -42,7 +42,6 @@ function init() {
             if (!localData[table]) localData[table] = [];
         });
         if (localData.roster.length === 0) {
-            console.log('Seeding initial test roster data...');
             localData.roster = [
                 { id: crypto.randomUUID(), prn: '24053651251515', name: 'Rahul Sharma', dob: '2003-07-31', branch: 'CT', class: 'BE-A', year: 'Final Year' },
                 { id: crypto.randomUUID(), prn: '24053651251516', name: 'Priya Patel', dob: '2004-01-15', branch: 'AIML', class: 'BE-B', year: 'Final Year' },
