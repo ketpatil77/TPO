@@ -132,16 +132,26 @@ aside#studentSidebar.student-sidebar.tabs-nav {
 .student-brand-icon {
     width: 36px !important;
     height: 36px !important;
-    border-radius: var(--radius-md, 10px) !important;
+    min-width: 36px !important;
+    border-radius: 50% !important;
     background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%) !important;
-    color: #ffffff !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-weight: 800 !important;
-    font-size: 13px !important;
     box-shadow: 0 3px 10px rgba(79, 70, 229, 0.25) !important;
     flex-shrink: 0 !important;
+    padding: 3px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+.student-brand-icon img {
+    width: 100% !important;
+    height: 100% !important;
+    background: #ffffff !important;
+    border-radius: 50% !important;
+    object-fit: contain !important;
+    display: block !important;
 }
 
 .student-brand-text {

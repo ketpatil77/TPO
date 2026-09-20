@@ -46,17 +46,26 @@
 }
 
 .portal-story .brand-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-lg, 12px);
-    background: var(--primary, #4f46e5);
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 1.1rem;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    padding: 3.5px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3) !important;
+    box-sizing: border-box !important;
+}
+
+.portal-story .brand-icon img {
+    width: 100% !important;
+    height: 100% !important;
+    background: #ffffff !important;
+    border-radius: 50% !important;
+    object-fit: contain !important;
+    display: block !important;
 }
 
 .portal-story .brand-title {

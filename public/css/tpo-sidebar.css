@@ -126,17 +126,25 @@ body.admin-dashboard-page #adminDashboard aside#adminSidebar.tpo-sidebar.tabs-na
     width: 34px !important;
     height: 34px !important;
     min-width: 34px !important;
-    border-radius: var(--ds-radius-md, 10px) !important;
+    border-radius: 50% !important;
     background: var(--ds-primary-gradient, linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)) !important;
-    color: #ffffff !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-weight: 800 !important;
-    font-size: 13px !important;
-    letter-spacing: -0.02em !important;
     box-shadow: 0 3px 10px rgba(99, 102, 241, 0.28) !important;
     flex-shrink: 0 !important;
+    padding: 3px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+.tpo-brand-icon img {
+    width: 100% !important;
+    height: 100% !important;
+    background: #ffffff !important;
+    border-radius: 50% !important;
+    object-fit: contain !important;
+    display: block !important;
 }
 
 .tpo-brand-text {
