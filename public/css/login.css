@@ -398,50 +398,64 @@
 
 /* Dark Theme Overrides */
 [data-theme="dark"] .unified-auth-shell {
-    background: #0f172a;
-    color: #f8fafc;
+    background: #0b0f19 !important;
+    color: #f8fafc !important;
 }
 
 [data-theme="dark"] .unified-auth-layout,
 [data-theme="dark"] .dob-correction-dialog {
-    background: #1e293b;
-    border-color: #334155;
+    background: #131b2e !important;
+    border-color: #1e293b !important;
+    box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.5) !important;
 }
 
 [data-theme="dark"] .portal-story {
-    background: #0f172a;
-    border-color: #334155;
+    background: #0f172a !important;
+    border-color: #1e293b !important;
 }
 
 [data-theme="dark"] .portal-role-summary div {
-    background: #1e293b;
-    border-color: #334155;
+    background: #131b2e !important;
+    border-color: #1e293b !important;
 }
 
 [data-theme="dark"] .role-toggle {
-    background: #0f172a;
-    border-color: #334155;
+    background: #0f172a !important;
+    border-color: #1e293b !important;
 }
 
 [data-theme="dark"] .role-toggle-btn {
-    color: #94a3b8;
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .role-toggle-btn:hover {
+    color: #f8fafc !important;
+    background: rgba(255, 255, 255, 0.08) !important;
 }
 
 [data-theme="dark"] .role-toggle-btn.active {
-    background: #1e293b;
-    color: #818cf8;
+    background: var(--login-role-accent) !important;
+    color: var(--login-role-on-accent) !important;
 }
 
 [data-theme="dark"] .role-context {
-    background: rgba(99, 102, 241, 0.15);
-    border-left-color: #818cf8;
+    background: color-mix(in srgb, var(--login-role-soft) 80%, #0f172a) !important;
+    border-left-color: var(--login-role-accent) !important;
+}
+
+[data-theme="dark"] .role-context strong {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .role-context span {
+    color: #94a3b8 !important;
 }
 
 [data-theme="dark"] .unified-role-form .form-input,
 [data-theme="dark"] .dob-correction-dialog .form-input {
-    background: #0f172a;
-    border-color: #334155;
-    color: #f8fafc;
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
 }
 
 /* Responsive Breakpoints */
