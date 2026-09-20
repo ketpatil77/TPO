@@ -841,11 +841,15 @@
     height: 100vh;
     background: rgba(15, 23, 42, 0.5);
     backdrop-filter: blur(4px);
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 1000;
     padding: 1rem;
+}
+
+.modal-backdrop.active {
+    display: flex !important;
 }
 
 .modal-backdrop[hidden] {
