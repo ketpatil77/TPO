@@ -1,0 +1,168 @@
+/* ==========================================================================
+   Nexus Design System - TPO Placement Drives & Audit Logs (#tab-jd-matching, #tab-audit-logs)
+   ========================================================================== */
+
+/* Workspace Containers */
+.admin-dashboard-page #tab-jd-matching,
+.admin-dashboard-page #tab-audit-logs {
+    display: none;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.admin-dashboard-page #tab-jd-matching.active,
+.admin-dashboard-page #tab-audit-logs.active {
+    display: flex;
+}
+
+/* Feature Panels */
+.admin-dashboard-page #tab-jd-matching .glass-card,
+.admin-dashboard-page #tab-audit-logs .glass-card {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.5rem !important;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05)) !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* 2-Column Drive Workspace Grid */
+.drive-workspace {
+    display: grid !important;
+    grid-template-columns: 1.2fr 1fr !important;
+    gap: 1.5rem !important;
+}
+
+/* Placement Drive Form */
+#driveForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+#driveForm h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.5rem 0;
+}
+
+#driveForm .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+#driveForm .form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-heading, #0f172a);
+}
+
+#driveForm .form-input,
+#driveForm .form-select,
+#driveForm .form-textarea {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    color: var(--text-heading, #0f172a);
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--input-border, #cbd5e1);
+    border-radius: var(--radius-md, 8px);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#driveForm .form-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+#driveForm .form-input:focus,
+#driveForm .form-select:focus,
+#driveForm .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary, #4f46e5);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.branch-selector {
+    border: 1px solid var(--card-border, #e2e8f0);
+    border-radius: var(--radius-lg, 12px);
+    padding: 1rem;
+    background: var(--bg-muted, #f8fafc);
+}
+
+.branch-selector legend {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-heading, #0f172a);
+    padding: 0 0.4rem;
+}
+
+#driveForm .btn[type="submit"] {
+    height: 42px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-md, 8px);
+    margin-top: 0.5rem;
+}
+
+/* Placement Drives List Panel */
+.drive-list-panel h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 1rem 0;
+}
+
+#drivesList {
+    max-height: 520px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    padding-right: 0.25rem;
+}
+
+/* Audit Logs Tab (#tab-audit-logs) */
+#tab-audit-logs .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+#tab-audit-logs .section-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0;
+}
+
+#tab-audit-logs .glass-card {
+    padding: 0 !important;
+    overflow-x: auto;
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] .admin-dashboard-page #tab-jd-matching .glass-card,
+[data-theme="dark"] .admin-dashboard-page #tab-audit-logs .glass-card {
+    background: var(--card-bg, #1e293b) !important;
+    border-color: var(--card-border, #334155) !important;
+}
+
+[data-theme="dark"] #driveForm .form-input,
+[data-theme="dark"] #driveForm .form-select,
+[data-theme="dark"] #driveForm .form-textarea,
+[data-theme="dark"] .branch-selector {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 991px) {
+    .drive-workspace {
+        grid-template-columns: 1fr !important;
+    }
+}

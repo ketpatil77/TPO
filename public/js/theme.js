@@ -13,7 +13,7 @@
 
     function preferredTheme() {
         const saved = localStorage.getItem(storageKey);
-        return saved === 'light' || saved === 'dark' ? saved : (media.matches ? 'dark' : 'light');
+        return saved === 'dark' ? 'dark' : 'light';
     }
 
     function applyTheme(theme) {

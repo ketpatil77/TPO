@@ -1,42 +1,43 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Slackside+One&display=swap');
+@import url('design-tokens.css');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-    --font-default: 'Playfair Display', Georgia, 'Times New Roman', serif;
-    --font-student-name: 'Slackside One', cursive;
-    --student-gold: #f3c969;
-    --student-gold-soft: rgba(243, 201, 105, 0.12);
-    --bg-main: #0f1117;
-    --bg-card: #161b26;
-    --bg-glass: rgba(22, 27, 38, 0.85);
-    --surface-muted: #1a202c;
-    --border-color: rgba(148, 163, 184, 0.28);
-    --border-glow: rgba(100, 116, 139, 0.3);
+    --font-default: var(--ds-font-primary);
+    --font-student-name: var(--ds-font-primary);
+    --student-gold: #f59e0b;
+    --student-gold-soft: rgba(245, 158, 11, 0.12);
+    --bg-main: var(--ds-bg-canvas);
+    --bg-card: var(--ds-surface-card);
+    --bg-glass: var(--ds-surface-card);
+    --surface-muted: var(--ds-surface-muted);
+    --border-color: var(--ds-border);
+    --border-glow: var(--ds-border-light);
     
-    --primary: #475569;
-    --primary-hover: #334155;
-    --primary-light: rgba(71, 85, 105, 0.2);
-    --accent: #64748b;
-    --accent-glow: rgba(100, 116, 139, 0.25);
+    --primary: var(--ds-primary);
+    --primary-hover: var(--ds-primary-hover);
+    --primary-light: var(--ds-primary-light);
+    --accent: var(--ds-accent-cyan);
+    --accent-glow: rgba(6, 182, 212, 0.15);
 
-    --text-heading: #f8fafc;
-    --text-body: #cbd5e1;
-    --text-muted: #94a3b8;
-    --text-secondary: #a8b4c5;
+    --text-heading: var(--ds-text-heading);
+    --text-body: var(--ds-text-body);
+    --text-muted: var(--ds-text-muted);
+    --text-secondary: var(--ds-text-muted);
 
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --info: #64748b;
+    --success: var(--ds-success);
+    --warning: var(--ds-warning);
+    --danger: var(--ds-danger);
+    --info: var(--ds-info);
 
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 18px;
-    --radius-full: 9999px;
+    --radius-sm: var(--ds-radius-sm);
+    --radius-md: var(--ds-radius-md);
+    --radius-lg: var(--ds-radius-lg);
+    --radius-full: var(--ds-radius-full);
 
-    --shadow-subtle: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    --shadow-subtle: var(--ds-shadow-card);
     --shadow-glow: none;
-    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-smooth: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: var(--ds-transition-fast);
+    --transition-smooth: var(--ds-transition-smooth);
     --space-xs: 0.25rem;
     --space-sm: 0.5rem;
     --space-md: 1rem;
@@ -47,7 +48,7 @@
 }
 
 :root,
-:root[data-theme="light"] { --text-secondary: #526173; }
+:root[data-theme="light"] { --text-secondary: var(--ds-text-muted); }
 
 * {
     margin: 0;
@@ -80,11 +81,9 @@ h1, h2, h3, h4, h5, h6 {
     text-shadow: 0 1px 12px rgba(243, 201, 105, 0.16);
 }
 
-/* Glass Card Component */
+/* Card Component */
 .glass-card {
     background: var(--bg-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-subtle);
@@ -92,7 +91,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .glass-card:hover {
-    border-color: rgba(100, 116, 139, 0.3);
+    border-color: var(--ds-border-hover, #cbd5e1);
+    box-shadow: var(--ds-shadow-card-hover, var(--shadow-subtle));
 }
 
 /* Container */
@@ -224,18 +224,46 @@ h1, h2, h3, h4, h5, h6 {
     text-decoration: none;
 }
 
-.brand-icon {
-    width: 40px;
-    height: 40px;
-    background: var(--primary);
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: 800;
-    font-size: 1.2rem;
-    box-shadow: var(--shadow-glow);
+.brand-icon,
+.student-brand-icon,
+.tpo-brand-icon {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    padding: 3.5px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25) !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+.brand-icon-inner {
+    width: 100% !important;
+    height: 100% !important;
+    background: #ffffff !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 2.5px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+.brand-icon img,
+.student-brand-icon img,
+.tpo-brand-icon img {
+    width: 100% !important;
+    height: 100% !important;
+    background: #ffffff !important;
+    border-radius: 50% !important;
+    object-fit: contain !important;
+    display: block !important;
 }
 
 .brand-title {
@@ -588,55 +616,52 @@ h1, h2, h3, h4, h5, h6 {
     .item-actions { width: 100%; flex-wrap: wrap; }
 }
 
-/* Institutional design system: warm, restrained, accessible. */
+/* Global design system variables mapped to design-tokens.css */
 :root,
 :root[data-theme="light"] {
-    --bg-main: #f3f0e8;
-    --bg-card: #fffdf8;
-    --bg-glass: #ece8dd;
-    --surface-muted: #f0ece2;
-    --border-color: #d6d0c3;
-    --border-glow: #1f5b49;
-    --primary: #1f5b49;
-    --primary-hover: #174638;
-    --primary-light: rgba(31, 91, 73, 0.14);
-    --accent: #a8612a;
-    --accent-glow: rgba(168, 97, 42, 0.14);
-    --text-heading: #202722;
-    --text-body: #3f4942;
-    --text-muted: #687069;
-    --success: #2e7359;
-    --warning: #9a5b24;
-    --danger: #a33b32;
-    --student-gold: #8a5a00;
-    --student-gold-soft: rgba(138, 90, 0, 0.1);
-    --shadow-subtle: 0 12px 34px rgba(55, 48, 38, 0.08);
+    --bg-main: var(--ds-bg-canvas);
+    --bg-card: var(--ds-surface-card);
+    --bg-glass: var(--ds-surface-card);
+    --surface-muted: var(--ds-surface-muted);
+    --border-color: var(--ds-border);
+    --border-glow: var(--ds-border-light);
+    --primary: var(--ds-primary);
+    --primary-hover: var(--ds-primary-hover);
+    --primary-light: var(--ds-primary-light);
+    --accent: var(--ds-accent-cyan);
+    --accent-glow: rgba(6, 182, 212, 0.14);
+    --text-heading: var(--ds-text-heading);
+    --text-body: var(--ds-text-body);
+    --text-muted: var(--ds-text-muted);
+    --success: var(--ds-success);
+    --warning: var(--ds-warning);
+    --danger: var(--ds-danger);
+    --student-gold: #f59e0b;
+    --student-gold-soft: rgba(245, 158, 11, 0.1);
+    --shadow-subtle: var(--ds-shadow-card);
     --shadow-glow: none;
     color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-    --bg-main: #0f1117;
-    --bg-card: #161b26;
-    --bg-glass: rgba(22, 27, 38, 0.85);
-    --surface-muted: #1a202c;
-    --border-color: rgba(148, 163, 184, 0.28);
-    --border-glow: #64748b;
-    --primary: #475569;
-    --primary-hover: #334155;
-    --primary-light: rgba(71, 85, 105, 0.2);
-    --accent: #64748b;
-    --accent-glow: rgba(100, 116, 139, 0.25);
-    --text-heading: #f8fafc;
-    --text-body: #cbd5e1;
-    --text-muted: #94a3b8;
-    --text-secondary: #a8b4c5;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --student-gold: #f3c969;
-    --student-gold-soft: rgba(243, 201, 105, 0.12);
-    --shadow-subtle: 0 10px 28px rgba(0, 0, 0, 0.4);
+    --bg-main: var(--ds-bg-canvas);
+    --bg-card: var(--ds-surface-card);
+    --bg-glass: var(--ds-surface-card);
+    --surface-muted: var(--ds-surface-muted);
+    --border-color: var(--ds-border);
+    --border-glow: var(--ds-border-light);
+    --primary: var(--ds-primary);
+    --primary-hover: var(--ds-primary-hover);
+    --primary-light: var(--ds-primary-light);
+    --accent: var(--ds-accent-cyan);
+    --accent-glow: rgba(6, 182, 212, 0.2);
+    --text-heading: var(--ds-text-heading);
+    --text-body: var(--ds-text-body);
+    --text-muted: var(--ds-text-muted);
+    --success: var(--ds-success);
+    --warning: var(--ds-warning);
+    --danger: var(--ds-danger);
+    --shadow-subtle: var(--ds-shadow-card);
     --shadow-glow: none;
     color-scheme: dark;
 }
@@ -1054,49 +1079,49 @@ h1, h2, h3, h4, h5, h6 { letter-spacing: -0.015em; }
 @media (max-width:900px) { .unified-auth-layout{grid-template-columns:1fr}.portal-story{min-height:auto}.portal-story-copy h1{font-size:clamp(2.5rem,9vw,4.2rem)} }
 @media (max-width:560px) { .unified-auth-layout{width:100%;min-height:100vh;margin:0;border:0;border-radius:0}.portal-story{padding:1.5rem;gap:1.4rem}.portal-role-summary{grid-template-columns:1fr}.portal-role-summary div{display:grid;grid-template-columns:auto 1fr;column-gap:.6rem}.portal-role-summary small{grid-column:2}.unified-login-panel{padding:1.5rem}.role-toggle-btn{font-size:.74rem}.role-toggle-btn span{display:none}.avatar-editor{align-items:flex-start;flex-wrap:wrap} }
 
-/* AIT institutional interface */
+/* AIT interface mapped to design-tokens.css */
 :root,
 :root[data-theme="light"] {
-    --bg-main: #f8fafc;
-    --bg-card: #ffffff;
-    --bg-glass: #ffffff;
-    --surface-muted: #f1f5f9;
-    --border-color: #e2e8f0;
-    --border-glow: #64748b;
-    --primary: #334155;
-    --primary-hover: #1e293b;
-    --primary-light: rgba(51, 65, 85, .11);
-    --accent: #475569;
-    --accent-glow: rgba(71, 85, 105, .12);
-    --text-heading: #0f172a;
-    --text-body: #334155;
-    --text-muted: #64748b;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --shadow-subtle: 0 8px 24px rgba(15, 23, 42, .07);
+    --bg-main: var(--ds-bg-canvas);
+    --bg-card: var(--ds-surface-card);
+    --bg-glass: var(--ds-surface-card);
+    --surface-muted: var(--ds-surface-muted);
+    --border-color: var(--ds-border);
+    --border-glow: var(--ds-border-light);
+    --primary: var(--ds-primary);
+    --primary-hover: var(--ds-primary-hover);
+    --primary-light: var(--ds-primary-light);
+    --accent: var(--ds-accent-cyan);
+    --accent-glow: rgba(6, 182, 212, .12);
+    --text-heading: var(--ds-text-heading);
+    --text-body: var(--ds-text-body);
+    --text-muted: var(--ds-text-muted);
+    --success: var(--ds-success);
+    --warning: var(--ds-warning);
+    --danger: var(--ds-danger);
+    --shadow-subtle: var(--ds-shadow-card);
 }
 
 :root[data-theme="dark"] {
-    --bg-main: #0f1117;
-    --bg-card: #161b26;
-    --bg-glass: rgba(22, 27, 38, 0.85);
-    --surface-muted: #1a202c;
-    --border-color: rgba(148, 163, 184, 0.28);
-    --border-glow: #64748b;
-    --primary: #475569;
-    --primary-hover: #334155;
-    --primary-light: rgba(71, 85, 105, 0.2);
-    --accent: #64748b;
-    --accent-glow: rgba(100, 116, 139, 0.25);
-    --text-heading: #f8fafc;
-    --text-body: #cbd5e1;
-    --text-muted: #94a3b8;
-    --text-secondary: #a8b4c5;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --shadow-subtle: 0 10px 28px rgba(0, 0, 0, .4);
+    --bg-main: var(--ds-bg-canvas);
+    --bg-card: var(--ds-surface-card);
+    --bg-glass: var(--ds-surface-card);
+    --surface-muted: var(--ds-surface-muted);
+    --border-color: var(--ds-border);
+    --border-glow: var(--ds-border-light);
+    --primary: var(--ds-primary);
+    --primary-hover: var(--ds-primary-hover);
+    --primary-light: var(--ds-primary-light);
+    --accent: var(--ds-accent-cyan);
+    --accent-glow: rgba(6, 182, 212, 0.2);
+    --text-heading: var(--ds-text-heading);
+    --text-body: var(--ds-text-body);
+    --text-muted: var(--ds-text-muted);
+    --text-secondary: var(--ds-text-muted);
+    --success: var(--ds-success);
+    --warning: var(--ds-warning);
+    --danger: var(--ds-danger);
+    --shadow-subtle: var(--ds-shadow-card);
 }
 
 html { scroll-behavior: smooth; }
@@ -1155,56 +1180,60 @@ h1, h2, h3, h4, h5, h6, th, .tab-btn, .section-title, .card-title { color: var(-
 
 /* Login workspace identity: same role language continues into each dashboard. */
 .unified-auth-shell {
-    --login-role-accent:#8a5a00;
+    --login-role-accent:#4f46e5;
     --login-role-on-accent:#ffffff;
-    --login-role-soft:rgba(138,90,0,.1);
+    --login-role-soft:rgba(79,70,229,.08);
 }
 .unified-auth-shell[data-active-role="admin"] {
     --login-role-accent:#0f766e;
     --login-role-on-accent:#ffffff;
-    --login-role-soft:rgba(15,118,110,.1);
+    --login-role-soft:rgba(15,118,110,.08);
 }
 .unified-auth-shell[data-active-role="observer"] {
-    --login-role-accent:#1d5fa7;
+    --login-role-accent:#2563eb;
     --login-role-on-accent:#ffffff;
-    --login-role-soft:rgba(29,95,167,.1);
+    --login-role-soft:rgba(37,99,235,.08);
 }
 :root[data-theme="dark"] .unified-auth-shell {
-    --login-role-accent:#f3c969;
-    --login-role-on-accent:#241a05;
-    --login-role-soft:rgba(243,201,105,.12);
+    --login-role-accent:#6366f1;
+    --login-role-on-accent:#ffffff;
+    --login-role-soft:rgba(99,102,241,.15);
 }
 :root[data-theme="dark"] .unified-auth-shell[data-active-role="admin"] {
-    --login-role-accent:#67dcc8;
-    --login-role-on-accent:#062a25;
-    --login-role-soft:rgba(103,220,200,.12);
+    --login-role-accent:#14b8a6;
+    --login-role-on-accent:#ffffff;
+    --login-role-soft:rgba(20,184,166,.15);
 }
 :root[data-theme="dark"] .unified-auth-shell[data-active-role="observer"] {
-    --login-role-accent:#7cbff5;
-    --login-role-on-accent:#071d33;
-    --login-role-soft:rgba(124,191,245,.12);
+    --login-role-accent:#3b82f6;
+    --login-role-on-accent:#ffffff;
+    --login-role-soft:rgba(59,130,246,.15);
 }
 .unified-auth-shell .login-panel-heading .eyebrow { color:var(--login-role-accent); }
 .unified-auth-shell .role-toggle-btn.active {
-    color:var(--login-role-on-accent);
-    background:var(--login-role-accent);
-    box-shadow:0 6px 20px color-mix(in srgb,var(--login-role-accent) 18%,transparent);
+    color:var(--login-role-on-accent) !important;
+    background:var(--login-role-accent) !important;
+    font-weight:700 !important;
+    box-shadow:0 4px 14px color-mix(in srgb,var(--login-role-accent) 25%,transparent) !important;
 }
-.unified-auth-shell .role-toggle-btn.active span { background:color-mix(in srgb,var(--login-role-on-accent) 16%,transparent); }
+.unified-auth-shell .role-toggle-btn.active span {
+    background:color-mix(in srgb,var(--login-role-on-accent) 20%,transparent) !important;
+    color:var(--login-role-on-accent) !important;
+}
 .unified-auth-shell .role-context {
-    border-left-color:var(--login-role-accent);
-    background:color-mix(in srgb,var(--login-role-soft) 72%,var(--surface-muted));
+    border-left-color:var(--login-role-accent) !important;
+    background:color-mix(in srgb,var(--login-role-soft) 85%,var(--surface-muted)) !important;
 }
 .unified-auth-shell .unified-submit,
 .unified-auth-shell .unified-submit:hover {
     color:var(--login-role-on-accent) !important;
     background:var(--login-role-accent) !important;
-    border-color:var(--login-role-accent);
+    border-color:var(--login-role-accent) !important;
 }
 .unified-auth-shell :focus-visible { outline-color:var(--login-role-accent); }
 .unified-auth-shell .form-input:focus {
-    border-color:var(--login-role-accent);
-    box-shadow:0 0 0 3px color-mix(in srgb,var(--login-role-accent) 20%,transparent);
+    border-color:var(--login-role-accent) !important;
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--login-role-accent) 20%,transparent) !important;
 }
 
 /* Unified dashboard chrome */

@@ -1,0 +1,271 @@
+/* ==========================================================================
+   Nexus Design System - TPO Security, Intelligence & Reports (#tab-intelligence)
+   ========================================================================== */
+
+/* Container */
+.admin-dashboard-page #tab-intelligence {
+    display: none;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.admin-dashboard-page #tab-intelligence.active {
+    display: flex;
+}
+
+/* Feature Panel Cards */
+.admin-dashboard-page #tab-intelligence .glass-card,
+.admin-dashboard-page #tab-intelligence .intelligence-control-card,
+.admin-dashboard-page #tab-intelligence .intelligence-tool-card {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.5rem !important;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05)) !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Header & Export Actions */
+.intelligence-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+}
+
+.intelligence-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.25rem 0;
+}
+
+.intelligence-header .eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary, #4f46e5);
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.intelligence-header .workflow-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.intelligence-header .workflow-actions .btn {
+    height: 38px;
+    padding: 0 1rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border-radius: var(--radius-md, 8px);
+}
+
+/* Section Headings */
+.intelligence-section-heading {
+    margin-top: 0.5rem;
+    margin-bottom: -0.5rem;
+}
+
+.intelligence-section-heading h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0;
+}
+
+.intelligence-section-heading .eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary, #4f46e5);
+}
+
+/* Health Metrics Grid */
+.health-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+/* Launch Operations 3-Column Grid */
+.launch-operations-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.intelligence-control-card .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.intelligence-control-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.15rem 0;
+}
+
+/* Intelligence Tools 2-Column Grid */
+.intelligence-tool-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.intelligence-tool-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.tool-card-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.tool-card-heading h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.2rem 0;
+}
+
+.tool-number {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--primary, #4f46e5);
+    background: var(--bg-muted, #f1f5f9);
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+}
+
+/* Staff Management Form */
+#staffCreateForm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+#staffCreateForm .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+#staffCreateForm .form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-heading, #0f172a);
+}
+
+#staffCreateForm .form-input,
+#staffCreateForm .form-select {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    color: var(--text-heading, #0f172a);
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--input-border, #cbd5e1);
+    border-radius: var(--radius-md, 8px);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#staffCreateForm .form-input:focus,
+#staffCreateForm .form-select:focus {
+    outline: none;
+    border-color: var(--primary, #4f46e5);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+#staffCreateForm .btn[type="submit"],
+#staffCreateForm .btn:not(.btn-sm) {
+    height: 40px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: var(--radius-md, 8px);
+    align-self: flex-start;
+}
+
+/* Candidate Ranking Row */
+.ranking-action-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.ranking-action-row .form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.ranking-action-row .btn {
+    height: 40px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: var(--radius-md, 8px);
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] .admin-dashboard-page #tab-intelligence .glass-card,
+[data-theme="dark"] .admin-dashboard-page #tab-intelligence .intelligence-control-card,
+[data-theme="dark"] .admin-dashboard-page #tab-intelligence .intelligence-tool-card {
+    background: var(--card-bg, #1e293b) !important;
+    border-color: var(--card-border, #334155) !important;
+}
+
+[data-theme="dark"] #staffCreateForm .form-input,
+[data-theme="dark"] #staffCreateForm .form-select,
+[data-theme="dark"] #jdParserText,
+[data-theme="dark"] #rankingDriveId {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .tool-number {
+    background: #0f172a;
+    color: #818cf8;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 991px) {
+    .launch-operations-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .intelligence-tool-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .intelligence-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .intelligence-header .workflow-actions {
+        width: 100%;
+    }
+
+    .intelligence-header .workflow-actions .btn,
+    .intelligence-header .workflow-actions a.btn {
+        flex: 1;
+        justify-content: center;
+    }
+}

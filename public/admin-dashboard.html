@@ -5,7 +5,13 @@
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administrator Workspace - AIT Placement Portal</title>
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
     <script src="/js/theme.js?v=20260812-advanced1"></script>
+    <link rel="stylesheet" href="/css/design-tokens.css?v=20260919-tokens1">
     <link rel="stylesheet" href="/css/styles.css?v=20260901-motion1">
     <link rel="stylesheet" href="/css/portal-layout-20260814.css?v=20260818-uifinal1">
     <link rel="stylesheet" href="/css/portal-identifiers-20260814.css?v=20260818-uifinal1">
@@ -63,20 +69,35 @@
     <link rel="stylesheet" href="/css/portal-responsive.css?v=20260901-staff-accents1">
     <script src="/js/portal-responsive.js?v=20260901-mobile-nav1" defer></script>
     <script src="/js/portal-sections.js?v=20260831" defer></script>
-<link rel="stylesheet" href="/css/student-experience-v1.css?v=20260906-engagement4"><script src="/js/student-experience-v1.js?v=20260906-engagement4" defer></script></head>
+    <link rel="stylesheet" href="/css/student-experience-v1.css?v=20260906-engagement4">
+    <script src="/js/student-experience-v1.js?v=20260906-engagement4" defer></script>
+    <link rel="stylesheet" href="/css/tpo-sidebar.css?v=20260919-sidebar2">
+    <link rel="stylesheet" href="/css/tpo-header.css?v=20260919-header1">
+    <link rel="stylesheet" href="/css/tpo-analytics.css?v=20260919-analytics1">
+    <link rel="stylesheet" href="/css/tpo-students.css?v=20260919-students1">
+    <link rel="stylesheet" href="/css/tpo-roster.css?v=20260919-roster1">
+    <link rel="stylesheet" href="/css/tpo-workflow.css?v=20260919-workflow1">
+    <link rel="stylesheet" href="/css/tpo-drives.css?v=20260919-drives1">
+    <link rel="stylesheet" href="/css/tpo-advanced.css?v=20260919-advanced1">
+    <link rel="stylesheet" href="/css/tpo-intelligence.css?v=20260919-intelligence1">
+    <script src="/js/tpo-sidebar.js?v=20260919-sidebar2" defer></script>
+</head>
 <body class="admin-dashboard-page">
     <a class="skip-link" href="#adminDashboard">Skip to dashboard</a>
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container navbar-inner">
-            <a href="/admin/dashboard" class="brand">
-                <div class="brand-icon">TPO</div>
-                <div>
-                    <div class="brand-title">AIT Placement Portal</div>
-                    <div class="brand-subtitle">Administrator Workspace</div>
+            <div class="tpo-header-left">
+                <button id="tpoMobileNavTrigger" class="tpo-mobile-nav-trigger" type="button" aria-label="Open navigation menu" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <div class="tpo-header-search">
+                    <svg viewBox="0 0 24 24" class="tpo-search-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" class="tpo-search-input" placeholder="Search students, drives, PRN..." aria-label="Quick search">
+                    <span class="tpo-search-shortcut">⌘K</span>
                 </div>
-            </a>
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            </div>
+            <div class="tpo-header-right">
                 <button id="adminAvatarButton" class="profile-picture-button" type="button" title="Update admin profile picture" aria-label="Update admin profile picture"><img id="adminAvatarImage" alt=""><span aria-hidden="true">A</span></button>
                 <input id="adminAvatarFile" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" hidden>
                 <span id="adminRoleBadge" class="badge badge-online">Administrator</span>
@@ -86,62 +107,144 @@
     </nav>
 
     <main id="adminDashboard" class="container dashboard-wrapper">
-        <!-- Header Banner -->
-        <div class="glass-card header-banner" style="margin-bottom: 1.5rem;">
-            <div>
+        <!-- TPO Left Sidebar Navigation (Nexus Design System) -->
+        <aside id="adminSidebar" class="tpo-sidebar tabs-nav admin-tabs" role="tablist" aria-label="Administrator workspace sections">
+            <!-- Sidebar Header -->
+            <div class="tpo-sidebar-header">
+                <a href="/admin/dashboard" class="tpo-sidebar-brand">
+                    <div class="tpo-brand-icon"><div class="brand-icon-inner"><img src="/logo.svg" alt="AIT Logo"></div></div>
+                    <div class="tpo-brand-text">
+                        <span class="tpo-brand-title">AIT Portal</span>
+                        <span class="tpo-brand-subtitle">Administrator TPO</span>
+                    </div>
+                </a>
+                <button id="tpoSidebarCollapseBtn" class="tpo-sidebar-toggle-btn" type="button" title="Collapse sidebar" aria-label="Collapse sidebar" aria-expanded="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <button id="tpoSidebarCloseBtn" class="tpo-sidebar-close-btn" type="button" title="Close menu" aria-label="Close menu">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <!-- Sidebar Scrollable Navigation Body -->
+            <div class="tpo-sidebar-body">
+                <!-- Group 1: General -->
+                <div class="tpo-sidebar-section">
+                    <div class="tpo-sidebar-section-title">GENERAL</div>
+                    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-analytics" onclick="switchAdminTab('analytics', this); loadAdminAnalytics();">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                        <span class="tab-label">Analytics</span>
+                    </button>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-students" onclick="switchAdminTab('students', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <span class="tab-label">Students</span>
+                    </button>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-calendar" onclick="switchAdminTab('calendar', this); renderCalendar();">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        <span class="tab-label">Calendar</span>
+                    </button>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-workflow" onclick="switchAdminTab('workflow', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span class="tab-label">Applications & Alerts</span>
+                        <span class="tpo-sidebar-badge badge-live">Live</span>
+                    </button>
+                </div>
+
+                <!-- Group 2: Operations -->
+                <div class="tpo-sidebar-section">
+                    <div class="tpo-sidebar-section-title">OPERATIONS</div>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-jd-matching" onclick="switchAdminTab('jd-matching', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                        <span class="tab-label">Placement Drives</span>
+                    </button>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-roster" onclick="switchAdminTab('roster', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span class="tab-label">Roster Upload</span>
+                    </button>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-readiness" onclick="switchAdminTab('readiness', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <span class="tab-label">Data Readiness</span>
+                    </button>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-audit-logs" onclick="switchAdminTab('audit-logs', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span class="tab-label">Audit History</span>
+                    </button>
+                </div>
+
+                <!-- Group 3: System & Security -->
+                <div class="tpo-sidebar-section">
+                    <div class="tpo-sidebar-section-title">SYSTEM & SECURITY</div>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-advanced" onclick="switchAdminTab('advanced', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+                        <span class="tab-label">Advanced Operations</span>
+                    </button>
+                    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-intelligence" onclick="switchAdminTab('intelligence', this)">
+                        <svg viewBox="0 0 24 24" class="tab-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        <span class="tab-label">Security Suite</span>
+                        <span class="tpo-sidebar-badge badge-beta">PRO</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="tpo-sidebar-footer">
+                <div class="tpo-sidebar-workspace-card">
+                    <div class="tpo-workspace-avatar">TPO</div>
+                    <div class="tpo-workspace-info">
+                        <span class="tpo-workspace-name">AIT Placement</span>
+                        <span class="tpo-workspace-role">Admin Workspace</span>
+                    </div>
+                    <span class="tpo-workspace-indicator" title="Active workspace session"></span>
+                </div>
+                <div class="tpo-sidebar-copyright">© 2026 Placement Portal AIT</div>
+            </div>
+        </aside>
+
+        <!-- Header Banner (Nexus Design System) -->
+        <div class="header-banner">
+            <div class="tpo-banner-info">
                 <h2>Placement operations</h2>
                 <p>Manage student records, roster data, reports, audit history, and placement drives.</p>
             </div>
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <div style="background: rgba(0,0,0,0.3); padding: 0.75rem 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.5rem;">
-                    <input type="text" id="impersonatePrn" class="form-input" placeholder="Enter PRN to login..." aria-label="Student PRN to impersonate" style="margin-bottom: 0; min-width: 150px; height: 36px; font-size: 0.85rem;" autocomplete="off">
-                    <button id="btnImpersonate" class="btn btn-primary" style="height: 36px; padding: 0 1rem; font-size: 0.85rem;">Login as Student</button>
+            <div class="tpo-banner-actions">
+                <div class="tpo-impersonate-group">
+                    <input type="text" id="impersonatePrn" class="form-input" placeholder="Enter PRN to login..." aria-label="Student PRN to impersonate" autocomplete="off">
+                    <button id="btnImpersonate" class="btn btn-primary">Login as Student</button>
                 </div>
-                <div style="background: rgba(0,0,0,0.3); padding: 0.75rem 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Filtered Students</div>
-                    <div id="statFilteredCount" style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">0</div>
+                <div class="tpo-stat-tile">
+                    <span class="tpo-stat-label">Filtered Students</span>
+                    <span id="statFilteredCount" class="tpo-stat-value">0</span>
                 </div>
-                <div style="background: rgba(0,0,0,0.3); padding: 0.75rem 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Total Roster</div>
-                    <div id="statRosterCount" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">0</div>
+                <div class="tpo-stat-tile">
+                    <span class="tpo-stat-label">Total Roster</span>
+                    <span id="statRosterCount" class="tpo-stat-value">0</span>
                 </div>
             </div>
         </div>
 
-        <!-- Navigation Tabs -->
-        <div class="tabs-nav admin-tabs" role="tablist" aria-label="Administrator workspace sections">
-            <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-analytics" onclick="switchAdminTab('analytics', this); loadAdminAnalytics();">Analytics</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-calendar" onclick="switchAdminTab('calendar', this); renderCalendar();">Calendar</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-students" onclick="switchAdminTab('students', this)">Students</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-roster" onclick="switchAdminTab('roster', this)">Roster upload</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-audit-logs" onclick="switchAdminTab('audit-logs', this)">Audit history</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-jd-matching" onclick="switchAdminTab('jd-matching', this)">Placement drives</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-readiness" onclick="switchAdminTab('readiness', this)">Data readiness</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-workflow" onclick="switchAdminTab('workflow', this)">Applications & alerts</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-advanced" onclick="switchAdminTab('advanced', this)">Advanced operations</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-intelligence" onclick="switchAdminTab('intelligence', this)">Security & intelligence</button>
-        </div>
-
-        <!-- Analytics Tab -->
+        <!-- Analytics Tab (Nexus Design System) -->
         <div id="tab-analytics" class="tab-content active" role="tabpanel">
             <div class="header-split">
-                <div><h2 class="section-title">Dashboard Analytics</h2><p>Visual overview of placement statistics.</p></div>
+                <div>
+                    <h2 class="section-title">Dashboard Analytics</h2>
+                    <p>Visual overview of placement statistics.</p>
+                </div>
                 <button class="btn btn-secondary btn-sm" onclick="loadAdminAnalytics()">Refresh Data</button>
             </div>
             <div class="analytics-charts-grid">
-                <div class="glass-card" style="padding: 1rem;">
+                <div class="glass-card">
                     <canvas id="placementChart"></canvas>
                 </div>
-                <div class="glass-card" style="padding: 1rem;">
+                <div class="glass-card">
                     <canvas id="ctcChart"></canvas>
                 </div>
-                <div class="glass-card" style="padding: 1rem;">
+                <div class="glass-card">
                     <canvas id="completionChart"></canvas>
                 </div>
-                <div class="glass-card" style="padding: 1rem;">
+                <div class="glass-card">
                     <canvas id="packageChart"></canvas>
                 </div>
-                <div class="glass-card" style="padding: 1rem;">
+                <div class="glass-card">
                     <canvas id="recruitersChart"></canvas>
                 </div>
             </div>
@@ -221,146 +324,495 @@
         <div id="tab-roster" class="tab-content" role="tabpanel">
             <div class="glass-card roster-workspace-panel">
                 <div class="upload-heading-row">
-                    <div><h3>Bulk Preload Roster Dataset</h3><p>Prepare department data using official format.</p></div>
-                    <div class="workflow-actions"><a class="btn btn-primary" href="/templates/AIT-roster-template.xlsx" download="AIT-roster-template.xlsx">Download Excel template</a><a class="btn btn-secondary" href="/templates/ait-roster-template.csv" download="AIT-roster-template.csv">CSV version</a></div>
+                    <div>
+                        <h3>Bulk Preload Roster Dataset</h3>
+                        <p>Prepare department data using official format.</p>
+                    </div>
+                    <div class="workflow-actions">
+                        <a class="btn btn-primary" href="/templates/AIT-roster-template.xlsx" download="AIT-roster-template.xlsx">Download Excel template</a>
+                        <a class="btn btn-secondary" href="/templates/ait-roster-template.csv" download="AIT-roster-template.csv">CSV version</a>
+                    </div>
                 </div>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+
+                <p>
                     Upload up to 10,000 students per Excel or CSV file containing <code>prn, name, dob, branch, class, year</code>. PRN is an identifier and DOB uses <code>DD-MM-YYYY</code>. Processing uses safe 250-row database batches. Re-uploading updates existing PRN records without duplicates.
                 </p>
 
-                <p>PRNs are identifiers, not numbers. In Excel, format the PRN column as Text before entering digits. If Excel already rounded a PRN, re-enter the original value. CSV does not preserve Excel cell formatting.</p>
+                <div class="roster-prn-notice">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <div>
+                        <strong>Important PRN Formatting Notice:</strong> PRNs are identifiers, not numbers. In Excel, format the PRN column as Text before entering digits. If Excel already rounded a PRN, re-enter the original value. CSV does not preserve Excel cell formatting.
+                    </div>
+                </div>
+
                 <div class="roster-input-grid">
-                <div class="roster-file-column">
-                <div id="dropzone" class="upload-dropzone" onclick="document.getElementById('csvFileInput').click()">
-                    <div class="upload-file-mark" aria-hidden="true">XLSX</div>
-                    <h4>Click or Drag & Drop Excel / CSV File Here</h4>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">PRN and DOB stay readable; maximum 10 MB</p>
-                    <input type="file" id="csvFileInput" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" style="display: none;" onchange="handleFileSelected(event)">
+                    <div class="roster-file-column">
+                        <div id="dropzone" class="upload-dropzone" onclick="document.getElementById('csvFileInput').click()">
+                            <div class="upload-file-mark" aria-hidden="true">XLSX / CSV</div>
+                            <h4>Click or Drag & Drop Excel / CSV File Here</h4>
+                            <p>PRN and DOB stay readable; maximum 10 MB</p>
+                            <input type="file" id="csvFileInput" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" style="display: none;" onchange="handleFileSelected(event)">
+                        </div>
+
+                        <div id="selectedFileInfo" style="display: none;">
+                            <strong id="selectedFileName">file.csv</strong> (<span id="selectedFileSize">0 KB</span>)
+                        </div>
+                    </div>
+
+                    <div class="form-group roster-paste-column">
+                        <label class="form-label" for="rawCsvText">Or paste raw CSV data:</label>
+                        <textarea id="rawCsvText" class="form-textarea" rows="5" placeholder="prn,name,dob,branch,class,year&#10;24053651251520,Amit Kumar,15-01-2004,CT,BE-A,Final Year"></textarea>
+                    </div>
                 </div>
 
-                <div id="selectedFileInfo" style="display: none; margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid var(--border-color);">
-                    <strong id="selectedFileName">file.csv</strong> (<span id="selectedFileSize">0 KB</span>)
-                </div>
-                </div>
-
-                <div class="form-group roster-paste-column">
-                    <label class="form-label" for="rawCsvText">Or paste raw CSV data:</label>
-                    <textarea id="rawCsvText" class="form-textarea" rows="5" placeholder="prn,name,dob,branch,class,year&#10;24053651251520,Amit Kumar,15-01-2004,CT,BE-A,Final Year"></textarea>
-                </div>
+                <div class="workflow-actions">
+                    <button id="previewRosterBtn" class="btn btn-secondary" type="button" onclick="previewRosterUpload()">Preview and validate</button>
+                    <button id="uploadRosterBtn" class="btn btn-primary" type="button" onclick="submitRosterUpload()">Process roster dataset</button>
                 </div>
 
-                <div class="workflow-actions"><button id="previewRosterBtn" class="btn btn-secondary" type="button" onclick="previewRosterUpload()">Preview and validate</button><button id="uploadRosterBtn" class="btn btn-primary" type="button" onclick="submitRosterUpload()">Process roster dataset</button></div>
-                <div id="importProgress" class="import-progress" hidden><div><span id="importProgressText">Preparing import...</span><strong id="importProgressPercent">0%</strong></div><progress id="importProgressBar" max="100" value="0"></progress></div>
+                <div id="importProgress" class="import-progress" hidden>
+                    <div>
+                        <span id="importProgressText">Preparing import...</span>
+                        <strong id="importProgressPercent">0%</strong>
+                    </div>
+                    <progress id="importProgressBar" max="100" value="0"></progress>
+                </div>
+
                 <div id="rosterPreview" class="record-stack" style="margin-top:1rem"></div>
             </div>
 
-
-
-            <div id="uploadSummaryBox" style="display: none; margin-top: 1.5rem; padding: 1.25rem; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color);">
-                    <h4>Upload Results Summary</h4>
-                    <div class="grid-4" style="margin-top: 0.75rem;">
-                        <div style="background: rgba(16,185,129,0.1); padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid rgba(16,185,129,0.3);">
-                            <span style="font-size: 0.75rem; color: #6ee7b7;">Added</span>
-                            <div id="sumAdded" style="font-size: 1.4rem; font-weight: 700; color: #10b981;">0</div>
-                        </div>
-                        <div style="background: var(--surface-muted); padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid var(--border-color);">
-                            <span style="font-size: 0.75rem; color: var(--text-secondary);">Updated</span>
-                            <div id="sumUpdated" style="font-size: 1.4rem; font-weight: 700; color: var(--primary);">0</div>
-                        </div>
-                        <div style="background: rgba(239,68,68,0.1); padding: 0.75rem; border-radius: 8px; text-align: center; border: 1px solid rgba(239,68,68,0.3);">
-                            <span style="font-size: 0.75rem; color: #fca5a5;">Failed</span>
-                            <div id="sumFailed" style="font-size: 1.4rem; font-weight: 700; color: #ef4444;">0</div>
-                        </div>
+            <div id="uploadSummaryBox" style="display: none;">
+                <h4>Upload Results Summary</h4>
+                <div class="upload-summary-grid">
+                    <div class="summary-tile tile-added">
+                        <span class="summary-tile-label">Added</span>
+                        <div id="sumAdded" class="summary-tile-value">0</div>
                     </div>
-                    <div id="uploadErrorList" style="margin-top: 1rem; font-size: 0.85rem; color: #fca5a5;"></div>
+                    <div class="summary-tile tile-updated">
+                        <span class="summary-tile-label">Updated</span>
+                        <div id="sumUpdated" class="summary-tile-value">0</div>
+                    </div>
+                    <div class="summary-tile tile-failed">
+                        <span class="summary-tile-label">Failed</span>
+                        <div id="sumFailed" class="summary-tile-value">0</div>
+                    </div>
                 </div>
-                <section class="launch-subsection"><div class="section-header"><div><h3>Import history</h3><p class="section-note">Latest 50 imports. Scroll history below.</p></div><button class="btn btn-secondary btn-sm" onclick="loadImportHistory()">Refresh</button></div><div id="importHistory" class="record-stack bounded-history-list"></div></section>
+                <div id="uploadErrorList" style="margin-top: 1rem; font-size: 0.85rem; color: #fca5a5;"></div>
+            </div>
+
+            <section class="launch-subsection" style="margin-top: 1.5rem;">
+                <div class="section-header">
+                    <div>
+                        <h3>Import history</h3>
+                        <p class="section-note">Latest 50 imports. Scroll history below.</p>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="loadImportHistory()">Refresh</button>
+                </div>
+                <div id="importHistory" class="record-stack bounded-history-list"></div>
+            </section>
+        </div>
+        </div>
+
+        <!-- TAB: DATA READINESS -->
+        <div id="tab-readiness" class="tab-content" role="tabpanel">
+            <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <div>
+                    <h3>Student data readiness</h3>
+                    <p class="section-note" style="margin:0;">Missing profiles, resumes, CGPA, and required fields.</p>
+                </div>
+                <button class="btn btn-secondary" onclick="loadReadiness()">Refresh</button>
+            </div>
+            <div id="readinessMetrics" class="metric-grid"></div>
+            <div class="glass-card table-responsive" style="padding:0;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Branch</th>
+                            <th>Completion</th>
+                            <th>Missing</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="readinessRows"></tbody>
+                </table>
             </div>
         </div>
 
-        <!-- TAB 3: AUDIT TRAIL LOGS -->
-        <div id="tab-readiness" class="tab-content" role="tabpanel">
-            <div class="section-header"><div><h3>Student data readiness</h3><p class="section-note">Missing profiles, resumes, CGPA, and required fields.</p></div><button class="btn btn-secondary" onclick="loadReadiness()">Refresh</button></div>
-            <div id="readinessMetrics" class="metric-grid"></div>
-            <div class="glass-card table-responsive"><table class="data-table"><thead><tr><th>Student</th><th>Branch</th><th>Completion</th><th>Missing</th><th>Action</th></tr></thead><tbody id="readinessRows"></tbody></table></div>
-        </div>
-
+        <!-- TAB: APPLICATIONS & ALERTS WORKFLOW -->
         <div id="tab-workflow" class="tab-content" role="tabpanel">
             <div class="notification-admin-layout workflow-workspace">
-                <section class="glass-card feature-panel"><h3>Send student alert</h3><form id="notificationForm"><div class="form-group"><label class="form-label" for="noticeTitle">Title</label><input id="noticeTitle" class="form-input" required minlength="2" maxlength="120"></div><div class="form-group"><label class="form-label" for="noticeMessage">Message</label><textarea id="noticeMessage" class="form-textarea" required minlength="3" maxlength="2000"></textarea></div><fieldset class="form-group notice-audience"><legend class="form-label">Send to branches</legend><label class="notice-all-branches"><input id="noticeAllBranches" type="checkbox" checked onchange="toggleNoticeBranches()"> All branches</label><div id="noticeBranches" class="branch-option-grid"><label><input type="checkbox" value="AIML" disabled> AIML</label><label><input type="checkbox" value="CT" disabled> CT</label><label><input type="checkbox" value="EE" disabled> EE</label><label><input type="checkbox" value="ME" disabled> ME</label><label><input type="checkbox" value="CE" disabled> CE</label><label><input type="checkbox" value="E&amp;C" disabled> E&amp;C</label></div><small class="field-help">Uncheck All branches to select multiple departments.</small></fieldset><div class="grid-2"><div class="form-group"><label class="form-label" for="noticeExpiry">Expires (optional)</label><input id="noticeExpiry" type="datetime-local" class="form-input"><small class="field-help">Leave blank to keep alert visible.</small></div><div class="form-group"><label class="form-label" for="noticeAction">Open destination</label><input id="noticeAction" class="form-input" value="/dashboard?tab=opportunities"><small class="field-help">Opens inside student session.</small></div></div><label class="form-label notice-important"><input id="noticeImportant" type="checkbox"> Mark important</label><button id="sendNotificationBtn" class="btn btn-primary" type="submit">Send alert</button><div id="notificationFormError" class="form-error" role="alert" aria-live="polite"></div></form></section>
-                <section class="glass-card feature-panel"><h3>Application pipeline</h3><p class="section-note">Update candidates through test, interview, selection, or rejection.</p><div id="applicationPipeline" class="record-stack bounded-workspace-list"></div></section>
+                <section class="glass-card feature-panel">
+                    <h3>Send student alert</h3>
+                    <form id="notificationForm">
+                        <div class="form-group">
+                            <label class="form-label" for="noticeTitle">Title</label>
+                            <input id="noticeTitle" class="form-input" required minlength="2" maxlength="120">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="noticeMessage">Message</label>
+                            <textarea id="noticeMessage" class="form-textarea" required minlength="3" maxlength="2000"></textarea>
+                        </div>
+                        <fieldset class="form-group notice-audience">
+                            <legend class="form-label">Send to branches</legend>
+                            <label class="notice-all-branches">
+                                <input id="noticeAllBranches" type="checkbox" checked onchange="toggleNoticeBranches()"> All branches
+                            </label>
+                            <div id="noticeBranches" class="branch-option-grid">
+                                <label><input type="checkbox" value="AIML" disabled> AIML</label>
+                                <label><input type="checkbox" value="CT" disabled> CT</label>
+                                <label><input type="checkbox" value="EE" disabled> EE</label>
+                                <label><input type="checkbox" value="ME" disabled> ME</label>
+                                <label><input type="checkbox" value="CE" disabled> CE</label>
+                                <label><input type="checkbox" value="E&amp;C" disabled> E&amp;C</label>
+                            </div>
+                            <small class="field-help">Uncheck All branches to select multiple departments.</small>
+                        </fieldset>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label" for="noticeExpiry">Expires (optional)</label>
+                                <input id="noticeExpiry" type="datetime-local" class="form-input">
+                                <small class="field-help">Leave blank to keep alert visible.</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="noticeAction">Open destination</label>
+                                <input id="noticeAction" class="form-input" value="/dashboard?tab=opportunities">
+                                <small class="field-help">Opens inside student session.</small>
+                            </div>
+                        </div>
+                        <label class="form-label notice-important">
+                            <input id="noticeImportant" type="checkbox"> Mark important
+                        </label>
+                        <button id="sendNotificationBtn" class="btn btn-primary" type="submit">Send alert</button>
+                        <div id="notificationFormError" class="form-error" role="alert" aria-live="polite"></div>
+                    </form>
+                </section>
+
+                <section class="glass-card feature-panel">
+                    <h3>Application pipeline</h3>
+                    <p class="section-note">Update candidates through test, interview, selection, or rejection.</p>
+                    <div id="applicationPipeline" class="record-stack bounded-workspace-list"></div>
+                </section>
             </div>
-            <section class="glass-card feature-panel sent-notification-panel"><div class="section-header"><div><span class="eyebrow">Delivery history</span><h3>Sent notifications</h3><p class="section-note">Latest 50 alerts. Scroll history below.</p></div><button class="btn btn-secondary" onclick="loadSentNotifications()">Refresh history</button></div><div id="sentNotifications" class="sent-notification-grid bounded-card-grid"></div></section>
+
+            <section class="glass-card feature-panel sent-notification-panel" style="margin-top: 1.5rem;">
+                <div class="section-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span class="eyebrow">Delivery history</span>
+                        <h3>Sent notifications</h3>
+                        <p class="section-note" style="margin:0;">Latest 50 alerts. Scroll history below.</p>
+                    </div>
+                    <button class="btn btn-secondary" onclick="loadSentNotifications()">Refresh history</button>
+                </div>
+                <div id="sentNotifications" class="sent-notification-grid bounded-card-grid"></div>
+            </section>
         </div>
 
+        <!-- TAB: ADVANCED OPERATIONS -->
         <div id="tab-advanced" class="tab-content" role="tabpanel">
-            <div class="section-header"><div><span class="eyebrow" id="advancedRoleEyebrow">Advanced operations</span><h3>Advanced placement operations</h3></div><button class="btn btn-secondary" onclick="loadAdvancedOperations()">Refresh</button></div>
+            <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <div>
+                    <span class="eyebrow" id="advancedRoleEyebrow">Advanced operations</span>
+                    <h3>Advanced placement operations</h3>
+                </div>
+                <button class="btn btn-secondary" onclick="loadAdvancedOperations()">Refresh</button>
+            </div>
+
             <div id="advancedMetrics" class="metric-grid"></div>
-            <section class="glass-card feature-panel"><h3>Advanced student search</h3><div class="advanced-search-grid"><div class="form-group"><label class="form-label" for="advancedQuery">Student search</label><input id="advancedQuery" class="form-input" placeholder="Name, PRN, branch, skill"></div><div class="form-group"><label class="form-label" for="advancedBranch">Branch</label><select id="advancedBranch" class="form-select"><option value="all">All branches</option><option>AIML</option><option>CT</option><option>EE</option><option>ME</option><option>CE</option><option>E&amp;C</option></select></div><div class="form-group"><label class="form-label" for="advancedCgpa">Minimum CGPA</label><input id="advancedCgpa" class="form-input" type="number" min="0" max="10" step=".01" placeholder="e.g. 7.0"></div><div class="form-group"><label class="form-label" for="advancedSkill">Required skill</label><input id="advancedSkill" class="form-input" placeholder="e.g. Java"></div><button class="btn btn-primary" onclick="runAdvancedSearch()">Search</button><button class="btn btn-secondary" onclick="saveCurrentFilter()">Save filter</button></div><div id="savedFilters" class="workflow-actions"></div><div id="advancedResults" class="record-stack advanced-results bounded-workspace-list"></div></section>
-            <div class="grid-2 advanced-forms">
-                <form id="assessmentForm" class="glass-card feature-panel"><h3>Training / assessment</h3><div class="form-group"><label class="form-label">Student UUID</label><input name="student_id" class="form-input" required></div><div class="form-group"><label class="form-label">Assessment type</label><select name="type" class="form-select"><option value="aptitude">Aptitude</option><option value="coding">Coding</option><option value="mock_interview">Mock interview</option><option value="training">Training</option></select></div><div class="form-group"><label class="form-label">Assessment title</label><input name="title" class="form-input" required></div><div class="grid-2"><div class="form-group"><label class="form-label">Score</label><input name="score" class="form-input" type="number"></div><div class="form-group"><label class="form-label">Maximum score</label><input name="max_score" class="form-input" type="number"></div></div><div class="form-group"><label class="form-label">Attended on</label><input name="attended_on" class="form-input" type="date"></div><button class="btn btn-primary">Save assessment</button></form>
-                <form id="interviewForm" class="glass-card feature-panel"><h3>Interview scheduling</h3><div class="form-group"><label class="form-label">Student UUID</label><input name="student_id" class="form-input"></div><div class="form-group"><label class="form-label">Drive UUID</label><input name="drive_id" class="form-input"></div><div class="grid-2"><div class="form-group"><label class="form-label">Starts at</label><input name="starts_at" class="form-input" type="datetime-local" required></div><div class="form-group"><label class="form-label">Ends at</label><input name="ends_at" class="form-input" type="datetime-local" required></div></div><div class="form-group"><label class="form-label">Venue</label><input name="venue" class="form-input"></div><div class="form-group"><label class="form-label">Panel members</label><input name="panel" class="form-input"></div><button class="btn btn-primary">Schedule interview</button></form>
-                <form id="offerForm" class="glass-card feature-panel"><h3>Offer tracking</h3><div class="form-group"><label class="form-label">Student UUID</label><input name="student_id" class="form-input" required></div><div class="grid-2"><div class="form-group"><label class="form-label">Company</label><input name="company" class="form-input" required></div><div class="form-group"><label class="form-label">Role</label><input name="role" class="form-input" required></div></div><div class="form-group"><label class="form-label">Package (LPA)</label><input name="package_lpa" class="form-input" type="number" min="0" step=".01"></div><div class="form-group"><label class="form-label">Offer status</label><select name="status" class="form-select"><option>offered</option><option>accepted</option><option>declined</option><option>joined</option></select></div><button class="btn btn-primary">Save offer</button></form>
-                <form id="calendarForm" class="glass-card feature-panel"><h3>Placement calendar</h3><div class="form-group"><label class="form-label">Event title</label><input name="title" class="form-input" required></div><div class="form-group"><label class="form-label">Event type</label><select name="event_type" class="form-select"><option>drive</option><option>test</option><option>interview</option><option>training</option><option>deadline</option><option>other</option></select></div><div class="form-group"><label class="form-label">Starts at</label><input name="starts_at" class="form-input" type="datetime-local" required></div><div class="form-group"><label class="form-label">Location or link</label><input name="location" class="form-input"></div><button class="btn btn-primary">Add event</button></form>
-                <form id="changeStudentPasswordFormDashboard" class="glass-card feature-panel" style="grid-column: span 2;">
+
+            <section class="glass-card feature-panel">
+                <h3>Advanced student search</h3>
+                <div class="advanced-search-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="advancedQuery">Student search</label>
+                        <input id="advancedQuery" class="form-input" placeholder="Name, PRN, branch, skill">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="advancedBranch">Branch</label>
+                        <select id="advancedBranch" class="form-select">
+                            <option value="all">All branches</option>
+                            <option>AIML</option>
+                            <option>CT</option>
+                            <option>EE</option>
+                            <option>ME</option>
+                            <option>CE</option>
+                            <option>E&amp;C</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="advancedCgpa">Minimum CGPA</label>
+                        <input id="advancedCgpa" class="form-input" type="number" min="0" max="10" step=".01" placeholder="e.g. 7.0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="advancedSkill">Required skill</label>
+                        <input id="advancedSkill" class="form-input" placeholder="e.g. Java">
+                    </div>
+                    <button class="btn btn-primary" onclick="runAdvancedSearch()">Search</button>
+                    <button class="btn btn-secondary" onclick="saveCurrentFilter()">Save filter</button>
+                </div>
+                <div id="savedFilters" class="workflow-actions" style="margin-top: 0.75rem;"></div>
+                <div id="advancedResults" class="record-stack advanced-results bounded-workspace-list" style="margin-top: 1rem;"></div>
+            </section>
+
+            <div class="grid-2 advanced-forms" style="margin-top: 1.5rem;">
+                <form id="assessmentForm" class="glass-card feature-panel">
+                    <h3>Training / assessment</h3>
+                    <div class="form-group"><label class="form-label">Student UUID</label><input name="student_id" class="form-input" required></div>
+                    <div class="form-group"><label class="form-label">Assessment type</label><select name="type" class="form-select"><option value="aptitude">Aptitude</option><option value="coding">Coding</option><option value="mock_interview">Mock interview</option><option value="training">Training</option></select></div>
+                    <div class="form-group"><label class="form-label">Assessment title</label><input name="title" class="form-input" required></div>
+                    <div class="grid-2"><div class="form-group"><label class="form-label">Score</label><input name="score" class="form-input" type="number"></div><div class="form-group"><label class="form-label">Maximum score</label><input name="max_score" class="form-input" type="number"></div></div>
+                    <div class="form-group"><label class="form-label">Attended on</label><input name="attended_on" class="form-input" type="date"></div>
+                    <button class="btn btn-primary" type="submit">Save assessment</button>
+                </form>
+
+                <form id="interviewForm" class="glass-card feature-panel">
+                    <h3>Interview scheduling</h3>
+                    <div class="form-group"><label class="form-label">Student UUID</label><input name="student_id" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Drive UUID</label><input name="drive_id" class="form-input"></div>
+                    <div class="grid-2"><div class="form-group"><label class="form-label">Starts at</label><input name="starts_at" class="form-input" type="datetime-local" required></div><div class="form-group"><label class="form-label">Ends at</label><input name="ends_at" class="form-input" type="datetime-local" required></div></div>
+                    <div class="form-group"><label class="form-label">Venue</label><input name="venue" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Panel members</label><input name="panel" class="form-input"></div>
+                    <button class="btn btn-primary" type="submit">Schedule interview</button>
+                </form>
+
+                <form id="offerForm" class="glass-card feature-panel">
+                    <h3>Offer tracking</h3>
+                    <div class="form-group"><label class="form-label">Student UUID</label><input name="student_id" class="form-input" required></div>
+                    <div class="grid-2"><div class="form-group"><label class="form-label">Company</label><input name="company" class="form-input" required></div><div class="form-group"><label class="form-label">Role</label><input name="role" class="form-input" required></div></div>
+                    <div class="form-group"><label class="form-label">Package (LPA)</label><input name="package_lpa" class="form-input" type="number" min="0" step=".01"></div>
+                    <div class="form-group"><label class="form-label">Offer status</label><select name="status" class="form-select"><option>offered</option><option>accepted</option><option>declined</option><option>joined</option></select></div>
+                    <button class="btn btn-primary" type="submit">Save offer</button>
+                </form>
+
+                <form id="calendarForm" class="glass-card feature-panel">
+                    <h3>Placement calendar</h3>
+                    <div class="form-group"><label class="form-label">Event title</label><input name="title" class="form-input" required></div>
+                    <div class="form-group"><label class="form-label">Event type</label><select name="event_type" class="form-select"><option>drive</option><option>test</option><option>interview</option><option>training</option><option>deadline</option><option>other</option></select></div>
+                    <div class="form-group"><label class="form-label">Starts at</label><input name="starts_at" class="form-input" type="datetime-local" required></div>
+                    <div class="form-group"><label class="form-label">Location or link</label><input name="location" class="form-input"></div>
+                    <button class="btn btn-primary" type="submit">Add event</button>
+                </form>
+
+                <form id="changeStudentPasswordFormDashboard" class="glass-card feature-panel full-width-card" style="grid-column: span 2;">
                     <h3>Change Student Password</h3>
                     <p class="section-note">Reset student's login DOB password.</p>
-                    <div class="form-group">
-                        <label class="form-label" for="dashStudentPrn">Student PRN</label>
-                        <input id="dashStudentPrn" class="form-input" required placeholder="PRN to change password">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label" for="dashStudentPrn">Student PRN</label>
+                            <input id="dashStudentPrn" class="form-input" required placeholder="PRN to change password">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="dashNewDob">New DOB (Password)</label>
+                            <input id="dashNewDob" class="form-input" required placeholder="e.g. 310703 or 2003-07-31">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" for="dashNewDob">New DOB (Password)</label>
-                        <input id="dashNewDob" class="form-input" required placeholder="e.g. 310703 or 2003-07-31">
-                    </div>
-                    <button class="btn btn-primary" type="submit">Update password</button>
+                    <button class="btn btn-primary" type="submit" style="margin-top: 0.5rem;">Update password</button>
                     <div id="changePasswordStatus" style="margin-top: 0.5rem; font-size: 0.85rem;" class="form-hint" hidden></div>
                 </form>
 
-                <section class="glass-card feature-panel" style="grid-column: span 2;">
+                <section class="glass-card feature-panel full-width-card" style="grid-column: span 2;">
                     <h3>DOB Correction Requests</h3>
                     <p class="section-note">Approve or reject student submissions for DOB password correction.</p>
-                    <div style="overflow-x: auto; margin-top: 1rem;">
+                    <div class="dob-corrections-table-shell">
                         <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
                             <thead>
-                                <tr style="border-bottom: 2px solid #334155; color: #94a3b8;">
-                                    <th style="padding: 8px;">PRN</th>
-                                    <th style="padding: 8px;">Name</th>
-                                    <th style="padding: 8px;">Submitted DOB</th>
-                                    <th style="padding: 8px;">Branch</th>
-                                    <th style="padding: 8px;">Status</th>
-                                    <th style="padding: 8px; text-align: right;">Action</th>
+                                <tr style="border-bottom: 2px solid var(--card-border, #334155);">
+                                    <th style="padding: 10px;">PRN</th>
+                                    <th style="padding: 10px;">Name</th>
+                                    <th style="padding: 10px;">Submitted DOB</th>
+                                    <th style="padding: 10px;">Branch</th>
+                                    <th style="padding: 10px;">Status</th>
+                                    <th style="padding: 10px; text-align: right;">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="dobCorrectionsAdminList">
-                                <tr><td colspan="6" style="padding: 16px; text-align: center; color: #94a3b8;">Loading requests...</td></tr>
+                                <tr><td colspan="6" style="padding: 16px; text-align: center; color: var(--text-muted);">Loading requests...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </section>
             </div>
-            <div class="grid-2"><section><h3>Upcoming calendar</h3><div id="calendarList" class="record-stack bounded-history-list"></div></section><section><h3>Interviews and offers</h3><div id="operationsList" class="record-stack bounded-history-list"></div></section></div>
+
+            <div class="grid-2" style="margin-top: 1.5rem;">
+                <section class="glass-card feature-panel">
+                    <h3>Upcoming calendar</h3>
+                    <div id="calendarList" class="record-stack bounded-history-list" style="margin-top: 0.75rem;"></div>
+                </section>
+                <section class="glass-card feature-panel">
+                    <h3>Interviews and offers</h3>
+                    <div id="operationsList" class="record-stack bounded-history-list" style="margin-top: 0.75rem;"></div>
+                </section>
+            </div>
         </div>
 
+        <!-- TAB: SECURITY SUITE & INTELLIGENCE -->
         <div id="tab-intelligence" class="tab-content" role="tabpanel">
-            <div class="section-header intelligence-header"><div><span class="eyebrow">Super Admin control</span><h3>Security, intelligence, and reports</h3><p class="section-note">Monitor platform health, protect data, and manage operational access.</p></div><div class="workflow-actions"><a class="btn btn-secondary" href="/api/admin/launch/audit.csv">Export audit CSV</a><button class="btn btn-secondary" onclick="downloadAccessLoginReport()">Login &amp; access report</button><button class="btn btn-secondary" onclick="openManagementPdf()">Print / save PDF</button><button class="btn btn-primary" onclick="downloadManagementReport()">Download Excel</button></div></div>
-            <div id="systemHealth" class="metric-grid health-metric-grid"></div>
-            <div class="intelligence-section-heading"><div><span class="eyebrow">Launch controls</span><h3>Operations and protection</h3></div></div>
-            <div class="launch-operations-grid"><section class="glass-card feature-panel intelligence-control-card"><div class="section-header"><div><h3>Launch checklist</h3><p class="section-note">Production readiness tasks.</p></div><button class="btn btn-secondary btn-sm" onclick="loadLaunchChecklist()">Refresh</button></div><div id="launchChecklist" class="record-stack"></div></section><section class="glass-card feature-panel intelligence-control-card"><div class="section-header"><div><h3>Backup &amp; restore</h3><p class="section-note">Latest 20 snapshots. Scroll history below.</p></div><button class="btn btn-primary btn-sm" onclick="createLaunchBackup()">Create backup</button></div><div id="launchBackups" class="record-stack backup-history-list" role="list" aria-label="Backup history"></div></section><section class="glass-card feature-panel intelligence-control-card"><div class="section-header"><div><h3>Security alerts</h3><p class="section-note">Latest 100 findings. Scroll results below.</p></div><button class="btn btn-secondary btn-sm" onclick="loadSecurityAlerts()">Scan</button></div><div id="securityAlerts" class="record-stack bounded-history-list"></div></section></div>
-            <div class="intelligence-section-heading"><div><span class="eyebrow">Intelligence tools</span><h3>Analysis and access management</h3></div></div>
+            <div class="section-header intelligence-header">
+                <div>
+                    <span class="eyebrow">Super Admin control</span>
+                    <h3>Security, intelligence, and reports</h3>
+                    <p class="section-note" style="margin:0;">Monitor platform health, protect data, and manage operational access.</p>
+                </div>
+                <div class="workflow-actions">
+                    <a class="btn btn-secondary" href="/api/admin/launch/audit.csv">Export audit CSV</a>
+                    <button class="btn btn-secondary" onclick="downloadAccessLoginReport()">Login &amp; access report</button>
+                    <button class="btn btn-secondary" onclick="openManagementPdf()">Print / save PDF</button>
+                    <button class="btn btn-primary" onclick="downloadManagementReport()">Download Excel</button>
+                </div>
+            </div>
+
+            <div id="systemHealth" class="metric-grid health-metric-grid" style="margin-bottom: 1.5rem;"></div>
+
+            <div class="intelligence-section-heading" style="margin-bottom: 1rem;">
+                <div>
+                    <span class="eyebrow">Launch controls</span>
+                    <h3>Operations and protection</h3>
+                </div>
+            </div>
+
+            <div class="launch-operations-grid" style="margin-bottom: 1.5rem;">
+                <section class="glass-card feature-panel intelligence-control-card">
+                    <div class="section-header">
+                        <div>
+                            <h3>Launch checklist</h3>
+                            <p class="section-note" style="margin:0;">Production readiness tasks.</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="loadLaunchChecklist()">Refresh</button>
+                    </div>
+                    <div id="launchChecklist" class="record-stack"></div>
+                </section>
+
+                <section class="glass-card feature-panel intelligence-control-card">
+                    <div class="section-header">
+                        <div>
+                            <h3>Backup &amp; restore</h3>
+                            <p class="section-note" style="margin:0;">Latest 20 snapshots. Scroll history below.</p>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="createLaunchBackup()">Create backup</button>
+                    </div>
+                    <div id="launchBackups" class="record-stack backup-history-list" role="list" aria-label="Backup history"></div>
+                </section>
+
+                <section class="glass-card feature-panel intelligence-control-card">
+                    <div class="section-header">
+                        <div>
+                            <h3>Security alerts</h3>
+                            <p class="section-note" style="margin:0;">Latest 100 findings. Scroll results below.</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="loadSecurityAlerts()">Scan</button>
+                    </div>
+                    <div id="securityAlerts" class="record-stack bounded-history-list"></div>
+                </section>
+            </div>
+
+            <div class="intelligence-section-heading" style="margin-bottom: 1rem;">
+                <div>
+                    <span class="eyebrow">Intelligence tools</span>
+                    <h3>Analysis and access management</h3>
+                </div>
+            </div>
+
             <div class="intelligence-tool-columns">
                 <div class="intelligence-tool-column">
-                    <section class="glass-card feature-panel intelligence-tool-card"><div class="tool-card-heading"><div><h3>Job-description parser</h3><p class="section-note">Extract structured placement criteria from recruiter text.</p></div><span class="tool-number">01</span></div><div class="form-group"><label class="form-label" for="jdParserText">Job description</label><textarea id="jdParserText" class="form-textarea" rows="6" placeholder="Paste recruiter job description"></textarea></div><button class="btn btn-primary" onclick="parseJobDescription()">Extract criteria</button><div id="jdParserResult" class="record-stack bounded-workspace-list"></div></section>
-                    <section class="glass-card feature-panel intelligence-tool-card"><div class="section-header"><div><h3>Duplicate and fraud checks</h3><p class="section-note">Find repeated identities and conflicting records.</p></div><button class="btn btn-secondary btn-sm" onclick="loadFraudCheck()">Run check</button></div><div id="fraudResults" class="record-stack bounded-workspace-list"></div></section>
+                    <section class="glass-card feature-panel intelligence-tool-card">
+                        <div class="tool-card-heading">
+                            <div>
+                                <h3>Job-description parser</h3>
+                                <p class="section-note" style="margin:0;">Extract structured placement criteria from recruiter text.</p>
+                            </div>
+                            <span class="tool-number">01</span>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                            <label class="form-label" for="jdParserText">Job description</label>
+                            <textarea id="jdParserText" class="form-textarea" rows="6" placeholder="Paste recruiter job description"></textarea>
+                        </div>
+                        <button class="btn btn-primary" onclick="parseJobDescription()">Extract criteria</button>
+                        <div id="jdParserResult" class="record-stack bounded-workspace-list" style="margin-top: 1rem;"></div>
+                    </section>
+
+                    <section class="glass-card feature-panel intelligence-tool-card">
+                        <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                            <div>
+                                <h3>Duplicate and fraud checks</h3>
+                                <p class="section-note" style="margin:0;">Find repeated identities and conflicting records.</p>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" onclick="loadFraudCheck()">Run check</button>
+                        </div>
+                        <div id="fraudResults" class="record-stack bounded-workspace-list"></div>
+                    </section>
                 </div>
+
                 <div class="intelligence-tool-column">
-                    <section class="glass-card feature-panel intelligence-tool-card"><div class="tool-card-heading"><div><h3>Candidate ranking</h3><p class="section-note">Generate explainable ranking for one placement drive.</p></div><span class="tool-number">02</span></div><div class="ranking-action-row"><div class="form-group"><label class="form-label" for="rankingDriveId">Drive UUID</label><input id="rankingDriveId" class="form-input"></div><button class="btn btn-primary" onclick="loadCandidateRanking()">Generate ranking</button></div><div id="rankingResults" class="record-stack bounded-workspace-list"></div></section>
-                    <section class="glass-card feature-panel intelligence-tool-card staff-management-card"><div class="tool-card-heading"><div><h3>Staff management</h3><p class="section-note">Create and manage administrator or TPC access.</p></div><span class="tool-number">03</span></div><form id="staffCreateForm" autocomplete="off"><div class="form-group"><label class="form-label">Staff name</label><input name="display_name" class="form-input" autocomplete="off" required></div><div class="form-group"><label class="form-label">Staff email</label><input name="email" type="email" class="form-input" autocomplete="off" required></div><div class="form-group"><label class="form-label">Temporary password</label><input name="password" type="password" class="form-input" autocomplete="new-password" required minlength="10"><small class="field-help">Minimum 10 characters.</small></div><div class="grid-2"><div class="form-group"><label class="form-label">Access role</label><select name="role" class="form-select"><option value="observer">TPC observer</option><option value="admin">Administrator</option></select></div><div class="form-group"><label class="form-label">Department</label><select name="department" class="form-select"><option value="">No department</option><option>AIML</option><option>CT</option><option>EE</option><option>ME</option><option>CE</option><option>E&amp;C</option></select></div></div><button class="btn btn-primary">Create staff</button></form><div id="staffList" class="record-stack bounded-workspace-list"></div></section>
+                    <section class="glass-card feature-panel intelligence-tool-card">
+                        <div class="tool-card-heading">
+                            <div>
+                                <h3>Candidate ranking</h3>
+                                <p class="section-note" style="margin:0;">Generate explainable ranking for one placement drive.</p>
+                            </div>
+                            <span class="tool-number">02</span>
+                        </div>
+                        <div class="ranking-action-row">
+                            <div class="form-group">
+                                <label class="form-label" for="rankingDriveId">Drive UUID</label>
+                                <input id="rankingDriveId" class="form-input">
+                            </div>
+                            <button class="btn btn-primary" onclick="loadCandidateRanking()">Generate ranking</button>
+                        </div>
+                        <div id="rankingResults" class="record-stack bounded-workspace-list"></div>
+                    </section>
+
+                    <section class="glass-card feature-panel intelligence-tool-card staff-management-card">
+                        <div class="tool-card-heading">
+                            <div>
+                                <h3>Staff management</h3>
+                                <p class="section-note" style="margin:0;">Create and manage administrator or TPC access.</p>
+                            </div>
+                            <span class="tool-number">03</span>
+                        </div>
+                        <form id="staffCreateForm" autocomplete="off">
+                            <div class="form-group">
+                                <label class="form-label">Staff name</label>
+                                <input name="display_name" class="form-input" autocomplete="off" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Staff email</label>
+                                <input name="email" type="email" class="form-input" autocomplete="off" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Temporary password</label>
+                                <input name="password" type="password" class="form-input" autocomplete="new-password" required minlength="10">
+                                <small class="field-help">Minimum 10 characters.</small>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Access role</label>
+                                    <select name="role" class="form-select">
+                                        <option value="observer">TPC observer</option>
+                                        <option value="admin">Administrator</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Department</label>
+                                    <select name="department" class="form-select">
+                                        <option value="">No department</option>
+                                        <option>AIML</option>
+                                        <option>CT</option>
+                                        <option>EE</option>
+                                        <option>ME</option>
+                                        <option>CE</option>
+                                        <option>E&amp;C</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" type="submit" style="margin-top:0.5rem;">Create staff</button>
+                        </form>
+                        <div id="staffList" class="record-stack bounded-workspace-list"></div>
+                    </section>
                 </div>
             </div>
         </div>
 
-        <!-- TAB 3: AUDIT TRAIL LOGS -->
+        <!-- TAB: AUDIT TRAIL LOGS -->
         <div id="tab-audit-logs" class="tab-content" role="tabpanel">
             <div class="section-header">
                 <h3>System Audit Trail Logs</h3>
@@ -384,20 +836,65 @@
             </div>
         </div>
 
-        <!-- TAB 4: JD MATCHING -->
+        <!-- TAB: PLACEMENT DRIVES & JD MATCHING -->
         <div id="tab-jd-matching" class="tab-content" role="tabpanel">
             <div class="drive-workspace">
                 <form id="driveForm" class="glass-card drive-create-panel">
                     <h3 class="drive-wide">Create Placement Drive</h3>
-                    <div class="form-group"><label class="form-label" for="driveCompany">Company</label><input id="driveCompany" class="form-input" required maxlength="150"></div>
-                    <div class="form-group"><label class="form-label" for="driveRole">Role</label><input id="driveRole" class="form-input" required maxlength="150"></div>
-                    <div class="form-group drive-wide"><label class="form-label" for="driveJd">Job Description</label><textarea id="driveJd" class="form-textarea" rows="5" minlength="20" maxlength="50000" required></textarea></div>
-                    <div class="grid-2"><div class="form-group"><label class="form-label" for="driveDeadline">Application deadline</label><input id="driveDeadline" type="date" class="form-input"></div><div class="form-group"><label class="form-label" for="driveStatus">Drive status</label><select id="driveStatus" class="form-select"><option value="draft" selected>Draft</option><option value="review_pending">Submit for review</option><option value="closed">Closed</option></select></div></div>
-                    <div class="form-group"><label class="form-label" for="driveCgpa">Minimum CGPA</label><input id="driveCgpa" type="number" class="form-input" min="0" max="10" step="0.01" value="0"></div>
-                    <fieldset class="form-group branch-selector"><legend class="form-label">Eligible branches</legend><p class="section-note">Select one or more. Leave all unchecked only when every branch is eligible.</p><div id="driveBranches" class="branch-option-grid"><label><input type="checkbox" value="AIML"> AIML</label><label><input type="checkbox" value="CT"> CT</label><label><input type="checkbox" value="EE"> EE</label><label><input type="checkbox" value="ME"> ME</label><label><input type="checkbox" value="CE"> CE</label><label><input type="checkbox" value="E&amp;C"> E&amp;C</label></div></fieldset>
-                    <div class="form-group"><label class="form-label" for="driveRequiredSkills">Required skills</label><input id="driveRequiredSkills" class="form-input" placeholder="JavaScript, SQL"></div>
-                    <div class="form-group"><label class="form-label" for="drivePreferredSkills">Preferred skills</label><input id="drivePreferredSkills" class="form-input"></div>
-                    <div class="form-group"><label class="form-label" for="driveKeywords">JD keywords</label><input id="driveKeywords" class="form-input" placeholder="backend, cloud, API"></div>
+                    <div class="form-group">
+                        <label class="form-label" for="driveCompany">Company</label>
+                        <input id="driveCompany" class="form-input" required maxlength="150">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="driveRole">Role</label>
+                        <input id="driveRole" class="form-input" required maxlength="150">
+                    </div>
+                    <div class="form-group drive-wide">
+                        <label class="form-label" for="driveJd">Job Description</label>
+                        <textarea id="driveJd" class="form-textarea" rows="5" minlength="20" maxlength="50000" required></textarea>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label" for="driveDeadline">Application deadline</label>
+                            <input id="driveDeadline" type="date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="driveStatus">Drive status</label>
+                            <select id="driveStatus" class="form-select">
+                                <option value="draft" selected>Draft</option>
+                                <option value="review_pending">Submit for review</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="driveCgpa">Minimum CGPA</label>
+                        <input id="driveCgpa" type="number" class="form-input" min="0" max="10" step="0.01" value="0">
+                    </div>
+                    <fieldset class="form-group branch-selector">
+                        <legend class="form-label">Eligible branches</legend>
+                        <p class="section-note" style="margin-bottom:0.5rem;">Select one or more. Leave all unchecked only when every branch is eligible.</p>
+                        <div id="driveBranches" class="branch-option-grid">
+                            <label><input type="checkbox" value="AIML"> AIML</label>
+                            <label><input type="checkbox" value="CT"> CT</label>
+                            <label><input type="checkbox" value="EE"> EE</label>
+                            <label><input type="checkbox" value="ME"> ME</label>
+                            <label><input type="checkbox" value="CE"> CE</label>
+                            <label><input type="checkbox" value="E&amp;C"> E&amp;C</label>
+                        </div>
+                    </fieldset>
+                    <div class="form-group">
+                        <label class="form-label" for="driveRequiredSkills">Required skills</label>
+                        <input id="driveRequiredSkills" class="form-input" placeholder="JavaScript, SQL">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="drivePreferredSkills">Preferred skills</label>
+                        <input id="drivePreferredSkills" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="driveKeywords">JD keywords</label>
+                        <input id="driveKeywords" class="form-input" placeholder="backend, cloud, API">
+                    </div>
                     <button class="btn btn-primary" type="submit">Create drive and rank candidates</button>
                 </form>
                 <section class="glass-card drive-list-panel">

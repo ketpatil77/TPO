@@ -1,0 +1,980 @@
+/* ==========================================================================
+   Nexus Design System - Student Workspace (dashboard.html)
+   ========================================================================== */
+
+.student-dashboard-page {
+    background: var(--bg-canvas, #f6f8fb);
+    color: var(--text-body, #334155);
+    font-family: var(--font-body, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+    min-height: 100vh;
+}
+
+/* Student Top Navbar */
+.student-dashboard-page .navbar {
+    background: var(--card-bg, #ffffff) !important;
+    border-bottom: 1px solid var(--card-border, #e2e8f0) !important;
+    padding: 0.625rem 0 !important;
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.03)) !important;
+}
+
+.student-dashboard-page .navbar-inner {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+}
+
+/* Header Profile Banner */
+.student-dashboard-page .header-banner {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.5rem 1.75rem !important;
+    margin-bottom: 1.5rem !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05)) !important;
+}
+
+.student-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.student-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--primary-light, #eef2ff);
+    color: var(--primary, #4f46e5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    border: 2px solid var(--card-border, #e2e8f0);
+    overflow: hidden;
+}
+
+.student-info h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.25rem 0;
+}
+
+.student-info p {
+    font-size: 0.85rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+#overallCgpaBadge {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    padding: 0.5rem 1.125rem !important;
+    border-radius: 9999px !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+    color: #059669 !important;
+    border: 1px solid rgba(16, 185, 129, 0.25) !important;
+}
+
+/* Student Navigation Tabs Bar */
+.student-dashboard-page .tabs-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--card-border, #e2e8f0);
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.student-dashboard-page .tabs-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.student-dashboard-page .tabs-nav .tab-btn {
+    padding: 0.625rem 1.125rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.student-dashboard-page .tabs-nav .tab-btn:hover {
+    color: var(--text-heading, #0f172a);
+    background: var(--bg-muted, #f1f5f9);
+}
+
+.student-dashboard-page .tabs-nav .tab-btn.active {
+    color: var(--primary, #4f46e5);
+    background: var(--primary-light, #eef2ff);
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   TAB 1 & 2: OVERVIEW & PROFILE
+   ========================================================================== */
+
+#tab-overview, #tab-edit-profile, #tab-internships, #tab-certificates, #tab-projects, #tab-research, #tab-diploma, #tab-opportunities, #tab-jobs, #tab-alumni {
+    display: none;
+}
+
+#tab-overview.active, #tab-edit-profile.active, #tab-internships.active, #tab-certificates.active, #tab-projects.active, #tab-research.active, #tab-diploma.active, #tab-opportunities.active, #tab-jobs.active, #tab-alumni.active {
+    display: block;
+}
+
+.overview-layout {
+    display: grid !important;
+    grid-template-columns: 1.2fr 1fr !important;
+    gap: 1.5rem !important;
+}
+
+.overview-panel,
+.diploma-workspace-panel {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.5rem !important;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05)) !important;
+}
+
+.overview-panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+}
+
+.overview-panel-heading h2 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.2rem 0;
+}
+
+.overview-panel-heading p {
+    font-size: 0.8125rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+.overview-panel-heading .eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary, #4f46e5);
+    display: block;
+    margin-bottom: 0.15rem;
+}
+
+#overviewResume {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+}
+
+/* Score Row */
+.overview-score-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.25rem;
+    background: var(--bg-muted, #f8fafc);
+    border: 1px solid var(--card-border, #e2e8f0);
+    border-radius: var(--radius-lg, 12px);
+    margin-bottom: 1.25rem;
+}
+
+.overview-primary-score {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding-right: 1.5rem;
+    border-right: 1px solid var(--card-border, #e2e8f0);
+}
+
+.overview-primary-score span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+    text-transform: uppercase;
+}
+
+.overview-primary-score strong {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary, #4f46e5);
+    line-height: 1;
+}
+
+.overview-primary-score small {
+    font-size: 0.75rem;
+    color: var(--text-muted, #64748b);
+}
+
+.overview-mini-stats {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.overview-mini-stats > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.overview-mini-stats span {
+    font-size: 0.75rem;
+    color: var(--text-muted, #64748b);
+}
+
+.overview-mini-stats strong {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+}
+
+.overview-subheading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.overview-subheading h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0;
+}
+
+.overview-subheading span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+}
+
+/* Semester Performance Grid */
+.overview-semester-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+}
+
+.semester-tile {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--card-border, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.semester-tile-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+    text-transform: uppercase;
+}
+
+.semester-tile-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin-top: 0.2rem;
+}
+
+/* Profile Overview Right Panel */
+.profile-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.profile-stat-grid > div {
+    background: var(--bg-muted, #f8fafc);
+    border: 1px solid var(--card-border, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    padding: 0.75rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.profile-stat-grid strong {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary, #4f46e5);
+}
+
+.profile-stat-grid span {
+    font-size: 0.725rem;
+    color: var(--text-muted, #64748b);
+}
+
+.overview-highlights-text {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #475569);
+    line-height: 1.5;
+    background: var(--bg-muted, #f8fafc);
+    border: 1px solid var(--card-border, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    padding: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.overview-profile-links {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.overview-diploma-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--card-border, #e2e8f0);
+    font-size: 0.8125rem;
+}
+
+.overview-label {
+    color: var(--text-muted, #64748b);
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   TAB 2: EDIT PROFILE & CGPA (#tab-edit-profile)
+   ========================================================================== */
+
+.student-profile-editor {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.75rem !important;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05)) !important;
+}
+
+.profile-editor-heading {
+    margin-bottom: 1.5rem;
+}
+
+.profile-editor-heading h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.25rem 0;
+}
+
+.profile-editor-heading p {
+    font-size: 0.85rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+.profile-form-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.75rem 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--card-border, #e2e8f0);
+}
+
+.profile-form-section-title span {
+    font-size: 0.8125rem;
+    font-weight: 800;
+    color: var(--primary, #4f46e5);
+    background: var(--primary-light, #eef2ff);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+}
+
+.profile-form-section-title strong {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    display: block;
+}
+
+.profile-form-section-title small {
+    font-size: 0.75rem;
+    color: var(--text-muted, #64748b);
+}
+
+.profile-editor-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.profile-editor-form .grid-2,
+.diploma-workspace-panel .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+.profile-editor-form .form-group,
+.diploma-workspace-panel .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.profile-editor-form .form-label,
+.diploma-workspace-panel .form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-heading, #0f172a);
+}
+
+.profile-editor-form .form-input,
+.profile-editor-form .form-select,
+.profile-editor-form .form-textarea,
+.diploma-workspace-panel .form-input {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    color: var(--text-heading, #0f172a);
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--input-border, #cbd5e1);
+    border-radius: var(--radius-md, 8px);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-editor-form .form-input:focus,
+.profile-editor-form .form-select:focus,
+.profile-editor-form .form-textarea:focus,
+.diploma-workspace-panel .form-input:focus {
+    outline: none;
+    border-color: var(--primary, #4f46e5);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.grid-semesters {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 0.5rem;
+}
+
+.grid-semesters > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    text-align: center;
+}
+
+.grid-semesters .form-hint {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+}
+
+.grid-semesters .form-input {
+    padding: 0.5rem 0.25rem;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.profile-save-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--card-border, #e2e8f0);
+}
+
+.profile-save-bar span {
+    font-size: 0.8125rem;
+    color: var(--text-muted, #64748b);
+}
+
+.profile-save-bar .btn,
+.diploma-workspace-panel .btn {
+    height: 42px;
+    padding: 0 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-md, 8px);
+}
+
+/* ==========================================================================
+   TABS 3-5: EXPERIENCE, PORTFOLIO & OPPORTUNITIES
+   ========================================================================== */
+
+.student-dashboard-page .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.student-dashboard-page .section-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.15rem 0;
+}
+
+.student-dashboard-page .section-header .section-note {
+    font-size: 0.8125rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+.student-dashboard-page .section-header .eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary, #4f46e5);
+    display: block;
+}
+
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+}
+
+/* Opportunity Hero & Grid */
+.opportunity-hero {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.5rem 1.75rem !important;
+    margin-bottom: 1.5rem !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+.opportunity-hero h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0 0 0.25rem 0;
+}
+
+.opportunity-hero p {
+    font-size: 0.85rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+.opportunity-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.opportunity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.opportunity-panel {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.5rem !important;
+}
+
+.opportunity-panel .panel-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.opportunity-panel h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0;
+}
+
+.panel-icon {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--primary, #4f46e5);
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] .student-dashboard-page {
+    background: #0f172a;
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .student-dashboard-page .navbar,
+[data-theme="dark"] .student-dashboard-page .header-banner,
+[data-theme="dark"] .overview-panel,
+[data-theme="dark"] .student-profile-editor,
+[data-theme="dark"] .diploma-workspace-panel,
+[data-theme="dark"] .opportunity-hero,
+[data-theme="dark"] .opportunity-panel {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .student-avatar {
+    background: #0f172a;
+    border-color: #334155;
+    color: #818cf8;
+}
+
+[data-theme="dark"] .student-dashboard-page .tabs-nav {
+    border-color: #334155;
+}
+
+[data-theme="dark"] .student-dashboard-page .tabs-nav .tab-btn {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .student-dashboard-page .tabs-nav .tab-btn.active {
+    color: #818cf8;
+    background: rgba(99, 102, 241, 0.15);
+}
+
+[data-theme="dark"] .overview-score-row,
+[data-theme="dark"] .profile-stat-grid > div,
+[data-theme="dark"] .overview-highlights-text,
+[data-theme="dark"] .semester-tile {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .overview-primary-score {
+    border-right-color: #334155;
+}
+
+[data-theme="dark"] .profile-editor-form .form-input,
+[data-theme="dark"] .profile-editor-form .form-select,
+[data-theme="dark"] .profile-editor-form .form-textarea,
+[data-theme="dark"] .diploma-workspace-panel .form-input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 991px) {
+    .overview-layout,
+    .opportunity-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .profile-editor-form .grid-2,
+    .diploma-workspace-panel .grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .grid-semesters {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .collection-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .student-dashboard-page .header-banner,
+    .opportunity-hero {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .student-meta {
+        flex-direction: row;
+    }
+
+    .overview-score-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .overview-primary-score {
+        border-right: none;
+        border-bottom: 1px solid var(--card-border, #e2e8f0);
+        padding-right: 0;
+        padding-bottom: 1rem;
+    }
+
+    .overview-semester-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-semesters {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .profile-save-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .profile-save-bar .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .collection-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .modal-card {
+        width: 95% !important;
+        margin: 1rem !important;
+        padding: 1.25rem !important;
+    }
+}
+
+/* ==========================================================================
+   BLOCK 5: JOB BOARD, ALUMNI NETWORK & MODALS
+   ========================================================================== */
+
+/* Collection Grid for Jobs & Alumni */
+.collection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+}
+
+#jobBoardGrid .glass-card,
+#alumniGrid .glass-card {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.5rem !important;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05)) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#jobBoardGrid .glass-card:hover,
+#alumniGrid .glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(15, 23, 42, 0.08)) !important;
+}
+
+#jobBoardGrid h3,
+#alumniGrid h3 {
+    color: var(--text-heading, #0f172a);
+    font-weight: 700;
+}
+
+#jobBoardGrid details summary {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary, #4f46e5);
+    cursor: pointer;
+    margin-top: 0.25rem;
+    user-select: none;
+}
+
+#jobBoardGrid .job-description {
+    font-size: 0.85rem;
+    color: var(--text-body, #334155);
+    line-height: 1.5;
+    margin-top: 0.5rem;
+    background: var(--bg-muted, #f8fafc);
+    padding: 0.75rem;
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--card-border, #e2e8f0);
+    white-space: pre-wrap;
+}
+
+/* Empty States */
+.panel-empty {
+    grid-column: 1 / -1;
+    background: var(--card-bg, #ffffff);
+    border: 1px dashed var(--card-border, #cbd5e1);
+    border-radius: var(--radius-xl, 16px);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    color: var(--text-muted, #64748b);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.panel-empty strong {
+    font-size: 1.05rem;
+    color: var(--text-heading, #0f172a);
+}
+
+.panel-empty p {
+    font-size: 0.85rem;
+    margin: 0;
+    max-width: 400px;
+}
+
+/* Modal Backdrops & Cards */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal-backdrop.active {
+    display: flex !important;
+}
+
+.modal-backdrop[hidden] {
+    display: none !important;
+}
+
+.modal-card {
+    background: var(--card-bg, #ffffff) !important;
+    border: 1px solid var(--card-border, #e2e8f0) !important;
+    border-radius: var(--radius-xl, 16px) !important;
+    padding: 1.75rem !important;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--card-border, #e2e8f0);
+}
+
+.modal-header h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-heading, #0f172a);
+    margin: 0;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--text-muted, #64748b);
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.close-btn:hover {
+    background: var(--bg-muted, #f1f5f9);
+    color: var(--text-heading, #0f172a);
+}
+
+.modal-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.modal-card .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.modal-card .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.modal-card .form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-heading, #0f172a);
+}
+
+.modal-card .form-input,
+.modal-card .form-select,
+.modal-card .form-textarea {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    color: var(--text-heading, #0f172a);
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--input-border, #cbd5e1);
+    border-radius: var(--radius-md, 8px);
+}
+
+.modal-card .form-input:focus,
+.modal-card .form-select:focus,
+.modal-card .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary, #4f46e5);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+/* Dark Theme Block 5 Overrides */
+[data-theme="dark"] #jobBoardGrid .glass-card,
+[data-theme="dark"] #alumniGrid .glass-card,
+[data-theme="dark"] .panel-empty,
+[data-theme="dark"] .modal-card {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc;
+}
+
+[data-theme="dark"] #jobBoardGrid .job-description {
+    background: #0f172a;
+    border-color: #334155;
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .modal-header {
+    border-color: #334155;
+}
+
+[data-theme="dark"] .close-btn:hover {
+    background: #334155;
+    color: #ffffff;
+}
+
+[data-theme="dark"] .modal-card .form-input,
+[data-theme="dark"] .modal-card .form-select,
+[data-theme="dark"] .modal-card .form-textarea {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+

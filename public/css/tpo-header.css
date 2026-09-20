@@ -1,0 +1,597 @@
+/**
+ * Placement Portal AIT - TPO Header & Top Navigation Component
+ * Design System implementation matching Reference UI ("Nexus" Dashboard Language)
+ * Rock-solid responsive layout for desktop, tablet, and mobile screens.
+ */
+
+/* ==========================================================================
+   1. TOP NAVIGATION BAR SHELL (nav.navbar)
+   ========================================================================== */
+body.admin-dashboard-page .navbar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 990 !important;
+    height: 64px !important;
+    min-height: 64px !important;
+    max-height: 64px !important;
+    background: var(--ds-surface-card, #ffffff) !important;
+    border-bottom: 1px solid var(--ds-border, #edf0f5) !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    transition: margin-left 220ms cubic-bezier(0.16, 1, 0.3, 1),
+                width 220ms cubic-bezier(0.16, 1, 0.3, 1),
+                max-width 220ms cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 200ms ease,
+                border-color 200ms ease !important;
+}
+
+@media (min-width: 1024px) {
+    body.admin-dashboard-page .navbar {
+        margin-left: 260px !important;
+        width: calc(100% - 260px) !important;
+        max-width: calc(100% - 260px) !important;
+    }
+
+    body.admin-dashboard-page.sidebar-collapsed .navbar {
+        margin-left: 76px !important;
+        width: calc(100% - 76px) !important;
+        max-width: calc(100% - 76px) !important;
+    }
+}
+
+@media (max-width: 1023px) {
+    body.admin-dashboard-page .navbar {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* Ensure navbar-inner stays on a single line on all screen sizes */
+body.admin-dashboard-page .navbar .navbar-inner,
+body.admin-dashboard-page .navbar-inner {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    height: 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 1.25rem !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+    gap: 0.75rem !important;
+    overflow: hidden !important;
+}
+
+@media (max-width: 768px) {
+    body.admin-dashboard-page .navbar .navbar-inner,
+    body.admin-dashboard-page .navbar-inner {
+        padding: 0 0.75rem !important;
+        gap: 0.5rem !important;
+    }
+}
+
+/* Navbar Left Section */
+.tpo-header-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    flex-shrink: 0 !important;
+}
+
+/* Global Search Input Pill (Nexus Reference UI) */
+.tpo-header-search {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    background: var(--ds-surface-subtle, #f1f5f9) !important;
+    border: 1px solid var(--ds-border, #edf0f5) !important;
+    border-radius: var(--ds-radius-full, 9999px) !important;
+    padding: 0 14px !important;
+    height: 36px !important;
+    width: 220px !important;
+    max-width: 320px !important;
+    transition: all 180ms ease !important;
+    box-sizing: border-box !important;
+}
+
+@media (max-width: 768px) {
+    .tpo-header-search {
+        display: none !important;
+    }
+}
+
+.tpo-header-search:focus-within {
+    background: var(--ds-surface-card, #ffffff) !important;
+    border-color: var(--ds-primary, #6366f1) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important;
+    width: 260px !important;
+}
+
+.tpo-search-icon {
+    width: 15px !important;
+    height: 15px !important;
+    stroke: var(--ds-text-subtle, #94a3b8) !important;
+    flex-shrink: 0 !important;
+}
+
+.tpo-search-input {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    font-family: var(--ds-font-primary) !important;
+    font-size: 13px !important;
+    color: var(--ds-text-heading, #0f172a) !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.tpo-search-input::placeholder {
+    color: var(--ds-text-subtle, #94a3b8) !important;
+}
+
+.tpo-search-shortcut {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 2px 5px !important;
+    border-radius: 4px !important;
+    background: var(--ds-surface-card, #ffffff) !important;
+    border: 1px solid var(--ds-border, #edf0f5) !important;
+    font-family: var(--ds-font-primary) !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    color: var(--ds-text-subtle, #94a3b8) !important;
+    user-select: none !important;
+    flex-shrink: 0 !important;
+}
+
+/* Navbar Right Actions Cluster - Strict Single Row Alignment */
+body.admin-dashboard-page .navbar .tpo-header-right,
+body.admin-dashboard-page .navbar-inner > div:last-child {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    width: auto !important;
+    max-width: none !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Theme Toggle Button (injected by theme.js or in markup) */
+body.admin-dashboard-page .navbar .theme-toggle,
+body.admin-dashboard-page .navbar [data-theme-toggle] {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    border-radius: var(--ds-radius-sm, 8px) !important;
+    background: var(--ds-surface-subtle, #f1f5f9) !important;
+    border: 1px solid var(--ds-border, #edf0f5) !important;
+    color: var(--ds-text-body, #334155) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
+}
+
+/* User Profile Picture Button */
+.profile-picture-button {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    border-radius: 50% !important;
+    border: 2px solid var(--ds-primary-light, #eef2ff) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: var(--ds-primary-light, #eef2ff) !important;
+    color: var(--ds-primary, #6366f1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+    overflow: hidden !important;
+    transition: all 180ms ease !important;
+    box-shadow: var(--ds-shadow-xs, 0 1px 2px rgba(15, 23, 42, 0.04)) !important;
+    flex-shrink: 0 !important;
+}
+
+.profile-picture-button:hover {
+    border-color: var(--ds-primary, #6366f1) !important;
+    transform: scale(1.03) !important;
+}
+
+.profile-picture-button img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+/* Admin Role Badge */
+#adminRoleBadge.badge,
+.badge-online {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 4px 10px !important;
+    border-radius: var(--ds-radius-full, 9999px) !important;
+    background: var(--ds-success-bg, #ecfdf5) !important;
+    color: var(--ds-success-text, #059669) !important;
+    font-family: var(--ds-font-primary) !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    letter-spacing: 0.01em !important;
+    border: 1px solid rgba(16, 185, 129, 0.2) !important;
+    white-space: nowrap !important;
+}
+
+#adminRoleBadge.badge::before {
+    content: '' !important;
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 50% !important;
+    background: var(--ds-success, #10b981) !important;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25) !important;
+    display: inline-block !important;
+}
+
+@media (max-width: 640px) {
+    #adminRoleBadge.badge {
+        display: none !important;
+    }
+}
+
+/* Sign Out Button */
+body.admin-dashboard-page #adminLogoutBtn.btn {
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    padding: 0 12px !important;
+    border-radius: var(--ds-radius-sm, 8px) !important;
+    background: var(--ds-surface-subtle, #f1f5f9) !important;
+    border: 1px solid var(--ds-border, #edf0f5) !important;
+    color: var(--ds-text-body, #334155) !important;
+    font-family: var(--ds-font-primary) !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 180ms ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+}
+
+@media (max-width: 480px) {
+    body.admin-dashboard-page #adminLogoutBtn.btn {
+        padding: 0 8px !important;
+        font-size: 11.5px !important;
+    }
+}
+
+body.admin-dashboard-page #adminLogoutBtn.btn:hover {
+    background: #fef2f2 !important;
+    color: #e11d48 !important;
+    border-color: rgba(225, 29, 72, 0.2) !important;
+}
+
+
+/* ==========================================================================
+   2. HEADER BANNER (Page Header & Quick Stats)
+   ========================================================================== */
+body.admin-dashboard-page .header-banner {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 1.25rem !important;
+    flex-wrap: wrap !important;
+    background: var(--ds-surface-card, #ffffff) !important;
+    border: 1px solid var(--ds-border, #edf0f5) !important;
+    border-radius: var(--ds-radius-lg, 16px) !important;
+    padding: 1.25rem 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    box-shadow: var(--ds-shadow-card, 0 1px 3px rgba(15, 23, 42, 0.03)) !important;
+    box-sizing: border-box !important;
+    height: auto !important;
+    min-height: 0 !important;
+    transition: background-color 200ms ease, border-color 200ms ease !important;
+}
+
+@media (max-width: 768px) {
+    body.admin-dashboard-page .header-banner {
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+        gap: 0.85rem !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        border-radius: var(--ds-radius-md, 12px) !important;
+    }
+}
+
+.tpo-banner-info {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    flex: 1 1 240px !important;
+}
+
+.tpo-banner-info h2 {
+    font-family: var(--ds-font-primary) !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    color: var(--ds-text-heading, #0f172a) !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.02em !important;
+    margin: 0 0 4px 0 !important;
+}
+
+@media (max-width: 768px) {
+    .tpo-banner-info h2 {
+        font-size: 17px !important;
+        margin-bottom: 2px !important;
+    }
+}
+
+.tpo-banner-info p {
+    font-family: var(--ds-font-primary) !important;
+    font-size: 13.5px !important;
+    font-weight: 400 !important;
+    color: var(--ds-text-muted, #64748b) !important;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+    display: block !important;
+}
+
+@media (max-width: 768px) {
+    .tpo-banner-info p {
+        font-size: 12px !important;
+        line-height: 1.35 !important;
+    }
+}
+
+/* Banner Right Action & KPI Cluster */
+.tpo-banner-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    flex-wrap: wrap !important;
+    flex: 0 0 auto !important;
+}
+
+@media (max-width: 768px) {
+    .tpo-banner-actions {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.65rem !important;
+    }
+}
+
+/* Unified Impersonation Box */
+.tpo-impersonate-group {
+    display: flex !important;
+    align-items: center !important;
+    background: var(--ds-surface-subtle, #f1f5f9) !important;
+    border: 1px solid var(--ds-border, #edf0f5) !important;
+    border-radius: var(--ds-radius-md, 10px) !important;
+    padding: 3px !important;
+    box-sizing: border-box !important;
+    transition: all 180ms ease !important;
+}
+
+@media (max-width: 768px) {
+    .tpo-impersonate-group {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+    }
+}
+
+.tpo-impersonate-group:focus-within {
+    border-color: var(--ds-primary, #6366f1) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important;
+    background: var(--ds-surface-card, #ffffff) !important;
+}
+
+#impersonatePrn.form-input {
+    height: 34px !important;
+    min-height: 34px !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 12px !important;
+    font-family: var(--ds-font-primary) !important;
+    font-size: 13px !important;
+    color: var(--ds-text-heading, #0f172a) !important;
+    min-width: 130px !important;
+    flex: 1 1 auto !important;
+    margin: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+}
+
+#impersonatePrn.form-input::placeholder {
+    color: var(--ds-text-subtle, #94a3b8) !important;
+}
+
+/* Fix legacy pseudoelement duplication on impersonation button */
+body.admin-dashboard-page #btnImpersonate.btn {
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 14px !important;
+    border-radius: var(--ds-radius-sm, 8px) !important;
+    background: var(--ds-primary, #6366f1) !important;
+    color: #ffffff !important;
+    font-family: var(--ds-font-primary) !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    transition: background-color 180ms ease !important;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.25) !important;
+    flex-shrink: 0 !important;
+}
+
+body.admin-dashboard-page #btnImpersonate.btn::after {
+    display: none !important;
+    content: none !important;
+}
+
+@media (max-width: 480px) {
+    body.admin-dashboard-page #btnImpersonate.btn {
+        padding: 0 10px !important;
+        font-size: 11.5px !important;
+    }
+}
+
+body.admin-dashboard-page #btnImpersonate.btn:hover {
+    background: var(--ds-primary-hover, #4f46e5) !important;
+}
+
+/* KPI Stat Cards (Nexus Style) */
+.tpo-stat-tile {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px 12px !important;
+    background: var(--ds-surface-subtle, #f1f5f9) !important;
+    border: 1px solid var(--ds-border, #edf0f5) !important;
+    border-radius: var(--ds-radius-md, 10px) !important;
+    min-width: 90px !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+}
+
+@media (max-width: 768px) {
+    .tpo-stat-tile {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 6px 10px !important;
+    }
+}
+
+.tpo-stat-label {
+    font-family: var(--ds-font-primary) !important;
+    font-size: 10.5px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: var(--ds-text-subtle, #94a3b8) !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+}
+
+@media (max-width: 480px) {
+    .tpo-stat-label {
+        font-size: 9.5px !important;
+    }
+}
+
+.tpo-stat-value {
+    font-family: var(--ds-font-primary) !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.02em !important;
+    margin-top: 2px !important;
+    font-feature-settings: "tnum" !important;
+}
+
+@media (max-width: 480px) {
+    .tpo-stat-value {
+        font-size: 17px !important;
+    }
+}
+
+#statFilteredCount.tpo-stat-value {
+    color: var(--ds-accent-cyan, #06b6d4) !important;
+}
+
+#statRosterCount.tpo-stat-value {
+    color: var(--ds-primary, #6366f1) !important;
+}
+
+
+/* ==========================================================================
+   3. DARK MODE COMPATIBILITY
+   ========================================================================== */
+:root[data-theme="dark"] body.admin-dashboard-page .navbar {
+    background: #0f172a !important;
+    border-bottom-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+:root[data-theme="dark"] .tpo-header-search {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+:root[data-theme="dark"] .tpo-search-input {
+    color: #f8fafc !important;
+}
+
+:root[data-theme="dark"] .tpo-search-shortcut {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(148, 163, 184, 0.16) !important;
+    color: #94a3b8 !important;
+}
+
+:root[data-theme="dark"] body.admin-dashboard-page #adminLogoutBtn.btn {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(148, 163, 184, 0.14) !important;
+    color: #cbd5e1 !important;
+}
+
+:root[data-theme="dark"] body.admin-dashboard-page .header-banner {
+    background: #0f172a !important;
+    border-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+:root[data-theme="dark"] .tpo-banner-info h2 {
+    color: #f8fafc !important;
+}
+
+:root[data-theme="dark"] .tpo-banner-info p {
+    color: #94a3b8 !important;
+}
+
+:root[data-theme="dark"] .tpo-impersonate-group {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+:root[data-theme="dark"] #impersonatePrn.form-input {
+    color: #f8fafc !important;
+}
+
+:root[data-theme="dark"] .tpo-stat-tile {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+:root[data-theme="dark"] .tpo-stat-label {
+    color: #64748b !important;
+}

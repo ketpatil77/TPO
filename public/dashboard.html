@@ -5,21 +5,36 @@
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Workspace - AIT Placement Portal</title>
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
     <script src="/js/theme.js?v=20260812-advanced1"></script>
+    <link rel="stylesheet" href="/css/design-tokens.css?v=20260919-tokens1">
     <link rel="stylesheet" href="/css/styles.css?v=20260901-motion1">
     <link rel="stylesheet" href="/css/portal-layout-20260814.css?v=20260818-uifinal1">
     <link rel="stylesheet" href="/css/portal-responsive.css?v=20260901-student-gold1">
     <script src="/js/portal-responsive.js?v=20260901-mobile-nav1" defer></script>
     <script src="/js/portal-sections.js?v=20260831" defer></script>
-<link rel="stylesheet" href="/css/student-experience-v1.css?v=20260906-engagement4"><script src="/js/student-experience-v1.js?v=20260906-engagement4" defer></script></head>
+    <link rel="stylesheet" href="/css/student-experience-v1.css?v=20260906-engagement4">
+    <link rel="stylesheet" href="/css/student-dashboard.css?v=20260919-student1">
+    <link rel="stylesheet" href="/css/student-sidebar.css?v=20260919-sidebar1">
+    <script src="/js/student-experience-v1.js?v=20260906-engagement4" defer></script>
+    <script src="/js/student-sidebar.js?v=20260919-sidebar1" defer></script>
+</head>
 <body class="student-dashboard-page">
     <a class="skip-link" href="#studentDashboard">Skip to dashboard</a>
+    <div id="studentSidebarOverlay" class="student-sidebar-overlay"></div>
     <!-- Navbar -->
     <nav class="navbar" style="padding: 10px 0;">
         <div class="container navbar-inner" style="display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
             <!-- Left group -->
             <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0; min-width: max-content;">
-                <div style="width: 32px; height: 32px; background: var(--primary); color: #fff; border-radius: var(--radius-md, 8px); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; user-select: none;">AIT</div>
+                <button id="studentMobileNavTrigger" class="student-mobile-nav-trigger" type="button" aria-label="Open navigation menu">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <div class="brand-icon"><div class="brand-icon-inner"><img src="/logo.svg" alt="AIT Logo"></div></div>
                 <div style="display: flex; flex-direction: column;">
                     <div style="font-family: var(--font-heading); font-weight: 600; font-size: 14px; color: var(--text-heading); line-height: 1.2;">AIT Placement Portal</div>
                     <div style="color: var(--text-muted); font-size: 11px; line-height: 1.2;">Student Workspace</div>
@@ -58,6 +73,109 @@
     </div>
 
     <main id="studentDashboard" class="container dashboard-wrapper" aria-busy="true">
+        <!-- Student Left Sidebar Navigation (Nexus Design System) -->
+        <aside id="studentSidebar" class="student-sidebar tabs-nav" role="tablist" aria-label="Student workspace sections">
+            <!-- Sidebar Header -->
+            <div class="student-sidebar-header">
+                <a href="/dashboard" class="student-sidebar-brand">
+                    <div class="student-brand-icon"><div class="brand-icon-inner"><img src="/logo.svg" alt="AIT Logo"></div></div>
+                    <div class="student-brand-text">
+                        <span class="student-brand-title">AIT Portal</span>
+                        <span class="student-brand-subtitle">Student Workspace</span>
+                    </div>
+                </a>
+                <button id="studentSidebarCollapseBtn" class="student-sidebar-toggle-btn" type="button" title="Collapse sidebar" aria-label="Collapse sidebar" aria-expanded="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <button id="studentSidebarCloseBtn" class="student-sidebar-close-btn" type="button" title="Close menu" aria-label="Close menu">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <!-- Sidebar Scrollable Navigation Body -->
+            <div class="student-sidebar-body">
+                <!-- Group 1: Main Menu -->
+                <div class="student-sidebar-group open" data-group="main">
+                    <button type="button" class="sidebar-group-header" aria-expanded="true" onclick="toggleSidebarGroup(this)">
+                        <div class="group-header-left">
+                            <svg viewBox="0 0 24 24" class="group-icon" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/></svg>
+                            <span class="group-title">Main Menu</span>
+                        </div>
+                        <svg viewBox="0 0 24 24" class="group-chevron" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="sidebar-group-items">
+                        <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-overview" onclick="switchTab('overview', this)">
+                            <svg viewBox="0 0 24 24" class="tab-icon" fill="none"><rect x="3" y="3" width="7" height="9" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="5" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="12" width="7" height="9" rx="1" stroke="currentColor" stroke-width="2"/><rect x="3" y="16" width="7" height="5" rx="1" stroke="currentColor" stroke-width="2"/></svg>
+                            <span class="tab-label">Overview</span>
+                        </button>
+                        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-edit-profile" onclick="switchTab('edit-profile', this)">
+                            <svg viewBox="0 0 24 24" class="tab-icon" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/></svg>
+                            <span class="tab-label">Profile and CGPA</span>
+                        </button>
+                        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-opportunities" onclick="switchTab('opportunities', this)">
+                            <svg viewBox="0 0 24 24" class="tab-icon" fill="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <span class="tab-label">Opportunities</span>
+                            <span id="navNotificationUnread" class="badge badge-info" hidden>0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Group 2: Portfolio & Experience -->
+                <div class="student-sidebar-group open" data-group="portfolio">
+                    <button type="button" class="sidebar-group-header" aria-expanded="true" onclick="toggleSidebarGroup(this)">
+                        <div class="group-header-left">
+                            <svg viewBox="0 0 24 24" class="group-icon" fill="none"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2"/></svg>
+                            <span class="group-title">Portfolio &amp; Experience</span>
+                        </div>
+                        <svg viewBox="0 0 24 24" class="group-chevron" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="sidebar-group-items">
+                        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-internships" onclick="switchTab('internships', this)">
+                            <svg viewBox="0 0 24 24" class="tab-icon" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" stroke="currentColor" stroke-width="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" stroke="currentColor" stroke-width="2"/></svg>
+                            <span class="tab-label">Internships (<span id="internshipCount">0</span>)</span>
+                        </button>
+                        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-certificates" onclick="switchTab('certificates', this)">
+                            <svg viewBox="0 0 24 24" class="tab-icon" fill="none"><circle cx="12" cy="8" r="6" stroke="currentColor" stroke-width="2"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" stroke="currentColor" stroke-width="2"/></svg>
+                            <span class="tab-label">Certificates (<span id="certCount">0</span>)</span>
+                        </button>
+                        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-projects" onclick="switchTab('projects', this)">
+                            <svg viewBox="0 0 24 24" class="tab-icon" fill="none"><polyline points="16 18 22 12 16 6" stroke="currentColor" stroke-width="2"/><polyline points="8 6 2 12 8 18" stroke="currentColor" stroke-width="2"/></svg>
+                            <span class="tab-label">Projects (<span id="projectCount">0</span>)</span>
+                        </button>
+                        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-research" onclick="switchTab('research', this)">
+                            <svg viewBox="0 0 24 24" class="tab-icon" fill="none"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2"/></svg>
+                            <span class="tab-label">Research Papers (<span id="researchCount">0</span>)</span>
+                        </button>
+                        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-diploma" onclick="switchTab('diploma', this)">
+                            <svg viewBox="0 0 24 24" class="tab-icon" fill="none"><path d="M22 10v6M2 10l10-5 10 5-10 5z" stroke="currentColor" stroke-width="2"/><path d="M6 12v5c3 3 9 3 12 0v-5" stroke="currentColor" stroke-width="2"/></svg>
+                            <span class="tab-label">Diploma</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Group 3: Career & Network -->
+                <div class="student-sidebar-group open" data-group="career">
+                    <button type="button" class="sidebar-group-header" aria-expanded="true" onclick="toggleSidebarGroup(this)">
+                        <div class="group-header-left">
+                            <svg viewBox="0 0 24 24" class="group-icon" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/></svg>
+                            <span class="group-title">Career &amp; Network</span>
+                        </div>
+                        <svg viewBox="0 0 24 24" class="group-chevron" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="sidebar-group-items">
+                        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-jobs" onclick="switchTab('jobs', this); loadJobBoard();">
+                            <svg viewBox="0 0 24 24" class="tab-icon" fill="none"><path d="M21 13.255A23.931 23.931 0 0 1 12 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2m4 6h.01M5 20h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" stroke="currentColor" stroke-width="2"/></svg>
+                            <span class="tab-label">Job Board</span>
+                        </button>
+                        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-alumni" onclick="switchTab('alumni', this); loadAlumniNetwork();">
+                            <svg viewBox="0 0 24 24" class="tab-icon" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/></svg>
+                            <span class="tab-label">Alumni Network</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
         <div id="notificationSetupStatus" class="glass-card" role="status" hidden style="padding:12px; margin-bottom:12px">
             <p id="notificationSetupMessage"></p>
             <button id="retryNotificationSetup" class="btn btn-secondary" type="button">Retry notification setup</button>
@@ -87,20 +205,6 @@
                     CGPA: --
                 </span>
             </div>
-        </div>
-
-        <!-- Navigation Tabs -->
-        <div class="tabs-nav" role="tablist" aria-label="Student workspace sections">
-            <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-overview" onclick="switchTab('overview', this)">Overview</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-edit-profile" onclick="switchTab('edit-profile', this)">Profile and CGPA</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-internships" onclick="switchTab('internships', this)">Internships (<span id="internshipCount">0</span>)</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-certificates" onclick="switchTab('certificates', this)">Certificates (<span id="certCount">0</span>)</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-projects" onclick="switchTab('projects', this)">Projects (<span id="projectCount">0</span>)</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-research" onclick="switchTab('research', this)">Research Papers (<span id="researchCount">0</span>)</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-diploma" onclick="switchTab('diploma', this)">Diploma</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-opportunities" onclick="switchTab('opportunities', this)">Opportunities <span id="navNotificationUnread" class="badge badge-info" hidden>0</span></button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-jobs" onclick="switchTab('jobs', this); loadJobBoard();">Job Board</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-alumni" onclick="switchTab('alumni', this); loadAlumniNetwork();">Alumni Network</button>
         </div>
 
         <!-- TAB 1: OVERVIEW -->
